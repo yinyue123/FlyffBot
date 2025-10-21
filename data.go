@@ -399,12 +399,12 @@ func NewConfig() *Config {
 		PassiveColor:              NewColor(234, 234, 149),
 		AggressiveColor:           NewColor(179, 23, 23),
 		VioletColor:               NewColor(182, 144, 146),
-		PassiveTolerance:          5,
-		AggressiveTolerance:       5,
-		VioletTolerance:           5,
+		PassiveTolerance:          5,  // Matching Rust: passive_tolerence.unwrap_or(5)
+		AggressiveTolerance:       10, // Matching Rust: aggressive_tolerence.unwrap_or(10)
+		VioletTolerance:           10, // Matching Rust: violet_tolerence.unwrap_or(10)
 		PrioritizeAggro:           true,
-		MinMobNameWidth:           15,
-		MaxMobNameWidth:           150,
+		MinMobNameWidth:           11,  // Matching Rust: min_mobs_name_width.unwrap_or(11)
+		MaxMobNameWidth:           180, // Matching Rust: max_mobs_name_width.unwrap_or(180)
 		CircleMoveDuration:        100,
 		MinHPAttack:               70,
 		StopFighting:              false,

@@ -191,12 +191,13 @@ func (ia *ImageAnalyzer) IdentifyMobs(config *Config) []Target {
 		return nil
 	}
 
-	// Scan region excludes UI areas
+	// Scan region - expanded to catch more mobs, filter in post-processing
+	// Changed from Y:60 to Y:0 to match Rust version's full-screen scan
 	region := Bounds{
 		X: 0,
-		Y: 60, // Skip top UI
+		Y: 0, // Start from top (was 60)
 		W: ia.screenInfo.Width,
-		H: ia.screenInfo.Height - 170, // Skip bottom UI
+		H: ia.screenInfo.Height - 100, // Reduced from 170 to 100
 	}
 
 	// Detect passive mobs (yellow names)
@@ -219,23 +220,37 @@ func (ia *ImageAnalyzer) IdentifyMobs(config *Config) []Target {
 
 	// Process passive mobs
 	passiveClusters := clusterPoints(passivePoints, 50, 3)
+	LogDebug("Passive clustering: %d points -> %d clusters", len(passivePoints), len(passiveClusters))
 	for _, bounds := range passiveClusters {
-		if bounds.W >= config.MinMobNameWidth && bounds.W <= config.MaxMobNameWidth {
+		// Filter: width check + avoid HP bar region (y < 110)
+		// Matching Rust logic (image_analyzer.rs:164-166): w > min && w < max
+		if bounds.W > config.MinMobNameWidth && bounds.W < config.MaxMobNameWidth && bounds.Y >= 110 {
+			LogDebug("Passive mob ACCEPTED at (%d,%d) size %dx%d", bounds.X, bounds.Y, bounds.W, bounds.H)
 			mobs = append(mobs, Target{
 				Type:   MobPassive,
 				Bounds: bounds,
 			})
+		} else {
+			LogDebug("Passive cluster REJECTED at (%d,%d) size %dx%d (width must be >%d and <%d, y: %d)",
+				bounds.X, bounds.Y, bounds.W, bounds.H, config.MinMobNameWidth, config.MaxMobNameWidth, bounds.Y)
 		}
 	}
 
 	// Process aggressive mobs
 	aggressiveClusters := clusterPoints(aggressivePoints, 50, 3)
+	LogDebug("Aggressive clustering: %d points -> %d clusters", len(aggressivePoints), len(aggressiveClusters))
 	for _, bounds := range aggressiveClusters {
-		if bounds.W >= config.MinMobNameWidth && bounds.W <= config.MaxMobNameWidth {
+		// Filter: width check + avoid HP bar region (y < 110)
+		// Matching Rust logic (image_analyzer.rs:164-166): w > min && w < max
+		if bounds.W > config.MinMobNameWidth && bounds.W < config.MaxMobNameWidth && bounds.Y >= 110 {
+			LogDebug("Aggressive mob ACCEPTED at (%d,%d) size %dx%d", bounds.X, bounds.Y, bounds.W, bounds.H)
 			mobs = append(mobs, Target{
 				Type:   MobAggressive,
 				Bounds: bounds,
 			})
+		} else {
+			LogDebug("Aggressive cluster REJECTED at (%d,%d) size %dx%d (width must be >%d and <%d, y: %d)",
+				bounds.X, bounds.Y, bounds.W, bounds.H, config.MinMobNameWidth, config.MaxMobNameWidth, bounds.Y)
 		}
 	}
 
@@ -243,11 +258,15 @@ func (ia *ImageAnalyzer) IdentifyMobs(config *Config) []Target {
 	if len(violetPoints) > 0 {
 		violetClusters := clusterPoints(violetPoints, 50, 3)
 		for _, bounds := range violetClusters {
-			if bounds.W >= config.MinMobNameWidth && bounds.W <= config.MaxMobNameWidth {
+			// Matching Rust logic: w > min && w < max
+			if bounds.W > config.MinMobNameWidth && bounds.W < config.MaxMobNameWidth {
 				LogDebug("Detected violet mob at (%d,%d), filtering out", bounds.X, bounds.Y)
 			}
 		}
 	}
+
+	LogDebug("Identified %d total mobs (passive clusters: %d, aggressive clusters: %d)",
+		len(mobs), len(passiveClusters), len(aggressiveClusters))
 
 	return mobs
 }
@@ -350,6 +369,11 @@ func (ia *ImageAnalyzer) scanPixelsForColors(img *image.RGBA, region Bounds, col
 
 	for y := minY; y < maxY; y++ {
 		for x := minX; x < maxX; x++ {
+			// Skip HP bar region (matching Rust logic at line 231-233)
+			if x <= 250 && y <= 110 {
+				continue
+			}
+
 			c := img.RGBAAt(x, y)
 
 			// Check if pixel matches any target color
@@ -367,7 +391,9 @@ func (ia *ImageAnalyzer) scanPixelsForColors(img *image.RGBA, region Bounds, col
 
 // colorMatches checks if a color matches a target color within tolerance
 func colorMatches(c color.RGBA, target Color, tolerance uint8) bool {
-	if c.A != 255 {
+	// Allow pixels with alpha >= 250 to handle anti-aliasing and semi-transparent text
+	// This matches the Rust version which doesn't check alpha at all
+	if c.A < 250 {
 		return false
 	}
 
@@ -384,16 +410,30 @@ func clusterPoints(points []Point, distanceX, distanceY int) []Bounds {
 		return nil
 	}
 
+	// CRITICAL: Sort points by X axis first (matching Rust's sorted_by at point_cloud.rs:78)
+	// Without sorting, clustering will not work correctly!
+	sortedPoints := make([]Point, len(points))
+	copy(sortedPoints, points)
+
+	// Sort by X coordinate
+	for i := 0; i < len(sortedPoints); i++ {
+		for j := i + 1; j < len(sortedPoints); j++ {
+			if sortedPoints[i].X > sortedPoints[j].X {
+				sortedPoints[i], sortedPoints[j] = sortedPoints[j], sortedPoints[i]
+			}
+		}
+	}
+
 	// First cluster by X axis
 	xClusters := make([][]Point, 0)
-	currentCluster := []Point{points[0]}
+	currentCluster := []Point{sortedPoints[0]}
 
-	for i := 1; i < len(points); i++ {
-		if abs(points[i].X-points[i-1].X) <= distanceX {
-			currentCluster = append(currentCluster, points[i])
+	for i := 1; i < len(sortedPoints); i++ {
+		if abs(sortedPoints[i].X-sortedPoints[i-1].X) <= distanceX {
+			currentCluster = append(currentCluster, sortedPoints[i])
 		} else {
 			xClusters = append(xClusters, currentCluster)
-			currentCluster = []Point{points[i]}
+			currentCluster = []Point{sortedPoints[i]}
 		}
 	}
 	xClusters = append(xClusters, currentCluster)
@@ -440,6 +480,10 @@ func (ia *ImageAnalyzer) FindClosestMob(mobs []Target) *Target {
 	var closest *Target
 	minDistance := float64(99999)
 
+	// Maximum distance threshold matching Rust version
+	// 325px for normal farming, can be increased for circle pattern
+	maxDistance := 325.0
+
 	for i := range mobs {
 		mobX := mobs[i].Bounds.X + mobs[i].Bounds.W/2
 		mobY := mobs[i].Bounds.Y + mobs[i].Bounds.H/2
@@ -447,6 +491,11 @@ func (ia *ImageAnalyzer) FindClosestMob(mobs []Target) *Target {
 		dx := float64(mobX - centerX)
 		dy := float64(mobY - centerY)
 		distance := math.Sqrt(dx*dx + dy*dy)
+
+		// Filter by max distance to avoid unreachable mobs
+		if distance > maxDistance {
+			continue
+		}
 
 		if distance < minDistance {
 			minDistance = distance

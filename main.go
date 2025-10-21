@@ -79,16 +79,17 @@ type BotBehavior interface {
 //   - tray: System tray UI for user configuration
 //   - data: Persistent data container (config + cookies)
 type Bot struct {
-	config    *Config
-	stats     *Statistics
-	action    *Action
-	browser   *Browser
-	analyzer  *ImageAnalyzer
-	movement  *MovementCoordinator
-	behavior  BotBehavior
-	tray      *TrayApp
-	stopChan  chan bool
-	data      *PersistentData
+	config       *Config
+	stats        *Statistics
+	action       *Action
+	browser      *Browser
+	analyzer     *ImageAnalyzer
+	movement     *MovementCoordinator
+	behavior     BotBehavior
+	tray         *TrayApp
+	stopChan     chan bool
+	data         *PersistentData
+	cookiesSaved bool // Flag to track if cookies have been saved after game loads
 }
 
 // NewBot creates and initializes a new bot instance with all required components.
@@ -370,7 +371,15 @@ func (b *Bot) runIteration() {
 		return
 	}
 
-	// Capture screen from browser
+	// Save cookies when game first loads (canvas detected for the first time)
+	if !b.cookiesSaved {
+		LogInfo("Game loaded, saving cookies automatically...")
+		b.SaveState()
+		b.cookiesSaved = true
+		LogInfo("Cookies saved successfully after game load")
+	}
+
+	// Capture screen from browser and store in analyzer
 	LogDebug("runIteration: calling Capture")
 	img, err := b.browser.Capture()
 	if err != nil {
@@ -378,6 +387,13 @@ func (b *Bot) runIteration() {
 		return
 	}
 	LogDebug("runIteration: capture returned, img != nil: %v", img != nil)
+
+	// Store captured image in analyzer
+	if img != nil {
+		b.analyzer.mu.Lock()
+		b.analyzer.lastImage = img
+		b.analyzer.mu.Unlock()
+	}
 
 	// Update stats before drawing overlay
 	LogDebug("runIteration: calling UpdateStats")
@@ -573,7 +589,16 @@ func main() {
 	}()
 
 	LogInfo("=== Flyff Bot Started ===")
-	LogInfo("Platform: %s", NewPlatform().GetPlatformName())
+
+	// Check for --train flag
+	if len(os.Args) > 1 && os.Args[1] == "--train" {
+		LogInfo("Training mode requested")
+		if err := TrainingMode(); err != nil {
+			LogError("Training mode failed: %v", err)
+			os.Exit(1)
+		}
+		return
+	}
 
 	// Create and run bot
 	LogInfo("Creating bot instance...")

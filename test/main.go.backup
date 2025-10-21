@@ -1,0 +1,671 @@
+package main
+
+import (
+	"fmt"
+	"image"
+	"image/color"
+	"image/draw"
+	"image/png"
+	"math"
+	"os"
+	"sort"
+	"time"
+)
+
+type TargetDetection struct {
+	Name   string
+	X      int
+	Y      int
+	Width  int
+	Height int
+	Color  string
+}
+
+type TargetStats struct {
+	HP float64
+	MP float64
+}
+
+type PlayerStats struct {
+	HP float64
+	MP float64
+	FP float64
+}
+
+type DirectionResult struct {
+	CurrentAngle float64
+	DenseAngle   float64
+	Found        bool
+}
+
+type pixel struct {
+	X int
+	Y int
+}
+
+type tileCoord struct {
+	X int
+	Y int
+}
+
+type tileInfo struct {
+	Count int
+}
+
+func main() {
+	start := time.Now()
+	imgPath := "train.png"
+	srcImg, err := loadImage(imgPath)
+	if err != nil {
+		panic(err)
+	}
+	rgba := ensureRGBA(srcImg)
+
+	targetStart := time.Now()
+	targets := DetectTargets(rgba)
+	targetDuration := time.Since(targetStart)
+
+	statsStart := time.Now()
+	targetStats, targetStatsOK := DetectTargetStats(rgba)
+	playerStats, playerStatsOK := DetectStats(rgba)
+	statsDuration := time.Since(statsStart)
+
+	directionStart := time.Now()
+	direction := DetectDirection(rgba)
+	directionDuration := time.Since(directionStart)
+
+	if err := DrawResult(rgba, targets, targetStats, targetStatsOK, playerStats, playerStatsOK, direction); err != nil {
+		panic(err)
+	}
+
+	saveStart := time.Now()
+	if err := saveImage("result.png", rgba); err != nil {
+		panic(err)
+	}
+	saveDuration := time.Since(saveStart)
+
+	total := time.Since(start)
+
+	fmt.Printf("DetectTargets: %v (%d targets)\n", targetDuration, len(targets))
+	if targetStatsOK {
+		fmt.Printf("DetectTargetStats: %v (HP %.1f%%, MP %.1f%%)\n", statsDuration, targetStats.HP, targetStats.MP)
+	} else {
+		fmt.Printf("DetectTargetStats: %v (not found)\n", statsDuration)
+	}
+	if playerStatsOK {
+		fmt.Printf("DetectStats: HP %.1f%% MP %.1f%% FP %.1f%%\n", playerStats.HP, playerStats.MP, playerStats.FP)
+	} else {
+		fmt.Println("DetectStats: not found")
+	}
+	if direction.Found {
+		fmt.Printf("DetectDirection: %v (current %.1f°, dense %.1f°)\n", directionDuration, direction.CurrentAngle, direction.DenseAngle)
+	} else {
+		fmt.Printf("DetectDirection: %v (not found)\n", directionDuration)
+	}
+	fmt.Printf("Save result: %v\n", saveDuration)
+	fmt.Printf("Total time: %v\n", total)
+}
+
+func loadImage(path string) (image.Image, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	img, err := png.Decode(f)
+	if err != nil {
+		return nil, err
+	}
+	return img, nil
+}
+
+func saveImage(path string, img image.Image) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return png.Encode(f, img)
+}
+
+func ensureRGBA(img image.Image) *image.RGBA {
+	if rgba, ok := img.(*image.RGBA); ok {
+		return rgba
+	}
+	bounds := img.Bounds()
+	rgba := image.NewRGBA(bounds)
+	draw.Draw(rgba, bounds, img, bounds.Min, draw.Src)
+	return rgba
+}
+
+// DetectTargets identifies red and yellow monster names using tile aggregation and color thresholds.
+func DetectTargets(img *image.RGBA) []TargetDetection {
+	bounds := img.Bounds()
+
+	tileSize := 40
+	margin := 25
+	minY := bounds.Min.Y + int(float64(bounds.Dy())*0.1)
+	maxY := bounds.Min.Y + int(float64(bounds.Dy())*0.85)
+
+	redPixels := make([]pixel, 0, 5000)
+	yellowPixels := make([]pixel, 0, 20000)
+	redTiles := make(map[tileCoord]*tileInfo)
+	yellowTiles := make(map[tileCoord]*tileInfo)
+
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		if y < minY || y > maxY {
+			continue
+		}
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			r, g, b, _ := img.At(x, y).RGBA()
+			R, G, B := int(r>>8), int(g>>8), int(b>>8)
+			tc := tileCoord{X: (x - bounds.Min.X) / tileSize, Y: (y - bounds.Min.Y) / tileSize}
+			switch {
+			case isNameRed(R, G, B):
+				redPixels = append(redPixels, pixel{X: x, Y: y})
+				info := redTiles[tc]
+				if info == nil {
+					info = &tileInfo{}
+					redTiles[tc] = info
+				}
+				info.Count++
+			case isNameYellow(R, G, B):
+				yellowPixels = append(yellowPixels, pixel{X: x, Y: y})
+				info := yellowTiles[tc]
+				if info == nil {
+					info = &tileInfo{}
+					yellowTiles[tc] = info
+				}
+				info.Count++
+			}
+		}
+	}
+
+	detections := make([]TargetDetection, 0, 4)
+	if d, ok := pickTargetFromTiles("Red", redPixels, redTiles, bounds, tileSize, margin, 150); ok {
+		detections = append(detections, d)
+	}
+	if d, ok := pickTargetFromTiles("Yellow", yellowPixels, yellowTiles, bounds, tileSize, margin, 200); ok {
+		detections = append(detections, d)
+	}
+
+	sort.Slice(detections, func(i, j int) bool {
+		if detections[i].Y == detections[j].Y {
+			return detections[i].X < detections[j].X
+		}
+		return detections[i].Y < detections[j].Y
+	})
+	return detections
+}
+
+func pickTargetFromTiles(colorLabel string, pixels []pixel, tiles map[tileCoord]*tileInfo, bounds image.Rectangle, tileSize, margin, minCount int) (TargetDetection, bool) {
+	type tileBox struct {
+		Coord tileCoord
+		Count int
+	}
+	if len(pixels) == 0 {
+		return TargetDetection{}, false
+	}
+	boxes := make([]tileBox, 0, len(tiles))
+	for coord, info := range tiles {
+		boxes = append(boxes, tileBox{Coord: coord, Count: info.Count})
+	}
+	sort.Slice(boxes, func(i, j int) bool { return boxes[i].Count > boxes[j].Count })
+
+	seen := make([]image.Point, 0)
+
+	for _, box := range boxes {
+		if box.Count < minCount {
+			continue
+		}
+		rect := buildTileBounds(bounds, tileSize, margin, box.Coord, pixels)
+		if rect.Empty() {
+			continue
+		}
+		width := rect.Dx()
+		height := rect.Dy()
+		if width < 35 || width > 260 || height < 15 || height > 120 {
+			continue
+		}
+		center := image.Point{X: rect.Min.X + width/2, Y: rect.Min.Y + height/2}
+		skip := false
+		for _, existing := range seen {
+			if manhattan(existing, center) < 80 {
+				skip = true
+				break
+			}
+		}
+		if skip {
+			continue
+		}
+		seen = append(seen, center)
+		return TargetDetection{
+			Name:   "Small Mia",
+			X:      rect.Min.X,
+			Y:      rect.Min.Y,
+			Width:  rect.Dx(),
+			Height: rect.Dy(),
+			Color:  colorLabel,
+		}, true
+	}
+
+	return TargetDetection{}, false
+}
+
+func buildTileBounds(bounds image.Rectangle, tileSize, margin int, coord tileCoord, pixels []pixel) image.Rectangle {
+	cx := bounds.Min.X + coord.X*tileSize + tileSize/2
+	cy := bounds.Min.Y + coord.Y*tileSize + tileSize/2
+	reach := tileSize + margin
+	minX, minY := bounds.Max.X, bounds.Max.Y
+	maxX, maxY := bounds.Min.X, bounds.Min.Y
+	for _, p := range pixels {
+		if abs(p.X-cx) <= reach && abs(p.Y-cy) <= reach {
+			if p.X < minX {
+				minX = p.X
+			}
+			if p.X > maxX {
+				maxX = p.X
+			}
+			if p.Y < minY {
+				minY = p.Y
+			}
+			if p.Y > maxY {
+				maxY = p.Y
+			}
+		}
+	}
+	if minX > maxX {
+		return image.Rect(0, 0, 0, 0)
+	}
+	return image.Rect(minX, minY, maxX+1, maxY+1)
+}
+
+func manhattan(a, b image.Point) int {
+	dx := a.X - b.X
+	if dx < 0 {
+		dx = -dx
+	}
+	dy := a.Y - b.Y
+	if dy < 0 {
+		dy = -dy
+	}
+	return dx + dy
+}
+
+func isNameRed(r, g, b int) bool {
+	return r >= 180 && g >= 40 && g <= 160 && b >= 20 && b <= 160 && r > g+40
+}
+
+func isNameYellow(r, g, b int) bool {
+	return r >= 200 && g >= 180 && b <= 150 && r >= g-20
+}
+
+// DetectTargetStats extracts HP/MP percentages for the main target from the UI bars at the top center.
+func DetectTargetStats(img *image.RGBA) (TargetStats, bool) {
+	bounds := img.Bounds()
+	search := image.Rect(bounds.Min.X+bounds.Dx()/3, bounds.Min.Y+40, bounds.Min.X+2*bounds.Dx()/3, bounds.Min.Y+160)
+	hpRect := componentBounds(img, search, isHPColor)
+	mpRect := componentBounds(img, search, isMPColor)
+
+	hp := columnRatio(img, hpRect, isHPColor) * 100
+	mp := columnRatio(img, mpRect, isMPColor) * 100
+
+	if hpRect.Empty() && mpRect.Empty() {
+		return TargetStats{}, false
+	}
+
+	return TargetStats{HP: clampPercent(hp), MP: clampPercent(mp)}, true
+}
+
+// DetectStats extracts the player's HP/MP/FP from the top-left UI bars.
+func DetectStats(img *image.RGBA) (PlayerStats, bool) {
+	hpRect := componentBounds(img, image.Rect(20, 120, 360, 170), isHPColor)
+	mpRect := componentBounds(img, image.Rect(20, 160, 360, 210), isMPColor)
+	fpRect := componentBounds(img, image.Rect(20, 200, 360, 250), isFPColor)
+
+	hp := columnRatio(img, hpRect, isHPColor) * 100
+	mp := columnRatio(img, mpRect, isMPColor) * 100
+	fp := columnRatio(img, fpRect, isFPColor) * 100
+
+	if hpRect.Empty() && mpRect.Empty() && fpRect.Empty() {
+		return PlayerStats{}, false
+	}
+	return PlayerStats{
+		HP: clampPercent(hp),
+		MP: clampPercent(mp),
+		FP: clampPercent(fp),
+	}, true
+}
+
+// DetectDirection analyses the minimap to find the current facing angle and the densest monster cluster.
+func DetectDirection(img *image.RGBA) DirectionResult {
+	bounds := img.Bounds()
+	center := image.Point{X: bounds.Max.X - 180, Y: bounds.Min.Y + 235}
+	roi := image.Rect(center.X-180, bounds.Min.Y+20, bounds.Max.X-20, bounds.Min.Y+420)
+	if roi.Min.X < bounds.Min.X {
+		roi.Min.X = bounds.Min.X
+	}
+	if roi.Min.Y < bounds.Min.Y {
+		roi.Min.Y = bounds.Min.Y
+	}
+
+	whiteCount := 0
+	whiteSumX, whiteSumY := 0, 0
+
+	bins := make([]float64, 36)
+	orangeCount := 0
+
+	for y := roi.Min.Y; y < roi.Max.Y; y++ {
+		for x := roi.Min.X; x < roi.Max.X; x++ {
+			r, g, b, _ := img.At(x, y).RGBA()
+			R, G, B := int(r>>8), int(g>>8), int(b>>8)
+			if isMapWhite(R, G, B) {
+				whiteCount++
+				whiteSumX += x
+				whiteSumY += y
+			}
+			if isMapOrange(R, G, B) {
+				dx := float64(x - center.X)
+				dy := float64(y - center.Y)
+				distance := math.Hypot(dx, dy)
+				if distance == 0 {
+					continue
+				}
+				angle := math.Atan2(dy, dx)
+				deg := angle * 180 / math.Pi
+				if deg < 0 {
+					deg += 360
+				}
+				binIndex := int(deg / 10.0)
+				if binIndex >= len(bins) {
+					binIndex = len(bins) - 1
+				}
+				weight := 1.0 / (1.0 + distance/20.0)
+				bins[binIndex] += weight
+				orangeCount++
+			}
+		}
+	}
+
+	if whiteCount == 0 || orangeCount == 0 {
+		return DirectionResult{}
+	}
+	avgX := float64(whiteSumX) / float64(whiteCount)
+	avgY := float64(whiteSumY) / float64(whiteCount)
+	currentAngle := math.Atan2(avgY-float64(center.Y), avgX-float64(center.X)) * 180 / math.Pi
+
+	bestBin := 0
+	bestValue := bins[0]
+	for i, v := range bins {
+		if v > bestValue {
+			bestValue = v
+			bestBin = i
+		}
+	}
+	denseAngle := float64(bestBin)*10 + 5 // center of bin
+
+	return DirectionResult{CurrentAngle: normalizeAngle(currentAngle), DenseAngle: normalizeAngle(denseAngle), Found: true}
+}
+
+func normalizeAngle(angle float64) float64 {
+	for angle <= -180 {
+		angle += 360
+	}
+	for angle > 180 {
+		angle -= 360
+	}
+	return angle
+}
+
+func isMapWhite(r, g, b int) bool {
+	return r > 240 && g > 240 && b > 240
+}
+
+func isMapOrange(r, g, b int) bool {
+	return r > 200 && g > 120 && g < 220 && b < 150
+}
+
+func componentBounds(img image.Image, rect image.Rectangle, matcher func(r, g, b int) bool) image.Rectangle {
+	minX := rect.Max.X
+	minY := rect.Max.Y
+	maxX := rect.Min.X
+	maxY := rect.Min.Y
+	for y := rect.Min.Y; y < rect.Max.Y; y++ {
+		for x := rect.Min.X; x < rect.Max.X; x++ {
+			r, g, b, _ := img.At(x, y).RGBA()
+			if matcher(int(r>>8), int(g>>8), int(b>>8)) {
+				if x < minX {
+					minX = x
+				}
+				if x > maxX {
+					maxX = x
+				}
+				if y < minY {
+					minY = y
+				}
+				if y > maxY {
+					maxY = y
+				}
+			}
+		}
+	}
+	if minX > maxX {
+		return image.Rect(0, 0, 0, 0)
+	}
+	return image.Rect(minX, minY, maxX+1, maxY+1)
+}
+
+func columnRatio(img image.Image, rect image.Rectangle, matcher func(r, g, b int) bool) float64 {
+	if rect.Empty() {
+		return 0
+	}
+	counts := make([]int, rect.Dx())
+	maxCount := 0
+	for x := rect.Min.X; x < rect.Max.X; x++ {
+		idx := x - rect.Min.X
+		for y := rect.Min.Y; y < rect.Max.Y; y++ {
+			r, g, b, _ := img.At(x, y).RGBA()
+			if matcher(int(r>>8), int(g>>8), int(b>>8)) {
+				counts[idx]++
+			}
+		}
+		if counts[idx] > maxCount {
+			maxCount = counts[idx]
+		}
+	}
+	if maxCount == 0 {
+		return 0
+	}
+	threshold := int(float64(maxCount) * 0.5)
+	if threshold == 0 {
+		threshold = 1
+	}
+	filled := 0
+	for _, c := range counts {
+		if c >= threshold {
+			filled++
+		}
+	}
+	return float64(filled) / float64(len(counts))
+}
+
+func clampPercent(v float64) float64 {
+	if v < 0 {
+		return 0
+	}
+	if v > 100 {
+		return 100
+	}
+	return v
+}
+
+func isHPColor(r, g, b int) bool {
+	return r >= 170 && g < 130 && b < 130
+}
+
+func isMPColor(r, g, b int) bool {
+	return b >= 150 && g >= 120 && r < 160
+}
+
+func isFPColor(r, g, b int) bool {
+	return r >= 200 && g >= 120 && b < 120
+}
+
+// DrawResult overlays detections and textual summaries onto the image.
+func DrawResult(img *image.RGBA, targets []TargetDetection, targetStats TargetStats, targetOK bool, playerStats PlayerStats, playerOK bool, direction DirectionResult) error {
+	drawTargets(img, targets)
+	drawStats(img, targetStats, targetOK, playerStats, playerOK)
+	drawDirection(img, direction)
+	return nil
+}
+
+func drawTargets(img *image.RGBA, targets []TargetDetection) {
+	for _, t := range targets {
+		rect := image.Rect(t.X, t.Y, t.X+t.Width, t.Y+t.Height)
+		drawRect(img, rect, color.RGBA{255, 255, 0, 255})
+		cx := t.X + t.Width/2
+		cy := t.Y + t.Height/2
+		click := image.Point{X: cx, Y: cy + 30}
+		drawCross(img, click, 6, color.RGBA{255, 0, 0, 255})
+		label := fmt.Sprintf("%s %s", t.Color, t.Name)
+		labelY := rect.Min.Y - 12
+		if labelY < img.Bounds().Min.Y {
+			labelY = rect.Max.Y + 4
+		}
+		drawString(img, rect.Min.X, labelY, label, color.RGBA{255, 255, 0, 255})
+	}
+}
+
+func drawStats(img *image.RGBA, target TargetStats, targetOK bool, player PlayerStats, playerOK bool) {
+	x := img.Bounds().Min.X + 20
+	y := img.Bounds().Min.Y + img.Bounds().Dy() - 120
+	if targetOK {
+		drawString(img, x, y, fmt.Sprintf("TARGET HP %.1f%%", target.HP), color.RGBA{255, 0, 0, 255})
+		drawString(img, x, y+14, fmt.Sprintf("TARGET MP %.1f%%", target.MP), color.RGBA{80, 160, 255, 255})
+	} else {
+		drawString(img, x, y, "TARGET STATS N/A", color.RGBA{255, 0, 0, 255})
+	}
+	y += 32
+	if playerOK {
+		drawString(img, x, y, fmt.Sprintf("PLAYER HP %.1f%%", player.HP), color.RGBA{255, 0, 0, 255})
+		drawString(img, x, y+14, fmt.Sprintf("PLAYER MP %.1f%%", player.MP), color.RGBA{80, 160, 255, 255})
+		drawString(img, x, y+28, fmt.Sprintf("PLAYER FP %.1f%%", player.FP), color.RGBA{255, 200, 0, 255})
+	} else {
+		drawString(img, x, y, "PLAYER STATS N/A", color.RGBA{255, 200, 0, 255})
+	}
+}
+
+func drawDirection(img *image.RGBA, direction DirectionResult) {
+	x := img.Bounds().Min.X + 20
+	y := img.Bounds().Min.Y + img.Bounds().Dy() - 60
+	if direction.Found {
+		drawString(img, x, y, fmt.Sprintf("DIRECTION CUR %.1f DEG", direction.CurrentAngle), color.RGBA{0, 255, 255, 255})
+		drawString(img, x, y+14, fmt.Sprintf("DIRECTION DENSE %.1f DEG", direction.DenseAngle), color.RGBA{0, 255, 255, 255})
+	} else {
+		drawString(img, x, y, "DIRECTION N/A", color.RGBA{0, 255, 255, 255})
+	}
+}
+
+func drawRect(img *image.RGBA, rect image.Rectangle, c color.RGBA) {
+	for x := rect.Min.X; x < rect.Max.X; x++ {
+		setPixelSafe(img, x, rect.Min.Y, c)
+		setPixelSafe(img, x, rect.Max.Y-1, c)
+	}
+	for y := rect.Min.Y; y < rect.Max.Y; y++ {
+		setPixelSafe(img, rect.Min.X, y, c)
+		setPixelSafe(img, rect.Max.X-1, y, c)
+	}
+}
+
+func drawCross(img *image.RGBA, center image.Point, size int, c color.RGBA) {
+	for dx := -size; dx <= size; dx++ {
+		setPixelSafe(img, center.X+dx, center.Y, c)
+	}
+	for dy := -size; dy <= size; dy++ {
+		setPixelSafe(img, center.X, center.Y+dy, c)
+	}
+}
+
+// Simple 5x7 font definitions for uppercase letters, digits, and basic punctuation.
+var font5x7 = map[rune][7]uint8{
+	'A': {0x1E, 0x21, 0x21, 0x3F, 0x21, 0x21, 0x21},
+	'B': {0x3E, 0x21, 0x21, 0x3E, 0x21, 0x21, 0x3E},
+	'C': {0x1E, 0x21, 0x20, 0x20, 0x20, 0x21, 0x1E},
+	'D': {0x3C, 0x22, 0x21, 0x21, 0x21, 0x22, 0x3C},
+	'E': {0x3F, 0x20, 0x20, 0x3E, 0x20, 0x20, 0x3F},
+	'F': {0x3F, 0x20, 0x20, 0x3E, 0x20, 0x20, 0x20},
+	'G': {0x1E, 0x21, 0x20, 0x27, 0x21, 0x21, 0x1E},
+	'H': {0x21, 0x21, 0x21, 0x3F, 0x21, 0x21, 0x21},
+	'I': {0x1E, 0x08, 0x08, 0x08, 0x08, 0x08, 0x1E},
+	'J': {0x0F, 0x02, 0x02, 0x02, 0x22, 0x22, 0x1C},
+	'K': {0x21, 0x22, 0x24, 0x38, 0x24, 0x22, 0x21},
+	'L': {0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x3F},
+	'M': {0x21, 0x33, 0x2D, 0x21, 0x21, 0x21, 0x21},
+	'N': {0x21, 0x31, 0x29, 0x25, 0x23, 0x21, 0x21},
+	'O': {0x1E, 0x21, 0x21, 0x21, 0x21, 0x21, 0x1E},
+	'P': {0x3E, 0x21, 0x21, 0x3E, 0x20, 0x20, 0x20},
+	'R': {0x3E, 0x21, 0x21, 0x3E, 0x24, 0x22, 0x21},
+	'S': {0x1E, 0x21, 0x10, 0x0E, 0x01, 0x21, 0x1E},
+	'T': {0x3F, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08},
+	'U': {0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x1E},
+	'V': {0x21, 0x21, 0x21, 0x21, 0x12, 0x12, 0x0C},
+	'X': {0x21, 0x12, 0x0C, 0x08, 0x0C, 0x12, 0x21},
+	'Y': {0x21, 0x21, 0x12, 0x0C, 0x08, 0x08, 0x08},
+	'Z': {0x3F, 0x01, 0x02, 0x04, 0x08, 0x10, 0x3F},
+	' ': {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+	'0': {0x1E, 0x21, 0x23, 0x25, 0x29, 0x31, 0x1E},
+	'1': {0x08, 0x18, 0x08, 0x08, 0x08, 0x08, 0x1C},
+	'2': {0x1E, 0x21, 0x01, 0x0E, 0x10, 0x20, 0x3F},
+	'3': {0x1E, 0x21, 0x01, 0x0E, 0x01, 0x21, 0x1E},
+	'4': {0x02, 0x06, 0x0A, 0x12, 0x22, 0x3F, 0x02},
+	'5': {0x3F, 0x20, 0x3E, 0x01, 0x01, 0x21, 0x1E},
+	'6': {0x0E, 0x10, 0x20, 0x3E, 0x21, 0x21, 0x1E},
+	'7': {0x3F, 0x01, 0x02, 0x04, 0x08, 0x10, 0x10},
+	'8': {0x1E, 0x21, 0x21, 0x1E, 0x21, 0x21, 0x1E},
+	'9': {0x1E, 0x21, 0x21, 0x1F, 0x01, 0x02, 0x1C},
+	'-': {0x00, 0x00, 0x00, 0x1F, 0x00, 0x00, 0x00},
+	'.': {0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x18},
+	'%': {0x30, 0x32, 0x04, 0x08, 0x10, 0x13, 0x03},
+	':': {0x00, 0x0C, 0x0C, 0x00, 0x0C, 0x0C, 0x00},
+}
+
+func drawString(img *image.RGBA, x, y int, text string, col color.RGBA) {
+	cursorX := x
+	uppercase := make([]rune, 0, len(text))
+	for _, r := range text {
+		if r >= 'a' && r <= 'z' {
+			r = r - 'a' + 'A'
+		}
+		uppercase = append(uppercase, r)
+	}
+	for _, r := range uppercase {
+		glyph, ok := font5x7[r]
+		if !ok {
+			glyph = font5x7[' ']
+		}
+		for row := 0; row < 7; row++ {
+			line := glyph[row]
+			for colIdx := 0; colIdx < 5; colIdx++ {
+				if (line>>(4-colIdx))&1 == 1 {
+					setPixelSafe(img, cursorX+colIdx, y+row, col)
+				}
+			}
+		}
+		cursorX += 6
+	}
+}
+
+func setPixelSafe(img *image.RGBA, x, y int, col color.RGBA) {
+	bounds := img.Bounds()
+	if x < bounds.Min.X || x >= bounds.Max.X || y < bounds.Min.Y || y >= bounds.Max.Y {
+		return
+	}
+	img.Set(x, y, col)
+}
+
+func abs(v int) int {
+	if v < 0 {
+		return -v
+	}
+	return v
+}

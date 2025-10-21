@@ -38,11 +38,8 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"math"
 	"math/rand"
-	"sync"
 	"time"
 )
 

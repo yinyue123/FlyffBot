@@ -711,6 +711,425 @@ browser.go:532   // Overlay: 2秒
 
 ---
 
+## 11. Rust 版本对比分析
+
+### 11.1 怪物识别逻辑对比
+
+#### Rust 版本 (neuz) 识别流程
+
+```mermaid
+flowchart TD
+    Start[开始识别] --> Capture[截取游戏画面]
+    Capture --> DefineRegion[定义扫描区域<br/>全屏幕]
+    DefineRegion --> DefineColors[定义目标颜色<br/>Passive: RGB234,234,149 ±5<br/>Aggressive: RGB179,23,23 ±10<br/>Violet: RGB182,144,146 ±10]
+
+    DefineColors --> ParallelScan[并行像素扫描<br/>使用 Rayon]
+
+    ParallelScan --> PixelMatch{像素匹配?}
+    PixelMatch -->|是| CollectPoint[收集匹配点]
+    PixelMatch -->|否| NextPixel[下一个像素]
+    NextPixel --> PixelMatch
+
+    CollectPoint --> ClusterX[X轴聚类<br/>距离≤50px]
+    ClusterX --> ClusterY[Y轴聚类<br/>距离≤3px]
+    ClusterY --> CreateBounds[创建边界框]
+
+    CreateBounds --> FilterWidth{宽度过滤<br/>11px≤w≤180px?}
+    FilterWidth -->|是| FilterTop{过滤顶部区域<br/>y>110?}
+    FilterWidth -->|否| Discard1[丢弃]
+
+    FilterTop -->|是| CalcDistance[计算距离<br/>到屏幕中心]
+    FilterTop -->|否| Discard2[丢弃到HP区]
+
+    CalcDistance --> FilterDistance{距离过滤<br/>≤325px or 1000px?}
+    FilterDistance -->|是| AddTarget[添加到目标列表]
+    FilterDistance -->|否| Discard3[丢弃]
+
+    AddTarget --> FindClosest[查找最近目标]
+    FindClosest --> End[返回目标列表]
+
+    style Start fill:#90EE90
+    style End fill:#FFB6C1
+    style ParallelScan fill:#87CEEB
+    style PixelMatch fill:#FFD700
+    style FilterWidth fill:#FFD700
+    style FilterTop fill:#FFD700
+    style FilterDistance fill:#FFD700
+```
+
+#### Go 版本 (FlyffBot) 识别流程
+
+```mermaid
+flowchart TD
+    Start[开始识别] --> Capture[截取游戏画面]
+    Capture --> DefineRegion[定义扫描区域<br/>Y: 60 to Height-170]
+    DefineRegion --> DefineColors[定义目标颜色<br/>Passive: RGB234,234,149 ±5<br/>Aggressive: RGB179,23,23 ±5<br/>Violet: RGB182,144,146 ±5]
+
+    DefineColors --> SequentialScan[顺序像素扫描<br/>单线程]
+
+    SequentialScan --> PixelMatch{像素匹配?<br/>Alpha=255 必须}
+    PixelMatch -->|是| CollectPoint[收集匹配点]
+    PixelMatch -->|否| NextPixel[下一个像素]
+    NextPixel --> PixelMatch
+
+    CollectPoint --> SortX[按 X 坐标排序]
+    SortX --> ClusterX[X轴聚类<br/>距离≤50px]
+    ClusterX --> SortY[按 Y 坐标排序]
+    SortY --> ClusterY[Y轴聚类<br/>距离≤3px]
+    ClusterY --> CreateBounds[创建边界框]
+
+    CreateBounds --> FilterWidth{宽度过滤<br/>15px≤w≤150px?}
+    FilterWidth -->|是| FilterViolet{过滤紫名?<br/>MobViolet?}
+    FilterWidth -->|否| Discard1[丢弃]
+
+    FilterViolet -->|是| Discard2[丢弃紫名怪]
+    FilterViolet -->|否| Prioritize[优先级排序<br/>红名优先]
+
+    Prioritize --> AddTarget[添加到目标列表]
+    AddTarget --> FindClosest[查找最近目标<br/>到屏幕中心]
+    FindClosest --> End[返回目标列表]
+
+    style Start fill:#90EE90
+    style End fill:#FFB6C1
+    style SequentialScan fill:#FFA07A
+    style PixelMatch fill:#FFD700
+    style FilterWidth fill:#FFD700
+    style FilterViolet fill:#FFD700
+```
+
+#### 关键差异对比
+
+| 特性 | Rust 版本 (neuz) | Go 版本 (FlyffBot) | 影响分析 |
+|------|------------------|-------------------|----------|
+| **像素扫描** | 并行扫描 (Rayon) | 顺序扫描 (单线程) | Rust 更快 |
+| **扫描区域** | 全屏幕 | Y: 60 to Height-170 | Go 过滤更多区域 |
+| **颜色容差** | Passive:5, Aggressive:10 | 统一为 5 | Rust 对红名更宽容 |
+| **Alpha 检查** | 无 Alpha 要求 | Alpha 必须=255 | **Go 可能漏检半透明文字** |
+| **宽度过滤** | 11-180px | 15-150px | Go 范围更窄 |
+| **紫名处理** | 检测但距离过滤 | 直接过滤丢弃 | Go 完全忽略紫名 |
+| **距离过滤** | 325px/1000px 阈值 | 无距离过滤 | Rust 有最大距离限制 |
+| **顶部过滤** | 过滤 y<110 区域 | 过滤 y<60 区域 | Rust 避开 HP 栏更精确 |
+| **避障系统** | 有避障黑名单 | 无 | Rust 可避开卡住的怪 |
+
+### 11.2 血量识别逻辑对比
+
+#### Rust 版本 (neuz) HP 识别流程
+
+```mermaid
+flowchart TD
+    Start[开始 HP 检测] --> InitStat[初始化 StatInfo<br/>HP/MP/FP/Enemy HP/MP]
+    InitStat --> DefineRegion[定义扫描区域<br/>Player: X105-225, Y30-110<br/>Enemy: X300-550, Y30-60]
+
+    DefineRegion --> DefineColors[定义颜色范围<br/>HP: R174-220,G18-36,B55-78<br/>MP: R20-56,G84-188,B196-232<br/>FP: R20-45,G29-230,B20-52]
+
+    DefineColors --> PixelDetect[像素检测<br/>使用 pixel_detection]
+
+    PixelDetect --> ParallelScan[并行扫描像素<br/>Rayon 多线程]
+    ParallelScan --> ColorRange{颜色范围匹配?<br/>R/G/B 都在范围内?}
+
+    ColorRange -->|是| CollectPixel[收集像素]
+    ColorRange -->|否| NextPixel[下一个像素]
+    NextPixel --> ColorRange
+
+    CollectPixel --> ConvertBounds[转换为边界框]
+    ConvertBounds --> MeasureWidth[测量条宽度]
+
+    MeasureWidth --> UpdateMax{当前宽度>最大宽度?}
+    UpdateMax -->|是| SetMaxWidth[更新最大宽度]
+    UpdateMax -->|否| KeepMax[保持最大宽度]
+
+    SetMaxWidth --> CalcPercent[计算百分比<br/>width/max_width*100]
+    KeepMax --> CalcPercent
+
+    CalcPercent --> StoreValue[存储数值 0-100]
+    StoreValue --> DetectStatus{HP>0?}
+
+    DetectStatus -->|是| Alive[标记为存活]
+    DetectStatus -->|否| Dead[标记为死亡]
+
+    Alive --> DetectTarget{Target MP>0?}
+    Dead --> End[返回状态]
+
+    DetectTarget -->|是| IsMover[是怪物 Mover]
+    DetectTarget -->|否| IsNPC[是 NPC]
+
+    IsMover --> End
+    IsNPC --> End
+
+    style Start fill:#90EE90
+    style End fill:#FFB6C1
+    style ParallelScan fill:#87CEEB
+    style ColorRange fill:#FFD700
+    style UpdateMax fill:#FFD700
+    style DetectStatus fill:#FFD700
+    style DetectTarget fill:#FFD700
+```
+
+#### Go 版本 (FlyffBot) HP 识别流程
+
+```mermaid
+flowchart TD
+    Start[开始 HP 检测] --> DefineRegion[定义扫描区域<br/>左上角: X0-500, Y0-300]
+
+    DefineRegion --> DefineColors[定义颜色规则<br/>HP: R>200, G<180, B<180<br/>MP: B>200, R<180, G<180<br/>FP: G>200, R<180, B<180]
+
+    DefineColors --> FilterText[过滤文字颜色<br/>黑色: RGB<50<br/>白色: RGB>200]
+
+    FilterText --> SequentialScan[顺序扫描像素<br/>单线程]
+
+    SequentialScan --> ColorCheck{颜色匹配?<br/>简单阈值判断}
+    ColorCheck -->|是| TextCheck{是文字颜色?}
+    ColorCheck -->|否| NextPixel1[下一个像素]
+
+    TextCheck -->|是| SkipPixel[跳过像素]
+    TextCheck -->|否| CollectPixel[收集像素点]
+
+    NextPixel1 --> ColorCheck
+    SkipPixel --> NextPixel2[下一个像素]
+    NextPixel2 --> ColorCheck
+
+    CollectPixel --> GroupHorizontal[分组为水平条<br/>Y轴 ±5px 误差]
+
+    GroupHorizontal --> SortByY[按 Y 坐标排序<br/>从上到下]
+
+    SortByY --> SelectTop[选择最上面的条<br/>HP: 第1个红条<br/>MP: 第1个蓝条<br/>FP: 第1个绿条]
+
+    SelectTop --> MeasureWidth[测量条宽度]
+
+    MeasureWidth --> UnifiedMax{统一最大宽度<br/>取 HP/MP/FP 最大值}
+
+    UnifiedMax --> CalcPercent[计算百分比<br/>width/maxWidth*100]
+
+    CalcPercent --> StoreValue[存储数值 0-100]
+
+    StoreValue --> End[返回状态]
+
+    style Start fill:#90EE90
+    style End fill:#FFB6C1
+    style SequentialScan fill:#FFA07A
+    style ColorCheck fill:#FFD700
+    style TextCheck fill:#FFD700
+    style UnifiedMax fill:#87CEEB
+```
+
+#### 关键差异对比
+
+| 特性 | Rust 版本 (neuz) | Go 版本 (FlyffBot) | 影响分析 |
+|------|------------------|-------------------|----------|
+| **扫描区域** | 精确区域 (玩家/敌人分开) | 大范围扫描 (0-500, 0-300) | Rust 更精确，Go 可能误识别 |
+| **颜色检测** | RGB 范围匹配 ([174-220,...]) | 简单阈值 (R>200, G<180, ...) | **Rust 更准确，Go 容易误检** |
+| **并行处理** | Rayon 并行扫描 | 顺序扫描 | Rust 更快 |
+| **文字过滤** | 无专门过滤 | 主动过滤黑白文字 | Go 避免文字干扰 |
+| **条选择策略** | 直接测量检测到的条 | 选择最上面的条 | Go 避免 EXP 栏 |
+| **最大宽度** | 分别跟踪 HP/MP/FP/Enemy | 统一最大宽度 | **Rust 更准确** |
+| **目标检测** | 检测 Enemy HP/MP | 检测 TargetHP | 功能相似 |
+| **状态判断** | HP=0 死亡，MP>0 是怪物 | 仅 HP 百分比 | Rust 有更多状态 |
+| **线程安全** | 使用 Mutex | 使用 RWMutex | 都是线程安全的 |
+| **自适应校准** | 持续更新最大宽度 | 持续更新最大宽度 | 都有自适应 |
+
+### 11.3 Go 版本识别失败的根本原因
+
+基于对比分析，Go 版本无法识别怪物的主要问题：
+
+#### 问题 1: Alpha 通道强制检查 (analyzer.go:352)
+
+```go
+func colorMatches(c color.RGBA, target Color, tolerance uint8) bool {
+    if c.A != 255 {  // ❌ 强制要求完全不透明
+        return false
+    }
+    // ...
+}
+```
+
+**问题**: 游戏中的怪物名称可能有半透明效果或抗锯齿边缘，Alpha 值可能是 254、253 等。
+
+**Rust 版本**: 不检查 Alpha，只比较 RGB。
+
+**解决方案**: 移除 Alpha 检查或使用宽容度检查 `c.A >= 250`。
+
+---
+
+#### 问题 2: 颜色容差过低 (data.json)
+
+```json
+{
+  "AggressiveTolerance": 5,
+  "PassiveTolerance": 5
+}
+```
+
+**问题**: Rust 版本对红名怪物使用容差 10，Go 只用 5。
+
+**影响**: 光照变化、抗锯齿、压缩会导致颜色偏移 5-10 个单位。
+
+**解决方案**: 增加 `AggressiveTolerance` 到 10。
+
+---
+
+#### 问题 3: 扫描区域限制过严 (analyzer.go:194)
+
+```go
+for y := 60; y < img.Bounds().Dy()-170; y++ {
+    // 过滤了顶部 60px 和底部 170px
+}
+```
+
+**问题**: 如果怪物名称出现在 y<60 或底部区域，会被完全忽略。
+
+**Rust 版本**: 全屏扫描，仅在聚类后过滤 y<110。
+
+**解决方案**: 扩大扫描区域，或在后处理中过滤。
+
+---
+
+#### 问题 4: 宽度过滤范围窄 (data.json)
+
+```json
+{
+  "MinMobNameWidth": 15,
+  "MaxMobNameWidth": 150
+}
+```
+
+**问题**: Rust 允许 11-180px，Go 要求 15-150px。
+
+**影响**: 远处的小怪物名称可能只有 11-14px 宽。
+
+**解决方案**: 降低 `MinMobNameWidth` 到 11。
+
+---
+
+#### 问题 5: 无距离过滤导致识别范围过大
+
+**Rust 版本**: 有最大距离阈值 (325px 或 1000px)。
+
+**Go 版本**: 无距离限制，可能识别到屏幕边缘的怪物。
+
+**影响**: 点击到无法到达的目标。
+
+**解决方案**: 添加距离过滤逻辑。
+
+---
+
+#### 问题 6: 单线程扫描性能瓶颈
+
+**Rust 版本**: 使用 Rayon 并行扫描数百万像素。
+
+**Go 版本**: 顺序扫描，大图像可能耗时 10-50ms。
+
+**影响**: 捕获频率受限，可能漏检快速移动的怪物。
+
+**解决方案**: 使用 goroutine 并行扫描或优化扫描区域。
+
+---
+
+### 11.4 修复建议优先级
+
+#### 🔴 高优先级 (必须修复)
+
+1. **移除 Alpha 强制检查** (analyzer.go:352)
+   ```go
+   func colorMatches(c color.RGBA, target Color, tolerance uint8) bool {
+       // 移除: if c.A != 255 { return false }
+
+       // 直接比较 RGB
+       rDiff := absDiff(c.R, target.R)
+       gDiff := absDiff(c.G, target.G)
+       bDiff := absDiff(c.B, target.B)
+
+       return rDiff <= tolerance && gDiff <= tolerance && bDiff <= tolerance
+   }
+   ```
+
+2. **增加容差值** (data.json)
+   ```json
+   {
+     "AggressiveTolerance": 10,
+     "PassiveTolerance": 8
+   }
+   ```
+
+#### 🟡 中优先级 (建议修复)
+
+3. **扩大扫描区域** (analyzer.go:194)
+   ```go
+   // 改为从 y=0 开始，后处理时过滤
+   for y := 0; y < img.Bounds().Dy()-100; y++ {
+   ```
+
+4. **降低最小宽度** (data.json)
+   ```json
+   {
+     "MinMobNameWidth": 11
+   }
+   ```
+
+5. **添加距离过滤** (farming.go)
+   ```go
+   func (f *FarmingBehavior) findClosestMob(mobs []Target) *Target {
+       centerX := f.screenWidth / 2
+       centerY := f.screenHeight / 2
+       maxDistance := 325.0 // 添加最大距离
+
+       // 过滤距离过远的怪物
+   }
+   ```
+
+#### 🟢 低优先级 (性能优化)
+
+6. **并行像素扫描**
+   ```go
+   // 使用 goroutine 分块扫描
+   func (ia *ImageAnalyzer) scanPixelsParallel(...) []Point {
+       // 分 4-8 个区域并行扫描
+   }
+   ```
+
+7. **添加避障系统** (参考 Rust 的 obstacle_avoidance)
+
+---
+
+### 11.5 完整修复流程图
+
+```mermaid
+flowchart TD
+    Start[Go 版本无法识别怪物] --> Root1[根因1: Alpha 检查]
+    Start --> Root2[根因2: 容差过低]
+    Start --> Root3[根因3: 扫描区域窄]
+    Start --> Root4[根因4: 宽度过滤严]
+
+    Root1 --> Fix1[移除 Alpha=255 强制检查]
+    Root2 --> Fix2[增加容差到 10]
+    Root3 --> Fix3[扩大扫描区域]
+    Root4 --> Fix4[降低最小宽度到 11]
+
+    Fix1 --> Test1[测试: 半透明文字]
+    Fix2 --> Test2[测试: 不同光照]
+    Fix3 --> Test3[测试: 不同位置]
+    Fix4 --> Test4[测试: 远距离怪物]
+
+    Test1 --> Verify{所有测试通过?}
+    Test2 --> Verify
+    Test3 --> Verify
+    Test4 --> Verify
+
+    Verify -->|是| Success[成功识别怪物]
+    Verify -->|否| Debug[Debug.log 查看检测结果]
+
+    Debug --> Adjust[调整参数]
+    Adjust --> Verify
+
+    style Start fill:#FF6B6B
+    style Success fill:#90EE90
+    style Fix1 fill:#87CEEB
+    style Fix2 fill:#87CEEB
+    style Fix3 fill:#87CEEB
+    style Fix4 fill:#87CEEB
+```
+
+---
+
 ## 许可证
 
 本项目仅供学习和研究使用。
@@ -721,5 +1140,5 @@ browser.go:532   // Overlay: 2秒
 
 ---
 
-**最后更新**: 2025-10-20
-**版本**: 2.0 (Go 重写版)
+**最后更新**: 2025-10-21
+**版本**: 2.0 (Go 重写版 + Rust 对比分析)

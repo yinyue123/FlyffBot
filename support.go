@@ -144,7 +144,7 @@ func (sb *SupportBehavior) Run(analyzer *ImageAnalyzer, movement *MovementCoordi
 	sb.checkSelfRestorations(movement, config, clientStats)
 
 	// Update target status
-	sb.hasTarget = clientStats.HasTarget
+	sb.hasTarget = clientStats.TargetOnScreen
 
 	// Check if we should wait
 	if sb.waitCooldown() {
@@ -214,7 +214,7 @@ func (sb *SupportBehavior) onFollowing(analyzer *ImageAnalyzer, movement *Moveme
 	}
 
 	// Check target distance
-	if clientStats.HasTarget {
+	if clientStats.TargetOnScreen {
 		isInRange := sb.isTargetInRange(analyzer, config)
 		if !isInRange {
 			return SupportStateTooFar
@@ -258,7 +258,7 @@ func (sb *SupportBehavior) onTooFar(movement *MovementCoordinator, analyzer *Ima
 
 // onHealing handles the healing state
 func (sb *SupportBehavior) onHealing(movement *MovementCoordinator, config *Config, clientStats *ClientStats) SupportState {
-	targetHP := clientStats.TargetHP.Value()
+	targetHP := clientStats.TargetHP.GetValue()
 
 	if len(config.HealSlots) > 0 {
 		LogDebug("Healing target (HP: %d%%)", targetHP)
@@ -350,7 +350,7 @@ func (sb *SupportBehavior) onResurrecting(movement *MovementCoordinator, config 
 
 		if sb.isWaitingForRevive {
 			// Check if target is alive now
-			if clientStats.TargetHP.Value() > 0 {
+			if clientStats.TargetHP.GetValue() > 0 {
 				LogInfo("Target has been revived")
 				sb.isWaitingForRevive = false
 				return SupportStateFollowing
@@ -495,7 +495,7 @@ func (sb *SupportBehavior) usePartySkills(movement *MovementCoordinator, config 
 
 // checkSelfRestorations checks and restores player's own HP/MP/FP
 func (sb *SupportBehavior) checkSelfRestorations(movement *MovementCoordinator, config *Config, stats *ClientStats) {
-	hpValue := stats.HP.Value()
+	hpValue := stats.HP.GetValue()
 
 	// Check HP
 	if hpValue < config.HealThreshold && len(config.HealSlots) > 0 {
@@ -521,7 +521,7 @@ func (sb *SupportBehavior) checkSelfRestorations(movement *MovementCoordinator, 
 	}
 
 	// Check MP
-	mpValue := stats.MP.Value()
+	mpValue := stats.MP.GetValue()
 	if mpValue < config.MPThreshold && len(config.MPRestoreSlots) > 0 {
 		LogDebug("Self MP low (%d%%), restoring", mpValue)
 		movement.UseSkill(config.MPRestoreSlots)
@@ -529,7 +529,7 @@ func (sb *SupportBehavior) checkSelfRestorations(movement *MovementCoordinator, 
 	}
 
 	// Check FP
-	fpValue := stats.FP.Value()
+	fpValue := stats.FP.GetValue()
 	if fpValue < config.FPThreshold && len(config.FPRestoreSlots) > 0 {
 		LogDebug("Self FP low (%d%%), restoring", fpValue)
 		movement.UseSkill(config.FPRestoreSlots)

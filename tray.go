@@ -17,7 +17,9 @@
 //   │  ├─ Buff Slots
 //   │  ├─ MP Restore Slots
 //   │  ├─ FP Restore Slots
-//   │  └─ Pickup Slots
+//   │  ├─ Pickup Slots
+//   │  └─ Pet Slot (radio buttons for slots 0-9)
+//   ├─ Slot Cooldowns (per-slot cooldown configuration)
 //   ├─ Thresholds (3-level: Thresholds → Type → 0%-100%)
 //   │  ├─ HP Threshold (radio buttons 0-100 in 10% increments)
 //   │  ├─ MP Threshold
@@ -87,7 +89,6 @@ type TrayApp struct {
 	mpRestoreSlotsItem *systray.MenuItem
 	fpRestoreSlotsItem *systray.MenuItem
 	pickupSlotsItem    *systray.MenuItem
-	pickupPetItem      *systray.MenuItem // Parent menu for pickup and pet
 
 	// Slot submenu items (for each slot type, we have 10 slot options: 0-9)
 	attackSlotItems    [10]*systray.MenuItem
@@ -96,8 +97,15 @@ type TrayApp struct {
 	mpRestoreSlotItems [10]*systray.MenuItem
 	fpRestoreSlotItems [10]*systray.MenuItem
 	pickupSlotItems    [10]*systray.MenuItem
-	pickupPetSlotItems [10]*systray.MenuItem // Pickup pet slot selection (radio)
-	pickupMotionSlotItems [10]*systray.MenuItem // Pickup motion slot selection (radio)
+	pickupPetSlotItems [10]*systray.MenuItem // Pet slot selection (radio)
+
+	// Disable buttons for each slot type
+	attackDisableItem    *systray.MenuItem
+	healDisableItem      *systray.MenuItem
+	buffDisableItem      *systray.MenuItem
+	mpRestoreDisableItem *systray.MenuItem
+	fpRestoreDisableItem *systray.MenuItem
+	pickupDisableItem    *systray.MenuItem
 
 	// Threshold items - parent menus
 	hpThresholdItem *systray.MenuItem
@@ -175,6 +183,9 @@ func (t *TrayApp) onReady() {
 	t.fpRestoreSlotsItem = slotsMenu.AddSubMenuItem("FP Restore Slots", "Configure FP restore slots")
 	t.pickupSlotsItem = slotsMenu.AddSubMenuItem("Pickup Slots", "Configure pickup slots")
 
+	// Add Pet slots directly under Slots menu (radio buttons for slot selection)
+	pickupPetSlotItem := slotsMenu.AddSubMenuItem("Pet Slot", "Select slot for pet summon/dismiss")
+
 	// Create slot number submenus (0-9 for each slot type)
 	for i := 0; i < 10; i++ {
 		t.attackSlotItems[i] = t.attackSlotsItem.AddSubMenuItemCheckbox(fmt.Sprintf("Slot %d", i), "", false)
@@ -183,25 +194,19 @@ func (t *TrayApp) onReady() {
 		t.mpRestoreSlotItems[i] = t.mpRestoreSlotsItem.AddSubMenuItemCheckbox(fmt.Sprintf("Slot %d", i), "", false)
 		t.fpRestoreSlotItems[i] = t.fpRestoreSlotsItem.AddSubMenuItemCheckbox(fmt.Sprintf("Slot %d", i), "", false)
 		t.pickupSlotItems[i] = t.pickupSlotsItem.AddSubMenuItemCheckbox(fmt.Sprintf("Slot %d", i), "", false)
+		t.pickupPetSlotItems[i] = pickupPetSlotItem.AddSubMenuItemCheckbox(fmt.Sprintf("Slot %d", i), "", false)
 	}
+
+	// Add "Disable All" option for each slot type
+	t.attackDisableItem = t.attackSlotsItem.AddSubMenuItem("Disable All", "Clear all attack slot selections")
+	t.healDisableItem = t.healSlotsItem.AddSubMenuItem("Disable All", "Clear all heal slot selections")
+	t.buffDisableItem = t.buffSlotsItem.AddSubMenuItem("Disable All", "Clear all buff slot selections")
+	t.mpRestoreDisableItem = t.mpRestoreSlotsItem.AddSubMenuItem("Disable All", "Clear all MP restore slot selections")
+	t.fpRestoreDisableItem = t.fpRestoreSlotsItem.AddSubMenuItem("Disable All", "Clear all FP restore slot selections")
+	t.pickupDisableItem = t.pickupSlotsItem.AddSubMenuItem("Disable All", "Clear all pickup slot selections")
 
 	// Initialize slot checkmarks based on config
 	t.updateSlotCheckmarks()
-
-	systray.AddSeparator()
-
-	// Pickup and Pet configuration - with 3-level menu (Pickup & Pet -> Type -> Slot 0-9)
-	t.pickupPetItem = systray.AddMenuItem("Pickup & Pet", "Configure pickup and pet slots")
-	pickupPetSlotItem := t.pickupPetItem.AddSubMenuItem("Pickup Pet Slot", "Select slot for pickup pet summon")
-	pickupMotionSlotItem := t.pickupPetItem.AddSubMenuItem("Pickup Motion Slot", "Select slot for motion-based pickup")
-
-	// Create slot submenus for pickup pet and motion (radio buttons, -1 = disabled)
-	for i := 0; i < 10; i++ {
-		t.pickupPetSlotItems[i] = pickupPetSlotItem.AddSubMenuItemCheckbox(fmt.Sprintf("Slot %d", i), "", false)
-		t.pickupMotionSlotItems[i] = pickupMotionSlotItem.AddSubMenuItemCheckbox(fmt.Sprintf("Slot %d", i), "", false)
-	}
-
-	// Initialize pickup pet/motion checkmarks based on config
 	t.updatePickupPetCheckmarks()
 
 	systray.AddSeparator()
@@ -277,8 +282,15 @@ func (t *TrayApp) handleEvents(quitItem *systray.MenuItem) {
 		go t.handleSlotClick("fp", i, t.fpRestoreSlotItems[i])
 		go t.handleSlotClick("pickup", i, t.pickupSlotItems[i])
 		go t.handlePickupPetSlotClick(i, t.pickupPetSlotItems[i])
-		go t.handlePickupMotionSlotClick(i, t.pickupMotionSlotItems[i])
 	}
+
+	// Start goroutines for handling disable clicks
+	go t.handleDisableClick("attack", t.attackDisableItem)
+	go t.handleDisableClick("heal", t.healDisableItem)
+	go t.handleDisableClick("buff", t.buffDisableItem)
+	go t.handleDisableClick("mp", t.mpRestoreDisableItem)
+	go t.handleDisableClick("fp", t.fpRestoreDisableItem)
+	go t.handleDisableClick("pickup", t.pickupDisableItem)
 
 	// Start goroutines for handling slot cooldown clicks
 	for i := 0; i < 10; i++ {
@@ -503,27 +515,18 @@ func (t *TrayApp) updateThresholdCheckmarks() {
 	updateThresholds(t.fpThresholdItems, config.FPThreshold)
 }
 
-// updatePickupPetCheckmarks updates pickup pet/motion slot checkmarks based on current config
+// updatePickupPetCheckmarks updates pet slot checkmarks based on current config
 func (t *TrayApp) updatePickupPetCheckmarks() {
 	config := t.bot.config
 	config.mu.RLock()
 	defer config.mu.RUnlock()
 
-	// Update pickup pet slot (radio button behavior)
+	// Update pet slot (radio button behavior)
 	for i := 0; i < 10; i++ {
 		if config.PickupPetSlot == i {
 			t.pickupPetSlotItems[i].Check()
 		} else {
 			t.pickupPetSlotItems[i].Uncheck()
-		}
-	}
-
-	// Update pickup motion slot (radio button behavior)
-	for i := 0; i < 10; i++ {
-		if config.PickupMotionSlot == i {
-			t.pickupMotionSlotItems[i].Check()
-		} else {
-			t.pickupMotionSlotItems[i].Uncheck()
 		}
 	}
 }
@@ -569,7 +572,7 @@ func (t *TrayApp) updateCaptureFreqCheckmarks() {
 	}
 }
 
-// handlePickupPetSlotClick handles pickup pet slot selection clicks (radio button)
+// handlePickupPetSlotClick handles pet slot selection clicks (radio button)
 func (t *TrayApp) handlePickupPetSlotClick(slotNum int, menuItem *systray.MenuItem) {
 	for {
 		<-menuItem.ClickedCh
@@ -591,39 +594,46 @@ func (t *TrayApp) handlePickupPetSlotClick(slotNum int, menuItem *systray.MenuIt
 		t.bot.SaveState()
 
 		if config.PickupPetSlot == -1 {
-			LogInfo("Disabled pickup pet")
+			LogInfo("Disabled pet slot")
 		} else {
-			LogInfo("Updated pickup pet slot to: %d", slotNum)
+			LogInfo("Updated pet slot to: %d", slotNum)
 		}
 	}
 }
 
-// handlePickupMotionSlotClick handles pickup motion slot selection clicks (radio button)
-func (t *TrayApp) handlePickupMotionSlotClick(slotNum int, menuItem *systray.MenuItem) {
+// handleDisableClick handles "Disable All" button clicks for slot types
+func (t *TrayApp) handleDisableClick(slotType string, menuItem *systray.MenuItem) {
 	for {
 		<-menuItem.ClickedCh
 
 		config := t.bot.config
 		config.mu.Lock()
-		// Toggle: if already selected, disable it (-1)
-		if config.PickupMotionSlot == slotNum {
-			config.PickupMotionSlot = -1
-		} else {
-			config.PickupMotionSlot = slotNum
+
+		// Clear the corresponding slot array
+		switch slotType {
+		case "attack":
+			config.AttackSlots = []int{}
+		case "heal":
+			config.HealSlots = []int{}
+		case "buff":
+			config.BuffSlots = []int{}
+		case "mp":
+			config.MPRestoreSlots = []int{}
+		case "fp":
+			config.FPRestoreSlots = []int{}
+		case "pickup":
+			config.PickupSlots = []int{}
 		}
+
 		config.mu.Unlock()
 
 		// Update checkmarks
-		t.updatePickupPetCheckmarks()
+		t.updateSlotCheckmarks()
 
 		// Save configuration
 		t.bot.SaveState()
 
-		if config.PickupMotionSlot == -1 {
-			LogInfo("Disabled pickup motion")
-		} else {
-			LogInfo("Updated pickup motion slot to: %d", slotNum)
-		}
+		LogInfo("Disabled all %s slots", slotType)
 	}
 }
 

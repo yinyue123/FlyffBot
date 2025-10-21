@@ -406,12 +406,12 @@ func (b *Browser) DrawDebugOverlay(targets []Target, config *Config, stats *Clie
 	if stats != nil && stats.HPBar.Detected {
 		// Calculate the mob detection area based on screen dimensions
 		// This matches the region used in IdentifyMobs (analyzer.go)
-		screenHeight := 1080 // Default, will be overridden if action available
+		screenHeight := 1080 // Default, will be overridden if browser available
 		screenWidth := 1920  // Default
-		if action != nil {
-			bounds := action.GetScreenBounds()
-			screenWidth = bounds.W
-			screenHeight = bounds.H
+		if b != nil {
+			bounds := b.GetScreenBounds()
+			screenWidth = bounds.Dx()
+			screenHeight = bounds.Dy()
 		}
 
 		topIgnore := 100    // Top UI area to ignore

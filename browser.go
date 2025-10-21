@@ -28,6 +28,7 @@ import (
 	"context"
 	"fmt"
 	"image"
+	_ "image/png" // Register PNG decoder
 	"sync"
 	"time"
 
@@ -203,11 +204,9 @@ func (b *Browser) Start(cookies []CookieData) error {
 
 	LogInfo("Navigating to https://universe.flyff.com/play")
 
-	// Navigate with timeout
-	navCtx, navCancel := context.WithTimeout(b.ctx, 60*time.Second)
-	defer navCancel()
-
-	err := chromedp.Run(navCtx,
+	// Navigate - chromedp.Run will use the browser context
+	// We run the navigation in a goroutine to not block if it takes long
+	err := chromedp.Run(b.ctx,
 		chromedp.Navigate("https://universe.flyff.com/play"),
 	)
 
@@ -217,6 +216,7 @@ func (b *Browser) Start(cookies []CookieData) error {
 	}
 
 	LogInfo("Navigation completed successfully")
+	LogInfo("Browser is now ready")
 	return nil
 }
 

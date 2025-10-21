@@ -1,12 +1,12 @@
 {
   "config": {
     "Mode": "Farming",
-    "AttackSlots": [
-      0
-    ],
+    "AttackSlots": [],
+    "AOEAttackSlots": null,
     "HealSlots": [
       1
     ],
+    "AOEHealSlots": null,
     "BuffSlots": [],
     "MPRestoreSlots": [
       2
@@ -17,6 +17,10 @@
     "PickupSlots": [
       4
     ],
+    "PickupPetSlot": 0,
+    "PickupMotionSlot": 0,
+    "RezSlots": null,
+    "PartySkillSlots": null,
     "HealThreshold": 50,
     "MPThreshold": 30,
     "FPThreshold": 30,
@@ -30,56 +34,61 @@
       "G": 23,
       "B": 23
     },
-    "PassiveTolerance": 5,
-    "AggressiveTolerance": 5,
+    "VioletColor": {
+      "R": 0,
+      "G": 0,
+      "B": 0
+    },
+    "PassiveTolerance": 8,
+    "AggressiveTolerance": 10,
+    "VioletTolerance": 10,
     "PrioritizeAggro": true,
-    "MinMobNameWidth": 15,
-    "MaxMobNameWidth": 150,
+    "MinMobNameWidth": 11,
+    "MaxMobNameWidth": 180,
     "CircleMoveDuration": 100,
+    "MinHPAttack": 0,
+    "StopFighting": false,
+    "ObstacleAvoidanceMaxTry": 0,
+    "ObstacleAvoidanceCooldown": 0,
+    "MaxAOEFarming": 0,
+    "MobsTimeout": 0,
     "FollowDistance": 200,
     "InParty": false,
-    "CaptureInterval": 2000
+    "ShoutMessages": null,
+    "ShoutInterval": 0,
+    "CaptureInterval": 2000,
+    "SlotCooldowns": null
   },
   "cookies": [
     {
-      "name": "cto_bundle",
-      "value": "wVqval96SXZQQzNlVUYzaXNud2JBbCUyQjElMkIyVFgxaWE0RSUyRnlwaGVOcDA5eWpwc0xzSGtzclRtSyUyQk1JTiUyRmVwaDZ0NWxacjk0WUd6aHZ2YnNHRmEyTGpLZGgyT1NZVmtvelYxbU94ZE9YVGU3RUYxSEtlYnN3RURCVjdqSkgwcTdkJTJGdzJOMmtSV0VIYlQ1Q3VEZk42b1ZHdERSd2NJYnZ1V0hsVmd6NlJOOGI0bW9KYjJid0NRb0dhald6bmZHTWVFbDl0Y1hoRklWeWppelUwdzV0MlZCN0dmNVBRJTNEJTNE",
-      "domain": ".flyff.com",
-      "path": "/",
-      "expires": 1795139864,
-      "httpOnly": false,
-      "secure": false,
-      "sameSite": ""
-    },
-    {
       "name": "azuriom_session",
-      "value": "eyJpdiI6ImtQajU2YzVpRlFpVy95MEp3TGhYSFE9PSIsInZhbHVlIjoiZHZqQnFNVGFrVTQ2cHlpRWRVQ3JyYm9zTGViSjRHeGpldmJqUWxHeHhwL1FSdGEyd2YxbnVqZzRLa0hCRXoxNHZpYTNpMjMxNStSR29SUkUzQUZySUdHTXVtZ01sRHVENW9iMUwzdDVnQVpqYnFzQWUyUGhTVmQyU1kvdnRkMkMiLCJtYWMiOiJkM2QxZmY2Y2ZjZjM1NDAxZGRjZWU5MDU2OTU1YzY4NWI3ODFjN2JiYmM0MTg3ZDdjNzI3NGZiYWJjNTY0NDk0IiwidGFnIjoiIn0%3D",
+      "value": "eyJpdiI6IkNOaVhJM1hZN2dGaUZrclNVbWEvRWc9PSIsInZhbHVlIjoiMFViQWdRM2N1QktzSjZDdmNNYU9WQmU2c2pQV2g0dXlGQTNLZVgxUjlrMjZ4c0RHYThSWDVWVkt4YzJXL0FPc0UvODArQVRDU2ZCUU9GeFdJRllSYTBDWUY0bXh1U2xSc1Jjd0dlVWhTem9ndml5QnB3THJ2cnN5SlQ2aFk5VnoiLCJtYWMiOiI5ZjE1ZWJmOWRhMGRiMTBiOWI2Nzc1ZjE1ODgyZWZkNDVlZTg0YzhlY2YyYTAxYzIxODJhY2Y5NTcwMjk2ODdhIiwidGFnIjoiIn0%3D",
       "domain": "universe.flyff.com",
       "path": "/",
-      "expires": 1760983052.359928,
+      "expires": 1761045484.151883,
       "httpOnly": true,
       "secure": false,
       "sameSite": "Lax"
     },
     {
       "name": "XSRF-TOKEN",
-      "value": "eyJpdiI6IldkNWp6VlpWL3duU0lHVGsrTDU3cmc9PSIsInZhbHVlIjoicGR6K0dScE8vNnNJamNCWE03VGY1NHM2bkZyUld1LyswY1hkM0JLNVY4L0phYWtOZ1FvRWxQSDFPOVVGclIrekxMUXhNTjMrU1BDMFFiYnhWTHNsSGJRRDF2RjhlNEFaYXNyY2FVMzlVcnJQQXBqWnhGVlA2S3BLU3M1U1RCbFgiLCJtYWMiOiJiYzVkNWFmMzg4M2QyZTEyMTZjMTgyZGUwOGJjZDg5Y2I0ZmVlNDNjNDI5MmJhMGVkODVjMmI1ZmM3NTNjNThhIiwidGFnIjoiIn0%3D",
+      "value": "eyJpdiI6IklKdmdrVnR4cWdiR0N2dFJWSFhqS1E9PSIsInZhbHVlIjoiZFlXbm1VWlFqV2orWGhzM2VvV29Gbnl3dmNySWdXYVFuT0lIS3JXS0NTaGt1NHUrVitkY2dTcVRFY0pxdlJXUVhBY21DRE1nYVVpVmNRcjlNcTVTOEtnQlRuZzdrZFRSOXgzQk5kV0JNdk1pMVRNVVpXRXNYME1LTGRrTVpHZEkiLCJtYWMiOiJlYjk0MGQzMTc1NzFlZjQwOTEyNTM1YzJmZjJlNzk2Zjc0NjJmYWRkZWI3YzllNjVmY2RlMmQ4ZjBjYWI0ZWRlIiwidGFnIjoiIn0%3D",
       "domain": "universe.flyff.com",
       "path": "/",
-      "expires": 1760983052.359758,
+      "expires": 1761045484.151736,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
     },
     {
-      "name": "remember_web_59ba36addc2b2f9401580f014c7f58ea4e30989d",
-      "value": "eyJpdiI6IlpDWTJNVlpUR0Z5bC8rM2UzUXRyZUE9PSIsInZhbHVlIjoiekNuaE5ieGFRdjdmTko5MHloc1BFK0k5S1lRNGtxR0ZkcE1OMFJMeGVrTVFOanNTbkJsdzRUMVpMUlpaREI3blM3TnRXMmQrcUszbkpxT2krOHJ2T0lUbW9pU1JraUdVc1JNVis0dEVEL3Z2N3RjOFlpSDFWOTg3S3d1LzRyaGR6T0JaZkVBN2UrREZDYUNOeWVzbkFheWQrSEFMMXVZUUpSVWUwMVZCR3k2QkFUMnRHNU1PMElzK1FXY2szMWc1a1VTV1pjRkNzUnFHVnVsOFJkWWZKTGxJdklueVZ6YnRZNm1TZEpWWUhKOD0iLCJtYWMiOiIxMGZmNzc5OTJhM2EzMzlkMjgwMjlhMWM0OTQ2MTk2Nzg4OTQ4Y2JmMjBhNjRlOTVjNGVhOGNmYjhiMTQ4M2ZmIiwidGFnIjoiIn0%3D",
-      "domain": "universe.flyff.com",
+      "name": "cto_bundle",
+      "value": "gI58SV83cVA0cFRoa0E1Vk9UQiUyQmRIY3ZsQ0E5dnNaUVFJR1RDTnBOSFMlMkJsd2ZUa2xBOUpoYzFLTlpSYmdKSERRMU9HNVgxR25lSjJ0SUt2YTZNVGhZNlhUJTJGRXV3clZmZG1mV3NabXJMcFdZQU9mU1RVWktSZENQR2VZakdKRzZPU1klMkJ6N0klMkZXR0F2dktzJTJGZlFCck4xc2hIa1NicnB1emZISWVXbkhXS2pndnlHdkpydWFDcGN3a0ltdmJiVVlGdzRGOHB2WGRxZFFmYUF0djRjaSUyQmhsYlJEa0ElM0QlM0Q",
+      "domain": ".flyff.com",
       "path": "/",
-      "expires": 1795510629,
-      "httpOnly": true,
+      "expires": 1795201322,
+      "httpOnly": false,
       "secure": false,
-      "sameSite": "Lax"
+      "sameSite": ""
     }
   ]
 }

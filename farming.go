@@ -239,12 +239,6 @@ func (fb *FarmingBehavior) onSearchingForEnemy(analyzer *ImageAnalyzer, config *
 		return FarmingStateNoEnemyFound
 	}
 
-	if config.CircleMoveDuration == 0 {
-		maxDistance = 325
-	} else {
-		maxDistance = 1000
-	}
-
 	// Prioritize mobs
 	mobList := fb.prioritizeMobs(analyzer, config, mobs)
 	if len(mobList) == 0 {
