@@ -1,0 +1,85 @@
+{
+  "config": {
+    "Mode": "Farming",
+    "AttackSlots": [
+      0
+    ],
+    "HealSlots": [
+      1
+    ],
+    "BuffSlots": [],
+    "MPRestoreSlots": [
+      2
+    ],
+    "FPRestoreSlots": [
+      3
+    ],
+    "PickupSlots": [
+      4
+    ],
+    "HealThreshold": 50,
+    "MPThreshold": 30,
+    "FPThreshold": 30,
+    "PassiveColor": {
+      "R": 234,
+      "G": 234,
+      "B": 149
+    },
+    "AggressiveColor": {
+      "R": 179,
+      "G": 23,
+      "B": 23
+    },
+    "PassiveTolerance": 5,
+    "AggressiveTolerance": 5,
+    "PrioritizeAggro": true,
+    "MinMobNameWidth": 15,
+    "MaxMobNameWidth": 150,
+    "CircleMoveDuration": 100,
+    "FollowDistance": 200,
+    "InParty": false,
+    "CaptureInterval": 2000
+  },
+  "cookies": [
+    {
+      "name": "cto_bundle",
+      "value": "wVqval96SXZQQzNlVUYzaXNud2JBbCUyQjElMkIyVFgxaWE0RSUyRnlwaGVOcDA5eWpwc0xzSGtzclRtSyUyQk1JTiUyRmVwaDZ0NWxacjk0WUd6aHZ2YnNHRmEyTGpLZGgyT1NZVmtvelYxbU94ZE9YVGU3RUYxSEtlYnN3RURCVjdqSkgwcTdkJTJGdzJOMmtSV0VIYlQ1Q3VEZk42b1ZHdERSd2NJYnZ1V0hsVmd6NlJOOGI0bW9KYjJid0NRb0dhald6bmZHTWVFbDl0Y1hoRklWeWppelUwdzV0MlZCN0dmNVBRJTNEJTNE",
+      "domain": ".flyff.com",
+      "path": "/",
+      "expires": 1795139864,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": ""
+    },
+    {
+      "name": "azuriom_session",
+      "value": "eyJpdiI6ImtQajU2YzVpRlFpVy95MEp3TGhYSFE9PSIsInZhbHVlIjoiZHZqQnFNVGFrVTQ2cHlpRWRVQ3JyYm9zTGViSjRHeGpldmJqUWxHeHhwL1FSdGEyd2YxbnVqZzRLa0hCRXoxNHZpYTNpMjMxNStSR29SUkUzQUZySUdHTXVtZ01sRHVENW9iMUwzdDVnQVpqYnFzQWUyUGhTVmQyU1kvdnRkMkMiLCJtYWMiOiJkM2QxZmY2Y2ZjZjM1NDAxZGRjZWU5MDU2OTU1YzY4NWI3ODFjN2JiYmM0MTg3ZDdjNzI3NGZiYWJjNTY0NDk0IiwidGFnIjoiIn0%3D",
+      "domain": "universe.flyff.com",
+      "path": "/",
+      "expires": 1760983052.359928,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "XSRF-TOKEN",
+      "value": "eyJpdiI6IldkNWp6VlpWL3duU0lHVGsrTDU3cmc9PSIsInZhbHVlIjoicGR6K0dScE8vNnNJamNCWE03VGY1NHM2bkZyUld1LyswY1hkM0JLNVY4L0phYWtOZ1FvRWxQSDFPOVVGclIrekxMUXhNTjMrU1BDMFFiYnhWTHNsSGJRRDF2RjhlNEFaYXNyY2FVMzlVcnJQQXBqWnhGVlA2S3BLU3M1U1RCbFgiLCJtYWMiOiJiYzVkNWFmMzg4M2QyZTEyMTZjMTgyZGUwOGJjZDg5Y2I0ZmVlNDNjNDI5MmJhMGVkODVjMmI1ZmM3NTNjNThhIiwidGFnIjoiIn0%3D",
+      "domain": "universe.flyff.com",
+      "path": "/",
+      "expires": 1760983052.359758,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "remember_web_59ba36addc2b2f9401580f014c7f58ea4e30989d",
+      "value": "eyJpdiI6IlpDWTJNVlpUR0Z5bC8rM2UzUXRyZUE9PSIsInZhbHVlIjoiekNuaE5ieGFRdjdmTko5MHloc1BFK0k5S1lRNGtxR0ZkcE1OMFJMeGVrTVFOanNTbkJsdzRUMVpMUlpaREI3blM3TnRXMmQrcUszbkpxT2krOHJ2T0lUbW9pU1JraUdVc1JNVis0dEVEL3Z2N3RjOFlpSDFWOTg3S3d1LzRyaGR6T0JaZkVBN2UrREZDYUNOeWVzbkFheWQrSEFMMXVZUUpSVWUwMVZCR3k2QkFUMnRHNU1PMElzK1FXY2szMWc1a1VTV1pjRkNzUnFHVnVsOFJkWWZKTGxJdklueVZ6YnRZNm1TZEpWWUhKOD0iLCJtYWMiOiIxMGZmNzc5OTJhM2EzMzlkMjgwMjlhMWM0OTQ2MTk2Nzg4OTQ4Y2JmMjBhNjRlOTVjNGVhOGNmYjhiMTQ4M2ZmIiwidGFnIjoiIn0%3D",
+      "domain": "universe.flyff.com",
+      "path": "/",
+      "expires": 1795510629,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ]
+}
