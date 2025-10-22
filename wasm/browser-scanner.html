@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WASM Memory Scanner - 浏览器版</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Consolas', 'Monaco', monospace;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      color: #4ec9b0;
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+
+    .panel {
+      background: #252526;
+      border: 1px solid #3e3e42;
+      border-radius: 4px;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+
+    .panel-title {
+      color: #569cd6;
+      font-size: 16px;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    input, select, button {
+      background: #3c3c3c;
+      border: 1px solid #555;
+      color: #d4d4d4;
+      padding: 8px 12px;
+      border-radius: 3px;
+      font-family: inherit;
+      font-size: 14px;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #007acc;
+    }
+
+    button {
+      cursor: pointer;
+      background: #0e639c;
+      border-color: #007acc;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #1177bb;
+    }
+
+    button:active {
+      background: #005a9e;
+    }
+
+    button.danger {
+      background: #c72e0f;
+      border-color: #f14c4c;
+    }
+
+    button.danger:hover {
+      background: #e03e1f;
+    }
+
+    .stats {
+      display: flex;
+      gap: 20px;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .stat-item {
+      color: #ce9178;
+    }
+
+    .stat-value {
+      color: #4ec9b0;
+      font-weight: bold;
+    }
+
+    .results {
+      max-height: 400px;
+      overflow-y: auto;
+      background: #1e1e1e;
+      border: 1px solid #3e3e42;
+      border-radius: 3px;
+      padding: 10px;
+    }
+
+    .result-item {
+      display: grid;
+      grid-template-columns: 100px 150px 150px 80px;
+      gap: 10px;
+      padding: 5px;
+      border-bottom: 1px solid #333;
+      font-size: 13px;
+    }
+
+    .result-item:hover {
+      background: #2a2d2e;
+    }
+
+    .address {
+      color: #4ec9b0;
+      font-weight: bold;
+    }
+
+    .value {
+      color: #b5cea8;
+    }
+
+    .type {
+      color: #569cd6;
+    }
+
+    .action-btn {
+      padding: 2px 8px;
+      font-size: 11px;
+    }
+
+    .log {
+      background: #1e1e1e;
+      border: 1px solid #3e3e42;
+      border-radius: 3px;
+      padding: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-size: 12px;
+    }
+
+    .log-entry {
+      padding: 2px 0;
+      color: #cccccc;
+    }
+
+    .log-entry.info {
+      color: #4ec9b0;
+    }
+
+    .log-entry.success {
+      color: #6a9955;
+    }
+
+    .log-entry.error {
+      color: #f48771;
+    }
+
+    .instructions {
+      background: #264f78;
+      border-left: 4px solid #007acc;
+      padding: 12px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .instructions code {
+      background: #1e1e1e;
+      padding: 2px 6px;
+      border-radius: 2px;
+      color: #ce9178;
+    }
+
+    .watch-list {
+      background: #1e1e1e;
+      border: 1px solid #3e3e42;
+      border-radius: 3px;
+      padding: 10px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .watch-item {
+      display: grid;
+      grid-template-columns: 100px 150px 80px 100px;
+      gap: 10px;
+      padding: 8px;
+      border-bottom: 1px solid #333;
+      animation: highlight 0.5s ease;
+    }
+
+    @keyframes highlight {
+      0% { background: #2a2d2e; }
+      100% { background: transparent; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 WASM Memory Scanner</h1>
+
+    <div class="instructions">
+      <strong>使用说明:</strong><br>
+      1. 在浏览器控制台运行 <code>attachScanner(wasmMemory)</code> 来连接 WASM 内存<br>
+      2. 输入当前值进行首次扫描 (First Scan)<br>
+      3. 改变游戏中的值，输入新值继续扫描 (Next Scan)<br>
+      4. 重复步骤 3 直到找到唯一地址<br>
+      5. 可以修改值或添加到监控列表
+    </div>
+
+    <!-- 扫描控制 -->
+    <div class="panel">
+      <div class="panel-title">扫描控制</div>
+      <div class="controls">
+        <input type="number" id="searchValue" placeholder="输入要搜索的值" step="any">
+        <select id="valueType">
+          <option value="int8">Int8</option>
+          <option value="uint8">UInt8</option>
+          <option value="int16">Int16</option>
+          <option value="uint16">UInt16</option>
+          <option value="int32" selected>Int32</option>
+          <option value="uint32">UInt32</option>
+          <option value="float32">Float32</option>
+          <option value="float64">Float64</option>
+        </select>
+        <select id="compareType">
+          <option value="exact">精确值</option>
+          <option value="changed">已改变</option>
+          <option value="unchanged">未改变</option>
+          <option value="increased">增加</option>
+          <option value="decreased">减少</option>
+        </select>
+      </div>
+      <div class="controls">
+        <button onclick="firstScan()">🔍 首次扫描 (First Scan)</button>
+        <button onclick="nextScan()">🔄 继续扫描 (Next Scan)</button>
+        <button onclick="resetScan()" class="danger">🗑️ 重置</button>
+      </div>
+      <div class="stats">
+        <div class="stat-item">结果数: <span class="stat-value" id="resultCount">0</span></div>
+        <div class="stat-item">内存大小: <span class="stat-value" id="memorySize">未连接</span></div>
+        <div class="stat-item">扫描时间: <span class="stat-value" id="scanTime">-</span></div>
+      </div>
+    </div>
+
+    <!-- 搜索结果 -->
+    <div class="panel">
+      <div class="panel-title">搜索结果 (显示前 100 条)</div>
+      <div class="results" id="resultsContainer">
+        <div style="color: #858585; text-align: center; padding: 20px;">
+          等待扫描...
+        </div>
+      </div>
+    </div>
+
+    <!-- 内存修改 -->
+    <div class="panel">
+      <div class="panel-title">内存修改</div>
+      <div class="controls">
+        <input type="text" id="modifyAddress" placeholder="地址 (hex: 0x1234 或 dec: 1234)">
+        <input type="number" id="modifyValue" placeholder="新值" step="any">
+        <select id="modifyType">
+          <option value="int8">Int8</option>
+          <option value="uint8">UInt8</option>
+          <option value="int16">Int16</option>
+          <option value="uint16">UInt16</option>
+          <option value="int32" selected>Int32</option>
+          <option value="uint32">UInt32</option>
+          <option value="float32">Float32</option>
+          <option value="float64">Float64</option>
+        </select>
+        <button onclick="modifyMemory()">✏️ 修改内存</button>
+      </div>
+    </div>
+
+    <!-- 监控列表 -->
+    <div class="panel">
+      <div class="panel-title">实时监控 (每秒更新)</div>
+      <div class="watch-list" id="watchList">
+        <div style="color: #858585; text-align: center; padding: 20px;">
+          监控列表为空
+        </div>
+      </div>
+      <button onclick="clearWatchList()" class="danger" style="margin-top: 10px;">清空监控列表</button>
+    </div>
+
+    <!-- 日志 -->
+    <div class="panel">
+      <div class="panel-title">日志</div>
+      <div class="log" id="logContainer"></div>
+    </div>
+  </div>
+
+  <script src="memory-scanner.js"></script>
+  <script>
+    let scanner = null;
+    let watchInterval = null;
+    let watchList = [];
+
+    // 日志函数
+    function log(message, type = 'info') {
+      const logContainer = document.getElementById('logContainer');
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      logContainer.appendChild(entry);
+      logContainer.scrollTop = logContainer.scrollHeight;
+      console.log(message);
+    }
+
+    // 连接到 WASM 内存
+    window.attachScanner = function(wasmMemory) {
+      if (!wasmMemory) {
+        log('错误: 请提供有效的 WASM Memory 对象', 'error');
+        alert('请在控制台运行: attachScanner(wasmInstance.exports.memory)');
+        return;
+      }
+
+      scanner = new WasmMemoryScanner(wasmMemory);
+      updateMemorySize();
+      log('已连接到 WASM 内存', 'success');
+
+      // 启动监控
+      startWatchInterval();
+    };
+
+    // 更新内存大小显示
+    function updateMemorySize() {
+      if (scanner) {
+        const size = scanner.buffer.length;
+        const sizeMB = (size / 1024 / 1024).toFixed(2);
+        document.getElementById('memorySize').textContent = `${sizeMB} MB`;
+      }
+    }
+
+    // 首次扫描
+    function firstScan() {
+      if (!scanner) {
+        log('错误: 未连接到 WASM 内存', 'error');
+        return;
+      }
+
+      const value = parseFloat(document.getElementById('searchValue').value);
+      const type = document.getElementById('valueType').value;
+
+      if (isNaN(value)) {
+        log('错误: 请输入有效的数值', 'error');
+        return;
+      }
+
+      log(`开始首次扫描: 值=${value}, 类型=${type}`, 'info');
+      const startTime = performance.now();
+
+      const results = scanner.firstScan(value, type);
+
+      const endTime = performance.now();
+      const scanTime = ((endTime - startTime) / 1000).toFixed(2);
+
+      document.getElementById('scanTime').textContent = `${scanTime}s`;
+      document.getElementById('resultCount').textContent = results.length;
+
+      displayResults(results);
+      log(`扫描完成: 找到 ${results.length} 个结果`, 'success');
+    }
+
+    // 继续扫描
+    function nextScan() {
+      if (!scanner || scanner.searchResults.length === 0) {
+        log('错误: 请先执行首次扫描', 'error');
+        return;
+      }
+
+      const value = parseFloat(document.getElementById('searchValue').value);
+      const compareType = document.getElementById('compareType').value;
+
+      if (compareType === 'exact' && isNaN(value)) {
+        log('错误: 精确值模式需要输入数值', 'error');
+        return;
+      }
+
+      log(`继续扫描: 比较类型=${compareType}`, 'info');
+      const startTime = performance.now();
+
+      const results = scanner.nextScan(value, compareType);
+
+      const endTime = performance.now();
+      const scanTime = ((endTime - startTime) / 1000).toFixed(2);
+
+      document.getElementById('scanTime').textContent = `${scanTime}s`;
+      document.getElementById('resultCount').textContent = results.length;
+
+      displayResults(results);
+      log(`扫描完成: 剩余 ${results.length} 个结果`, 'success');
+    }
+
+    // 重置扫描
+    function resetScan() {
+      if (scanner) {
+        scanner.reset();
+        document.getElementById('resultCount').textContent = '0';
+        document.getElementById('scanTime').textContent = '-';
+        document.getElementById('resultsContainer').innerHTML =
+          '<div style="color: #858585; text-align: center; padding: 20px;">等待扫描...</div>';
+        log('已重置扫描', 'info');
+      }
+    }
+
+    // 显示结果
+    function displayResults(results) {
+      const container = document.getElementById('resultsContainer');
+      container.innerHTML = '';
+
+      if (results.length === 0) {
+        container.innerHTML = '<div style="color: #858585; text-align: center; padding: 20px;">无结果</div>';
+        return;
+      }
+
+      const displayLimit = Math.min(results.length, 100);
+      for (let i = 0; i < displayLimit; i++) {
+        const result = results[i];
+        const item = document.createElement('div');
+        item.className = 'result-item';
+        item.innerHTML = `
+          <span class="address">0x${result.address.toString(16).padStart(8, '0')}</span>
+          <span class="value">${result.value}</span>
+          <span class="type">${result.type}</span>
+          <button class="action-btn" onclick="addToWatch(${result.address}, '${result.type}')">➕ 监控</button>
+        `;
+        container.appendChild(item);
+      }
+
+      if (results.length > 100) {
+        const note = document.createElement('div');
+        note.style.cssText = 'color: #858585; text-align: center; padding: 10px;';
+        note.textContent = `... 还有 ${results.length - 100} 个结果未显示`;
+        container.appendChild(note);
+      }
+    }
+
+    // 修改内存
+    function modifyMemory() {
+      if (!scanner) {
+        log('错误: 未连接到 WASM 内存', 'error');
+        return;
+      }
+
+      const addressStr = document.getElementById('modifyAddress').value;
+      const value = parseFloat(document.getElementById('modifyValue').value);
+      const type = document.getElementById('modifyType').value;
+
+      if (!addressStr || isNaN(value)) {
+        log('错误: 请输入有效的地址和值', 'error');
+        return;
+      }
+
+      // 解析地址（支持十六进制和十进制）
+      const address = addressStr.startsWith('0x')
+        ? parseInt(addressStr, 16)
+        : parseInt(addressStr, 10);
+
+      try {
+        scanner.writeValue(address, value, type);
+        log(`成功修改 0x${address.toString(16)} = ${value} (${type})`, 'success');
+      } catch (e) {
+        log(`修改失败: ${e.message}`, 'error');
+      }
+    }
+
+    // 添加到监控列表
+    window.addToWatch = function(address, type) {
+      const existing = watchList.find(item => item.address === address);
+      if (existing) {
+        log('该地址已在监控列表中', 'info');
+        return;
+      }
+
+      watchList.push({ address, type });
+      log(`已添加 0x${address.toString(16)} 到监控列表`, 'success');
+      updateWatchList();
+    };
+
+    // 清空监控列表
+    function clearWatchList() {
+      watchList = [];
+      updateWatchList();
+      log('已清空监控列表', 'info');
+    }
+
+    // 更新监控列表显示
+    function updateWatchList() {
+      const container = document.getElementById('watchList');
+      container.innerHTML = '';
+
+      if (watchList.length === 0) {
+        container.innerHTML = '<div style="color: #858585; text-align: center; padding: 20px;">监控列表为空</div>';
+        return;
+      }
+
+      watchList.forEach((item, index) => {
+        const value = scanner ? scanner.readValue(item.address, item.type) : 'N/A';
+        const div = document.createElement('div');
+        div.className = 'watch-item';
+        div.innerHTML = `
+          <span class="address">0x${item.address.toString(16).padStart(8, '0')}</span>
+          <span class="value">${value}</span>
+          <span class="type">${item.type}</span>
+          <button class="action-btn danger" onclick="removeFromWatch(${index})">🗑️</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // 从监控列表移除
+    window.removeFromWatch = function(index) {
+      const item = watchList[index];
+      watchList.splice(index, 1);
+      log(`已移除 0x${item.address.toString(16)} 从监控列表`, 'info');
+      updateWatchList();
+    };
+
+    // 启动监控定时器
+    function startWatchInterval() {
+      if (watchInterval) {
+        clearInterval(watchInterval);
+      }
+
+      watchInterval = setInterval(() => {
+        if (scanner && watchList.length > 0) {
+          updateWatchList();
+        }
+      }, 1000);
+    }
+
+    // 初始化
+    log('WASM Memory Scanner 已加载', 'info');
+    log('请在控制台运行: attachScanner(wasmInstance.exports.memory)', 'info');
+  </script>
+</body>
+</html>

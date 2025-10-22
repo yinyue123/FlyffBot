@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WASM Memory Scanner</title>
+  <link rel="stylesheet" href="panel.css">
+</head>
+<body>
+  <div class="app">
+    <!-- 头部 -->
+    <div class="header">
+      <div class="title">
+        <h1>🔍 WASM Memory Scanner</h1>
+        <span class="version">v1.0.0</span>
+      </div>
+      <div class="status">
+        <span class="status-indicator" id="statusIndicator"></span>
+        <span id="statusText">检测中...</span>
+      </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="main-content">
+      <!-- 左侧面板 -->
+      <div class="left-panel">
+        <!-- WASM 实例选择 -->
+        <div class="panel">
+          <div class="panel-header">
+            <h3>WASM 实例</h3>
+            <button id="refreshWasmBtn" class="icon-btn" title="刷新">🔄</button>
+          </div>
+          <div id="wasmList" class="wasm-list"></div>
+        </div>
+
+        <!-- 扫描控制 -->
+        <div class="panel">
+          <div class="panel-header">
+            <h3>扫描设置</h3>
+          </div>
+          <div class="scan-controls">
+            <div class="input-group">
+              <label>数值</label>
+              <input type="number" id="scanValue" placeholder="输入要搜索的值" step="any">
+            </div>
+            <div class="input-group">
+              <label>类型</label>
+              <select id="scanType">
+                <option value="int8">Int8</option>
+                <option value="uint8">UInt8</option>
+                <option value="int16">Int16</option>
+                <option value="uint16">UInt16</option>
+                <option value="int32" selected>Int32</option>
+                <option value="uint32">UInt32</option>
+                <option value="float32">Float32</option>
+                <option value="float64">Float64</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>比较模式</label>
+              <select id="compareType">
+                <option value="exact">精确值</option>
+                <option value="changed">已改变</option>
+                <option value="unchanged">未改变</option>
+                <option value="increased">增加</option>
+                <option value="decreased">减少</option>
+              </select>
+            </div>
+            <div class="btn-group">
+              <button id="firstScanBtn" class="btn btn-primary">🔍 首次扫描</button>
+              <button id="nextScanBtn" class="btn btn-secondary">🔄 继续扫描</button>
+              <button id="resetScanBtn" class="btn btn-danger">🗑️ 重置</button>
+            </div>
+            <div class="scan-stats">
+              <div class="stat">
+                <span class="stat-label">结果数:</span>
+                <span class="stat-value" id="resultCount">0</span>
+              </div>
+              <div class="stat">
+                <span class="stat-label">扫描时间:</span>
+                <span class="stat-value" id="scanTime">-</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 内存修改 -->
+        <div class="panel">
+          <div class="panel-header">
+            <h3>内存修改</h3>
+          </div>
+          <div class="modify-controls">
+            <div class="input-group">
+              <label>地址</label>
+              <input type="text" id="modifyAddress" placeholder="0x12345678">
+            </div>
+            <div class="input-group">
+              <label>新值</label>
+              <input type="number" id="modifyValue" placeholder="输入新值" step="any">
+            </div>
+            <div class="input-group">
+              <label>类型</label>
+              <select id="modifyType">
+                <option value="int32" selected>Int32</option>
+                <option value="uint32">UInt32</option>
+                <option value="float32">Float32</option>
+                <option value="int16">Int16</option>
+                <option value="uint16">UInt16</option>
+              </select>
+            </div>
+            <button id="modifyBtn" class="btn btn-primary">✏️ 修改内存</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧面板 -->
+      <div class="right-panel">
+        <!-- 搜索结果 -->
+        <div class="panel results-panel">
+          <div class="panel-header">
+            <h3>搜索结果</h3>
+            <div class="toolbar">
+              <input type="text" id="filterInput" placeholder="过滤地址..." class="filter-input">
+              <button id="exportBtn" class="icon-btn" title="导出">💾</button>
+            </div>
+          </div>
+          <div class="results-container">
+            <div class="results-table-wrapper">
+              <table class="results-table" id="resultsTable">
+                <thead>
+                  <tr>
+                    <th>地址</th>
+                    <th>当前值</th>
+                    <th>类型</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="resultsBody">
+                  <tr>
+                    <td colspan="4" class="empty-state">等待扫描...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 监控列表 -->
+        <div class="panel watch-panel">
+          <div class="panel-header">
+            <h3>监控列表</h3>
+            <div class="toolbar">
+              <label class="checkbox-label">
+                <input type="checkbox" id="autoRefresh" checked>
+                自动刷新
+              </label>
+              <button id="clearWatchBtn" class="icon-btn" title="清空">🗑️</button>
+            </div>
+          </div>
+          <div class="watch-container">
+            <table class="watch-table" id="watchTable">
+              <thead>
+                <tr>
+                  <th>地址</th>
+                  <th>值</th>
+                  <th>类型</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="watchBody">
+                <tr>
+                  <td colspan="4" class="empty-state">监控列表为空</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 日志面板 -->
+    <div class="log-panel">
+      <div class="panel-header">
+        <h3>日志</h3>
+        <button id="clearLogBtn" class="icon-btn" title="清空日志">🗑️</button>
+      </div>
+      <div id="logContainer" class="log-container"></div>
+    </div>
+  </div>
+
+  <script src="panel.js"></script>
+</body>
+</html>

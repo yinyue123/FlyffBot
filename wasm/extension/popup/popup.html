@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WASM Memory Scanner</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔍 WASM Scanner</h1>
+      <div class="status" id="status">
+        <span class="dot" id="statusDot"></span>
+        <span id="statusText">未连接</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>快速操作</h3>
+      <button id="injectBtn" class="btn btn-primary">
+        💉 注入扫描器
+      </button>
+      <button id="openDevToolsBtn" class="btn btn-secondary">
+        🛠️ 打开开发者面板
+      </button>
+    </div>
+
+    <div class="section">
+      <h3>WASM 实例</h3>
+      <div id="wasmList" class="wasm-list">
+        <div class="loading">正在检测...</div>
+      </div>
+      <button id="refreshBtn" class="btn btn-small">🔄 刷新</button>
+    </div>
+
+    <div class="section">
+      <h3>快速扫描</h3>
+      <div class="input-group">
+        <input type="number" id="quickValue" placeholder="输入值" step="any">
+        <select id="quickType">
+          <option value="int32">Int32</option>
+          <option value="uint32">UInt32</option>
+          <option value="float32">Float</option>
+          <option value="int16">Int16</option>
+          <option value="uint16">UInt16</option>
+        </select>
+      </div>
+      <div class="btn-group">
+        <button id="firstScanBtn" class="btn btn-primary">首次扫描</button>
+        <button id="nextScanBtn" class="btn btn-secondary">继续扫描</button>
+      </div>
+      <div class="scan-result" id="scanResult">
+        <span class="result-count">结果: <strong>0</strong></span>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>使用说明</h3>
+      <ul class="instructions">
+        <li>1️⃣ 点击「注入扫描器」按钮</li>
+        <li>2️⃣ 打开「开发者面板」查看详细界面</li>
+        <li>3️⃣ 或在此快速扫描并查看结果</li>
+        <li>📖 <a href="#" id="helpLink">查看完整教程</a></li>
+      </ul>
+    </div>
+
+    <div class="footer">
+      <small>Version 1.0.0 | <a href="https://github.com" target="_blank">GitHub</a></small>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

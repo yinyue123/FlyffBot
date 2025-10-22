@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Create Icons</title></head>
+<body>
+<h2>Click to generate and download icons</h2>
+<button onclick="generateIcons()">Generate Icons</button>
+<div id="preview"></div>
+<script>
+function generateIcons() {
+  const sizes = [16, 48, 128];
+  sizes.forEach(size => {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    // Background
+    ctx.fillStyle = '#1e1e1e';
+    ctx.fillRect(0, 0, size, size);
+
+    // Circle
+    ctx.strokeStyle = '#4ec9b0';
+    ctx.lineWidth = size / 40;
+    ctx.beginPath();
+    ctx.arc(size / 2, size * 0.39, size * 0.2, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Lines
+    ctx.strokeStyle = '#569cd6';
+    ctx.lineWidth = size / 40;
+    ctx.lineCap = 'round';
+
+    const y1 = size * 0.59;
+    const y2 = size * 0.66;
+    const y3 = size * 0.74;
+
+    ctx.beginPath();
+    ctx.moveTo(size * 0.31, y1);
+    ctx.lineTo(size * 0.69, y1);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(size * 0.39, y2);
+    ctx.lineTo(size * 0.61, y2);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(size * 0.43, y3);
+    ctx.lineTo(size * 0.57, y3);
+    ctx.stroke();
+
+    // Text
+    ctx.fillStyle = '#4ec9b0';
+    ctx.font = 'bold ' + (size * 0.19) + 'px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('0x', size / 2, size * 0.39);
+
+    // Preview
+    document.getElementById('preview').appendChild(canvas);
+
+    // Download
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'icon' + size + '.png';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  });
+}
+</script>
+</body>
+</html>

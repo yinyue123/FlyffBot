@@ -1,0 +1,278 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 380px;
+  min-height: 500px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  background: #1e1e1e;
+  color: #d4d4d4;
+  font-size: 14px;
+}
+
+.container {
+  padding: 16px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #007acc;
+}
+
+h1 {
+  font-size: 18px;
+  color: #4ec9b0;
+  font-weight: 600;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #666;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.dot.connected {
+  background: #4ec9b0;
+}
+
+.dot.error {
+  background: #f48771;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.section {
+  margin-bottom: 20px;
+  padding: 12px;
+  background: #252526;
+  border-radius: 6px;
+  border: 1px solid #3e3e42;
+}
+
+.section h3 {
+  font-size: 13px;
+  color: #569cd6;
+  margin-bottom: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn {
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.btn-primary {
+  background: #0e639c;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #1177bb;
+}
+
+.btn-primary:active {
+  background: #005a9e;
+}
+
+.btn-secondary {
+  background: #3c3c3c;
+  color: #d4d4d4;
+  border: 1px solid #555;
+  margin-top: 8px;
+}
+
+.btn-secondary:hover {
+  background: #505050;
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.wasm-list {
+  max-height: 120px;
+  overflow-y: auto;
+  margin-bottom: 8px;
+  background: #1e1e1e;
+  border: 1px solid #3e3e42;
+  border-radius: 4px;
+  padding: 8px;
+}
+
+.wasm-item {
+  padding: 8px;
+  margin-bottom: 6px;
+  background: #2d2d30;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-size: 12px;
+}
+
+.wasm-item:hover {
+  background: #37373d;
+}
+
+.wasm-item.selected {
+  background: #094771;
+  border: 1px solid #007acc;
+}
+
+.wasm-name {
+  color: #4ec9b0;
+  font-weight: 600;
+}
+
+.wasm-size {
+  color: #858585;
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.loading {
+  text-align: center;
+  color: #858585;
+  padding: 20px;
+  font-size: 12px;
+}
+
+.input-group {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+input, select {
+  background: #3c3c3c;
+  border: 1px solid #555;
+  color: #d4d4d4;
+  padding: 8px 10px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: #007acc;
+}
+
+select {
+  cursor: pointer;
+}
+
+.btn-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.scan-result {
+  margin-top: 10px;
+  padding: 10px;
+  background: #1e1e1e;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.result-count {
+  color: #858585;
+}
+
+.result-count strong {
+  color: #4ec9b0;
+  font-size: 16px;
+  margin-left: 4px;
+}
+
+.instructions {
+  list-style: none;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.instructions li {
+  padding: 4px 0;
+  color: #cccccc;
+}
+
+.instructions a {
+  color: #4ec9b0;
+  text-decoration: none;
+}
+
+.instructions a:hover {
+  text-decoration: underline;
+}
+
+.footer {
+  text-align: center;
+  padding-top: 12px;
+  border-top: 1px solid #3e3e42;
+  color: #858585;
+  font-size: 11px;
+}
+
+.footer a {
+  color: #4ec9b0;
+  text-decoration: none;
+}
+
+.footer a:hover {
+  text-decoration: underline;
+}
+
+/* 滚动条样式 */
+.wasm-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.wasm-list::-webkit-scrollbar-track {
+  background: #1e1e1e;
+}
+
+.wasm-list::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+
+.wasm-list::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
