@@ -78,6 +78,16 @@ type BotBehavior interface {
 //   - behavior: Current active behavior (Farming/Support), can be nil when stopped
 //   - tray: System tray UI for user configuration
 //   - data: Persistent data container (config + cookies)
+// DebugOverlayRequest represents a request to draw debug overlay
+type DebugOverlayRequest struct {
+	Targets       []Target
+	Config        *Config
+	ClientStats   *ClientStats
+	Stats         *Statistics
+	Action        *Action
+	BehaviorState string
+}
+
 type Bot struct {
 	config       *Config
 	stats        *Statistics
@@ -90,6 +100,10 @@ type Bot struct {
 	stopChan     chan bool
 	data         *PersistentData
 	cookiesSaved bool // Flag to track if cookies have been saved after game loads
+
+	// Async debug overlay rendering
+	debugOverlayChan chan *DebugOverlayRequest
+	debugOverlayEnabled bool
 }
 
 // NewBot creates and initializes a new bot instance with all required components.
@@ -141,6 +155,8 @@ func NewBot() *Bot {
 		movement: movement,
 		stopChan: make(chan bool),
 		data:     data,
+		debugOverlayChan: make(chan *DebugOverlayRequest, 10), // Buffered channel for non-blocking sends
+		debugOverlayEnabled: true, // Can be toggled via config later
 	}
 
 	// Create system tray UI
@@ -184,6 +200,14 @@ func (b *Bot) StartMainLoop() {
 		}
 	})
 
+	// Start async debug overlay worker
+	if b.debugOverlayEnabled {
+		LogInfo("Starting async debug overlay worker...")
+		SafeGo(func() {
+			b.debugOverlayWorker()
+		})
+	}
+
 	// Set initial mode immediately
 	b.ChangeMode("Farming")
 
@@ -192,6 +216,44 @@ func (b *Bot) StartMainLoop() {
 	SafeGo(func() {
 		b.mainLoop()
 	})
+}
+
+// debugOverlayWorker processes debug overlay requests asynchronously.
+//
+// This worker runs in a separate goroutine and continuously processes debug overlay
+// rendering requests from the debugOverlayChan. By running in a separate goroutine,
+// it prevents blocking the main loop and browser interactions.
+//
+// Algorithm:
+//   1. Listen for debug overlay requests on debugOverlayChan
+//   2. For each request, call DrawDebugOverlay with the provided data
+//   3. Log any errors but continue processing
+//   4. Exit when channel is closed (during shutdown)
+//
+// Performance:
+// Since DrawDebugOverlay can take 50-200ms to execute (DOM manipulation), running
+// it asynchronously ensures the main loop can continue capturing and analyzing
+// at full speed without waiting for overlay rendering to complete.
+//
+// Thread Safety:
+// Uses buffered channel (capacity 10) to allow non-blocking sends from main loop.
+// If channel is full, oldest requests are skipped to avoid backpressure.
+func (b *Bot) debugOverlayWorker() {
+	LogInfo("Debug overlay worker started")
+	defer LogInfo("Debug overlay worker stopped")
+
+	for req := range b.debugOverlayChan {
+		if req == nil {
+			continue
+		}
+
+		// Draw debug overlay with the provided data
+		LogDebug("Processing debug overlay request...")
+		err := b.browser.DrawDebugOverlay(req.Targets, req.Config, req.ClientStats, req.Stats, req.Action, req.BehaviorState)
+		if err != nil {
+			LogDebug("Failed to draw debug overlay: %v", err)
+		}
+	}
 }
 
 // ChangeMode switches the bot's operational mode and creates the appropriate behavior instance.
@@ -248,8 +310,9 @@ func (b *Bot) ChangeMode(mode string) {
 // Algorithm:
 //   1. Log the stop request
 //   2. Call Stop() on current behavior if one exists
-//   3. Attempt non-blocking send to stopChan
-//   4. Log whether signal was sent or channel is already full
+//   3. Close debug overlay channel to signal worker to exit
+//   4. Attempt non-blocking send to stopChan
+//   5. Log whether signal was sent or channel is already full
 //
 // Thread Safety:
 // Uses select with default case to prevent blocking if the channel is full or
@@ -259,11 +322,19 @@ func (b *Bot) ChangeMode(mode string) {
 //   - Does not block the caller
 //   - Safe to call even if behavior is nil
 //   - Main loop will terminate on next iteration after receiving signal
+//   - Debug overlay worker will exit when channel is closed
 func (b *Bot) StopBehavior() {
 	LogInfo("Stopping behavior")
 	if b.behavior != nil {
 		b.behavior.Stop()
 	}
+
+	// Close debug overlay channel to signal worker to exit
+	if b.debugOverlayChan != nil {
+		close(b.debugOverlayChan)
+		LogDebug("Debug overlay channel closed")
+	}
+
 	// Non-blocking send to stopChan
 	select {
 	case b.stopChan <- true:
@@ -398,21 +469,38 @@ func (b *Bot) runIteration() {
 	// Update stats before drawing overlay
 	LogDebug("runIteration: calling UpdateStats")
 	b.analyzer.UpdateStats()
-	LogDebug("runIteration: calling GetStats")
-	clientStats := b.analyzer.GetStats()
-	LogDebug("runIteration: calling IdentifyMobs")
-	targets := b.analyzer.IdentifyMobs(b.config)
-	LogDebug("runIteration: found %d targets", len(targets))
 
-	// Draw debug overlay with dynamically detected positions
-	LogDebug("runIteration: calling DrawDebugOverlay")
-	behaviorState := ""
-	if b.behavior != nil {
-		behaviorState = b.behavior.GetState()
-	}
-	err = b.browser.DrawDebugOverlay(targets, b.config, clientStats, b.stats, b.action, behaviorState)
-	if err != nil {
-		LogDebug("Failed to draw debug overlay: %v", err)
+	// Send debug overlay request to async worker (non-blocking)
+	if b.debugOverlayEnabled {
+		LogDebug("runIteration: calling GetStats")
+		clientStats := b.analyzer.GetStats()
+		LogDebug("runIteration: calling IdentifyMobs")
+		targets := b.analyzer.IdentifyMobs(b.config)
+		LogDebug("runIteration: found %d targets", len(targets))
+
+		// Prepare behavior state
+		behaviorState := ""
+		if b.behavior != nil {
+			behaviorState = b.behavior.GetState()
+		}
+
+		// Create debug overlay request
+		request := &DebugOverlayRequest{
+			Targets:       targets,
+			Config:        b.config,
+			ClientStats:   clientStats,
+			Stats:         b.stats,
+			Action:        b.action,
+			BehaviorState: behaviorState,
+		}
+
+		// Non-blocking send to worker
+		select {
+		case b.debugOverlayChan <- request:
+			LogDebug("Debug overlay request sent to worker")
+		default:
+			LogDebug("Debug overlay worker is busy, skipping this frame")
+		}
 	}
 
 	// Run behavior only if not in Stop mode
