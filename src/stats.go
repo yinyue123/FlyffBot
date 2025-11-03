@@ -223,7 +223,6 @@ func (si *StatInfo) UpdateValueOpenCV(hsvMat *gocv.Mat) bool {
 
 	// Extract ROI
 	roiWidth := config.MaxX - config.MinX
-	roiHeight := config.MaxY - config.MinY
 
 	// Ensure ROI is within image bounds
 	if config.MinX < 0 || config.MinY < 0 ||
@@ -246,13 +245,37 @@ func (si *StatInfo) UpdateValueOpenCV(hsvMat *gocv.Mat) bool {
 	contours := gocv.FindContours(morphed, gocv.RetrievalExternal, gocv.ChainApproxSimple)
 	defer contours.Close()
 
-	// Find the largest contour width (main bar)
+	// Determine size constraints based on bar type
+	var minWidthConstraint, maxWidthConstraint, minHeightConstraint, maxHeightConstraint int
+	if si.StatKind == StatusBarTargetHP || si.StatKind == StatusBarTargetMP {
+		// Target HP/MP: width 1-600, height 12-30
+		minWidthConstraint = 1
+		maxWidthConstraint = 600
+		minHeightConstraint = 12
+		maxHeightConstraint = 30
+	} else {
+		// Player HP/MP/FP: width 1-300, height 12-30
+		minWidthConstraint = 1
+		maxWidthConstraint = 300
+		minHeightConstraint = 12
+		maxHeightConstraint = 30
+	}
+
+	// Find the largest valid contour (filtered by size constraints)
 	maxWidth := 0
 	for i := 0; i < contours.Size(); i++ {
 		contour := contours.At(i)
 		rect := gocv.BoundingRect(contour)
-		if rect.Dx() > maxWidth {
-			maxWidth = rect.Dx()
+
+		width := rect.Dx()
+		height := rect.Dy()
+
+		// Filter: only accept contours within size constraints
+		if width >= minWidthConstraint && width <= maxWidthConstraint &&
+		   height >= minHeightConstraint && height <= maxHeightConstraint {
+			if width > maxWidth {
+				maxWidth = width
+			}
 		}
 	}
 

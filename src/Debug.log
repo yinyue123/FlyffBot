@@ -1,47 +1,2385 @@
-2025/10/21 17:49:05.965361 [INFO] Logger initialized (log file cleared)
-2025/10/21 17:49:05.965558 [INFO] === Flyff Bot Started ===
-2025/10/21 17:49:05.965562 [INFO] Training mode requested
-2025/10/21 17:49:05.965575 [INFO] === Training Mode Started ===
-2025/10/21 17:49:05.965582 [INFO] Loading train.png...
-2025/10/21 17:49:06.101524 [INFO] Image loaded: 2450x1522
-2025/10/21 17:49:06.102717 [INFO] Data loaded from data.json
-2025/10/21 17:49:06.102728 [INFO] === Running Detection ===
-2025/10/21 17:49:06.102731 [INFO] Detecting mobs...
-2025/10/21 17:49:06.157935 [DEBUG] Found 11 passive points, 0 aggressive points, 18324 violet points
-2025/10/21 17:49:06.157981 [DEBUG] Passive clustering: 11 points -> 3 clusters
-2025/10/21 17:49:06.157985 [DEBUG] Passive cluster REJECTED at (2376,647) size 7x0 (width must be >11 and <180, y: 647)
-2025/10/21 17:49:06.157989 [DEBUG] Passive mob ACCEPTED at (2346,652) size 68x3
-2025/10/21 17:49:06.157992 [DEBUG] Passive mob ACCEPTED at (2326,660) size 82x3
-2025/10/21 17:49:06.157994 [DEBUG] Aggressive clustering: 0 points -> 0 clusters
-2025/10/21 17:49:06.352335 [DEBUG] Detected violet mob at (251,17), filtering out
-2025/10/21 17:49:06.352369 [DEBUG] Detected violet mob at (127,277), filtering out
-2025/10/21 17:49:06.352373 [DEBUG] Detected violet mob at (130,316), filtering out
-2025/10/21 17:49:06.352375 [DEBUG] Detected violet mob at (971,55), filtering out
-2025/10/21 17:49:06.352378 [DEBUG] Detected violet mob at (1040,851), filtering out
-2025/10/21 17:49:06.352380 [DEBUG] Detected violet mob at (1214,900), filtering out
-2025/10/21 17:49:06.352385 [DEBUG] Detected violet mob at (1528,1396), filtering out
-2025/10/21 17:49:06.352387 [DEBUG] Detected violet mob at (1532,1410), filtering out
-2025/10/21 17:49:06.352389 [DEBUG] Detected violet mob at (2200,19), filtering out
-2025/10/21 17:49:06.352391 [DEBUG] Detected violet mob at (2129,321), filtering out
-2025/10/21 17:49:06.352394 [DEBUG] Identified 2 total mobs (passive clusters: 3, aggressive clusters: 0)
-2025/10/21 17:49:06.352399 [INFO] Found 2 mobs
-2025/10/21 17:49:06.352401 [INFO] Detecting player stats...
-2025/10/21 17:49:06.352480 [DEBUG] HP: Value updated 100% -> 0%
-2025/10/21 17:49:06.352556 [DEBUG] MP: Value updated 100% -> 0%
-2025/10/21 17:49:06.352632 [DEBUG] FP: Value updated 100% -> 0%
-2025/10/21 17:49:06.355892 [DEBUG] Blue target marker detected (42 points)
-2025/10/21 17:49:06.355962 [INFO] HP: 0%, MP: 0%, FP: 0%
-2025/10/21 17:49:06.355964 [INFO] Target HP: 0%
-2025/10/21 17:49:06.355966 [INFO] Target on screen: true
-2025/10/21 17:49:06.355968 [INFO] Detecting target marker...
-2025/10/21 17:49:06.359280 [DEBUG] Blue target marker detected (42 points)
-2025/10/21 17:49:06.359296 [INFO] Target marker detected: true
-2025/10/21 17:49:06.359298 [INFO] === Creating Visualization ===
-2025/10/21 17:49:06.361379 [INFO] Saving visualization to result.png...
-2025/10/21 17:49:07.949030 [INFO] Saved successfully!
-2025/10/21 17:49:07.949064 [INFO] result.png size: 3157133 bytes
-2025/10/21 17:49:07.949069 [INFO] === Training Mode Completed ===
-2025/10/21 17:49:07.949071 [INFO] Please check result.png for visualization
-2025/10/21 17:49:07.949075 [INFO] Please check Debug.log for detailed detection info
-2025/10/21 17:49:07.949094 [INFO] === Flyff Bot Shutdown ===
-2025/10/21 17:49:07.949096 [INFO] Logger closing
+2025/11/03 21:15:22.706800 [INFO] Logger initialized (log file cleared)
+2025/11/03 21:15:22.707032 [INFO] === Flyff Bot Started ===
+2025/11/03 21:15:22.707035 [INFO] Creating bot instance...
+2025/11/03 21:15:22.707049 [INFO] Initializing bot components...
+2025/11/03 21:15:22.707588 [INFO] Data loaded from data.json
+2025/11/03 21:15:22.707596 [DEBUG] Config loaded
+2025/11/03 21:15:22.707598 [DEBUG] Statistics created
+2025/11/03 21:15:22.707601 [DEBUG] Browser created
+2025/11/03 21:15:22.707603 [DEBUG] Action created
+2025/11/03 21:15:22.707617 [DEBUG] Image analyzer created
+2025/11/03 21:15:22.707654 [DEBUG] Movement coordinator created
+2025/11/03 21:15:22.707656 [INFO] Creating system tray UI...
+2025/11/03 21:15:22.707660 [INFO] Bot components initialized successfully
+2025/11/03 21:15:22.707662 [INFO] Bot instance created, starting main run...
+2025/11/03 21:15:22.707664 [INFO] Setting up signal handlers...
+2025/11/03 21:15:22.707756 [INFO] Signal handlers configured
+2025/11/03 21:15:22.707765 [INFO] Starting system tray (browser will start when tray is ready)...
+2025/11/03 21:15:22.707779 [INFO] Starting system tray application
+2025/11/03 21:15:23.071772 [INFO] System tray initialized
+2025/11/03 21:15:23.071833 [INFO] Starting browser from tray...
+2025/11/03 21:15:23.071846 [INFO] Starting browser asynchronously...
+2025/11/03 21:15:23.071853 [INFO] Changing mode to: Farming
+2025/11/03 21:15:23.071863 [INFO] Farming behavior activated
+2025/11/03 21:15:23.071867 [INFO] Starting main loop immediately (browser will continue loading in background)
+2025/11/03 21:15:23.071870 [INFO] Browser and main loop started
+2025/11/03 21:15:23.071872 [INFO] Main loop started
+2025/11/03 21:15:23.072097 [INFO] Browser allocator context created
+2025/11/03 21:15:23.072136 [INFO] Browser context created
+2025/11/03 21:15:23.072141 [INFO] Setting 3 cookies before navigation
+2025/11/03 21:15:25.116478 [DEBUG] runIteration: starting
+2025/11/03 21:15:25.222446 [DEBUG] Canvas element not found, game not ready yet
+2025/11/03 21:15:25.222502 [DEBUG] Timer [main_loop]: 105.857792ms
+2025/11/03 21:15:25.230665 [INFO] Set 3 cookies in browser
+2025/11/03 21:15:25.230693 [INFO] Navigating to https://universe.flyff.com/play
+2025/11/03 21:15:27.150697 [DEBUG] runIteration: starting
+2025/11/03 21:15:27.150958 [INFO] Game loaded, saving cookies automatically...
+2025/11/03 21:15:27.150967 [INFO] Saving bot state...
+2025/11/03 21:15:27.151244 [INFO] Retrieved 3 cookies from browser
+2025/11/03 21:15:27.151252 [INFO] Saved 3 cookies
+2025/11/03 21:15:27.151473 [INFO] Data saved to data.json
+2025/11/03 21:15:27.151511 [INFO] Bot state saved successfully
+2025/11/03 21:15:27.151515 [INFO] Cookies saved successfully after game load
+2025/11/03 21:15:27.151519 [DEBUG] runIteration: calling Capture
+2025/11/03 21:15:27.349663 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:15:27.349681 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:15:27.359887 [DEBUG] HP: Value updated 100% -> 0%
+2025/11/03 21:15:27.360057 [DEBUG] MP: Value updated 100% -> 0%
+2025/11/03 21:15:27.360210 [DEBUG] FP: Value updated 100% -> 0%
+2025/11/03 21:15:27.361410 [DEBUG] Blue target marker detected
+2025/11/03 21:15:27.361417 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:15:27.361421 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:15:27.364613 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:15:27.366558 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:15:27.368285 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:15:27.368292 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:15:27.368295 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:15:27.368340 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:15:27.368424 [DEBUG] DrawDebugOverlay: executing javascript (length: 4479 bytes)
+2025/11/03 21:15:27.378120 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:15:27.380990 [DEBUG] Blue target marker detected
+2025/11/03 21:15:27.381028 [WARN] Player is dead, stopping farming
+2025/11/03 21:15:27.381154 [DEBUG] Timer [main_loop]: 230.449375ms
+2025/11/03 21:15:29.159408 [DEBUG] runIteration: starting
+2025/11/03 21:15:29.159989 [DEBUG] runIteration: calling Capture
+2025/11/03 21:15:29.309649 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:15:29.309669 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:15:29.312792 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:15:29.312813 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:15:29.315946 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:15:29.318163 [DEBUG] Found 1 aggressive mob candidates
+2025/11/03 21:15:29.318174 [DEBUG] Aggressive mob ACCEPTED at (721,362) size 47x47
+2025/11/03 21:15:29.320094 [DEBUG] Identified 1 total mobs (passive: 0, aggressive: 1)
+2025/11/03 21:15:29.320107 [DEBUG] runIteration: found 1 targets
+2025/11/03 21:15:29.320112 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:15:29.320116 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:15:29.320361 [DEBUG] DrawDebugOverlay: executing javascript (length: 4554 bytes)
+2025/11/03 21:15:29.321868 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:15:29.323306 [WARN] Player is dead, stopping farming
+2025/11/03 21:15:29.323382 [DEBUG] Timer [main_loop]: 163.744667ms
+2025/11/03 21:15:31.203982 [DEBUG] runIteration: starting
+2025/11/03 21:15:31.204541 [DEBUG] runIteration: calling Capture
+2025/11/03 21:15:31.379899 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:15:31.379951 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:15:31.381361 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:15:31.381387 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:15:31.383759 [DEBUG] Found 1 passive mob candidates
+2025/11/03 21:15:31.383788 [DEBUG] Passive mob ACCEPTED at (729,358) size 15x8
+2025/11/03 21:15:31.385510 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:15:31.388238 [DEBUG] Identified 1 total mobs (passive: 1, aggressive: 0)
+2025/11/03 21:15:31.388320 [DEBUG] runIteration: found 1 targets
+2025/11/03 21:15:31.388365 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:15:31.388374 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:15:31.388470 [DEBUG] DrawDebugOverlay: executing javascript (length: 4553 bytes)
+2025/11/03 21:15:31.391179 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:15:31.393308 [WARN] Player is dead, stopping farming
+2025/11/03 21:15:31.393426 [DEBUG] Timer [main_loop]: 189.403458ms
+2025/11/03 21:15:33.230983 [DEBUG] runIteration: starting
+2025/11/03 21:15:33.288097 [DEBUG] runIteration: calling Capture
+2025/11/03 21:15:34.536305 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:15:34.536461 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:15:34.542832 [DEBUG] Blue target marker detected
+2025/11/03 21:15:34.542867 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:15:34.542872 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:15:34.547784 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:15:34.549509 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:15:34.551205 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:15:34.551211 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:15:34.551215 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:15:34.551228 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:15:34.551262 [DEBUG] DrawDebugOverlay: executing javascript (length: 4480 bytes)
+2025/11/03 21:15:34.554089 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:15:34.558437 [DEBUG] Blue target marker detected
+2025/11/03 21:15:34.558475 [WARN] Player is dead, stopping farming
+2025/11/03 21:15:34.558617 [DEBUG] Timer [main_loop]: 1.327641667s
+2025/11/03 21:15:35.273629 [DEBUG] runIteration: starting
+2025/11/03 21:15:35.274811 [DEBUG] runIteration: calling Capture
+2025/11/03 21:15:36.516842 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:15:36.516900 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:15:36.522358 [DEBUG] Blue target marker detected
+2025/11/03 21:15:36.522404 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:15:36.522408 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:15:36.526679 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:15:36.528392 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:15:36.530180 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:15:36.530196 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:15:36.530200 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:15:36.530204 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:15:36.530237 [DEBUG] DrawDebugOverlay: executing javascript (length: 4480 bytes)
+2025/11/03 21:15:36.531271 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:15:36.533945 [DEBUG] Blue target marker detected
+2025/11/03 21:15:36.533975 [WARN] Player is dead, stopping farming
+2025/11/03 21:15:36.534089 [DEBUG] Timer [main_loop]: 1.260214542s
+2025/11/03 21:15:37.298151 [DEBUG] runIteration: starting
+2025/11/03 21:15:37.298614 [DEBUG] runIteration: calling Capture
+2025/11/03 21:15:38.542271 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:15:38.542306 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:15:38.546206 [DEBUG] Blue target marker detected
+2025/11/03 21:15:38.546241 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:15:38.546245 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:15:38.551824 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:15:38.554121 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:15:38.555934 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:15:38.555943 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:15:38.555946 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:15:38.555950 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:15:38.556005 [DEBUG] DrawDebugOverlay: executing javascript (length: 4480 bytes)
+2025/11/03 21:15:38.559587 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:15:38.563367 [DEBUG] Blue target marker detected
+2025/11/03 21:15:38.563399 [WARN] Player is dead, stopping farming
+2025/11/03 21:15:38.563468 [DEBUG] Timer [main_loop]: 1.265334917s
+2025/11/03 21:15:39.328295 [DEBUG] runIteration: starting
+2025/11/03 21:15:39.328722 [DEBUG] runIteration: calling Capture
+2025/11/03 21:15:40.584088 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:15:40.584126 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:15:40.587386 [DEBUG] Blue target marker detected
+2025/11/03 21:15:40.587412 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:15:40.587416 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:15:40.591249 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:15:40.592968 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:15:40.594658 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:15:40.594664 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:15:40.594666 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:15:40.594718 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:15:40.594810 [DEBUG] DrawDebugOverlay: executing javascript (length: 4480 bytes)
+2025/11/03 21:15:40.595756 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:15:40.598422 [DEBUG] Blue target marker detected
+2025/11/03 21:15:40.598446 [WARN] Player is dead, stopping farming
+2025/11/03 21:15:40.598535 [DEBUG] Timer [main_loop]: 1.270267041s
+2025/11/03 21:15:41.363990 [DEBUG] runIteration: starting
+2025/11/03 21:15:41.364572 [DEBUG] runIteration: calling Capture
+2025/11/03 21:15:42.582600 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:15:42.582652 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:15:42.585847 [DEBUG] Blue target marker detected
+2025/11/03 21:15:42.585880 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:15:42.585884 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:15:42.589939 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:15:42.591713 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:15:42.593497 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:15:42.593509 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:15:42.593512 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:15:42.593515 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:15:42.593551 [DEBUG] DrawDebugOverlay: executing javascript (length: 4480 bytes)
+2025/11/03 21:15:42.594477 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:15:42.598843 [DEBUG] Blue target marker detected
+2025/11/03 21:15:42.598910 [WARN] Player is dead, stopping farming
+2025/11/03 21:15:42.599051 [DEBUG] Timer [main_loop]: 1.235075167s
+2025/11/03 21:15:43.364864 [DEBUG] runIteration: starting
+2025/11/03 21:15:43.365616 [DEBUG] runIteration: calling Capture
+2025/11/03 21:15:44.574605 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:15:44.574657 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:15:44.578727 [DEBUG] Blue target marker detected
+2025/11/03 21:15:44.578772 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:15:44.578776 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:15:44.582905 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:15:44.584635 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:15:44.586348 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:15:44.586354 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:15:44.586358 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:15:44.586362 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:15:44.586398 [DEBUG] DrawDebugOverlay: executing javascript (length: 4480 bytes)
+2025/11/03 21:15:44.590297 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:15:44.593976 [DEBUG] Blue target marker detected
+2025/11/03 21:15:44.594005 [WARN] Player is dead, stopping farming
+2025/11/03 21:15:44.594076 [DEBUG] Timer [main_loop]: 1.2289295s
+2025/11/03 21:15:45.409179 [DEBUG] runIteration: starting
+2025/11/03 21:15:45.410090 [DEBUG] runIteration: calling Capture
+2025/11/03 21:15:46.634374 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:15:46.634426 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:15:46.638539 [DEBUG] Blue target marker detected
+2025/11/03 21:15:46.638601 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:15:46.638607 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:15:46.643589 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:15:46.645655 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:15:46.647419 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:15:46.647429 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:15:46.647433 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:15:46.647446 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:15:46.647476 [DEBUG] DrawDebugOverlay: executing javascript (length: 4480 bytes)
+2025/11/03 21:15:46.648558 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:15:46.651518 [DEBUG] Blue target marker detected
+2025/11/03 21:15:46.651551 [WARN] Player is dead, stopping farming
+2025/11/03 21:15:46.651615 [DEBUG] Timer [main_loop]: 1.24237175s
+2025/11/03 21:15:47.417503 [DEBUG] runIteration: starting
+2025/11/03 21:15:47.417981 [DEBUG] runIteration: calling Capture
+2025/11/03 21:15:48.635987 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:15:48.636054 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:15:48.639431 [DEBUG] Blue target marker detected
+2025/11/03 21:15:48.639484 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:15:48.639489 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:15:48.644585 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:15:48.646518 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:15:48.648222 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:15:48.648229 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:15:48.648233 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:15:48.648254 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:15:48.648291 [DEBUG] DrawDebugOverlay: executing javascript (length: 4480 bytes)
+2025/11/03 21:15:48.651221 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:15:48.653859 [DEBUG] Blue target marker detected
+2025/11/03 21:15:48.653909 [WARN] Player is dead, stopping farming
+2025/11/03 21:15:48.654012 [DEBUG] Timer [main_loop]: 1.236509625s
+2025/11/03 21:15:49.419437 [DEBUG] runIteration: starting
+2025/11/03 21:15:49.419957 [DEBUG] runIteration: calling Capture
+2025/11/03 21:15:50.631918 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:15:50.631962 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:15:50.635128 [DEBUG] Blue target marker detected
+2025/11/03 21:15:50.635167 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:15:50.635170 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:15:50.639944 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:15:50.641838 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:15:50.643881 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:15:50.643925 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:15:50.643930 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:15:50.643934 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:15:50.643988 [DEBUG] DrawDebugOverlay: executing javascript (length: 4480 bytes)
+2025/11/03 21:15:50.644964 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:15:50.647827 [DEBUG] Blue target marker detected
+2025/11/03 21:15:50.647859 [WARN] Player is dead, stopping farming
+2025/11/03 21:15:50.647941 [DEBUG] Timer [main_loop]: 1.228514s
+2025/11/03 21:15:51.465065 [DEBUG] runIteration: starting
+2025/11/03 21:15:51.466091 [DEBUG] runIteration: calling Capture
+2025/11/03 21:15:52.680618 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:15:52.680660 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:15:52.685125 [DEBUG] Blue target marker detected
+2025/11/03 21:15:52.685140 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:15:52.685144 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:15:52.689704 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:15:52.691979 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:15:52.693970 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:15:52.693992 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:15:52.693996 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:15:52.694002 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:15:52.694049 [DEBUG] DrawDebugOverlay: executing javascript (length: 4480 bytes)
+2025/11/03 21:15:52.697311 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:15:52.700890 [DEBUG] Blue target marker detected
+2025/11/03 21:15:52.700923 [WARN] Player is dead, stopping farming
+2025/11/03 21:15:52.700987 [DEBUG] Timer [main_loop]: 1.235641541s
+2025/11/03 21:15:53.515434 [DEBUG] runIteration: starting
+2025/11/03 21:15:53.515985 [DEBUG] runIteration: calling Capture
+2025/11/03 21:15:54.744885 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:15:54.744937 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:15:54.747890 [DEBUG] Blue target marker detected
+2025/11/03 21:15:54.747939 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:15:54.747944 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:15:54.751656 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:15:54.753491 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:15:54.755272 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:15:54.755282 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:15:54.755285 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:15:54.755290 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:15:54.755334 [DEBUG] DrawDebugOverlay: executing javascript (length: 4480 bytes)
+2025/11/03 21:15:54.757337 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:15:54.761068 [DEBUG] Blue target marker detected
+2025/11/03 21:15:54.761112 [WARN] Player is dead, stopping farming
+2025/11/03 21:15:54.761196 [DEBUG] Timer [main_loop]: 1.245691334s
+2025/11/03 21:15:55.525196 [DEBUG] runIteration: starting
+2025/11/03 21:15:55.525648 [DEBUG] runIteration: calling Capture
+2025/11/03 21:15:56.737062 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:15:56.737111 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:15:56.740489 [DEBUG] Blue target marker detected
+2025/11/03 21:15:56.740538 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:15:56.740542 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:15:56.744895 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:15:56.746664 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:15:56.748351 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:15:56.748356 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:15:56.748359 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:15:56.748362 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:15:56.748396 [DEBUG] DrawDebugOverlay: executing javascript (length: 4480 bytes)
+2025/11/03 21:15:56.751404 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:15:56.755304 [DEBUG] Blue target marker detected
+2025/11/03 21:15:56.755332 [WARN] Player is dead, stopping farming
+2025/11/03 21:15:56.755402 [DEBUG] Timer [main_loop]: 1.230213458s
+2025/11/03 21:15:57.571081 [DEBUG] runIteration: starting
+2025/11/03 21:15:57.571587 [DEBUG] runIteration: calling Capture
+2025/11/03 21:15:58.766583 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:15:58.766624 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:15:58.770189 [DEBUG] Blue target marker detected
+2025/11/03 21:15:58.770223 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:15:58.770227 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:15:58.774204 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:15:58.776059 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:15:58.777956 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:15:58.777970 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:15:58.777974 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:15:58.777977 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:15:58.778017 [DEBUG] DrawDebugOverlay: executing javascript (length: 4480 bytes)
+2025/11/03 21:15:58.778960 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:15:58.782872 [DEBUG] Blue target marker detected
+2025/11/03 21:15:58.782907 [WARN] Player is dead, stopping farming
+2025/11/03 21:15:58.782979 [DEBUG] Timer [main_loop]: 1.211906042s
+2025/11/03 21:15:59.599862 [DEBUG] runIteration: starting
+2025/11/03 21:15:59.600366 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:00.803222 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:00.803269 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:00.807728 [DEBUG] Blue target marker detected
+2025/11/03 21:16:00.807766 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:00.807770 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:00.812837 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:00.814607 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:00.816330 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:00.816356 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:00.816359 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:00.816363 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:00.816402 [DEBUG] DrawDebugOverlay: executing javascript (length: 4480 bytes)
+2025/11/03 21:16:00.817386 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:00.820163 [DEBUG] Blue target marker detected
+2025/11/03 21:16:00.820190 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:00.820282 [DEBUG] Timer [main_loop]: 1.220412041s
+2025/11/03 21:16:01.637134 [DEBUG] runIteration: starting
+2025/11/03 21:16:01.638332 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:02.832902 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:02.833255 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:02.836455 [DEBUG] Blue target marker detected
+2025/11/03 21:16:02.836498 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:02.836502 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:02.841149 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:02.843109 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:02.844945 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:02.844955 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:02.844959 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:02.844964 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:02.845001 [DEBUG] DrawDebugOverlay: executing javascript (length: 4480 bytes)
+2025/11/03 21:16:02.847896 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:02.850638 [DEBUG] Blue target marker detected
+2025/11/03 21:16:02.850683 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:02.850759 [DEBUG] Timer [main_loop]: 1.213535875s
+2025/11/03 21:16:03.667730 [DEBUG] runIteration: starting
+2025/11/03 21:16:03.668261 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:04.865824 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:04.865870 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:04.870552 [DEBUG] Blue target marker detected
+2025/11/03 21:16:04.870597 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:04.870602 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:04.875581 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:04.877963 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:04.879746 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:04.879757 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:04.879761 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:04.879766 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:04.879805 [DEBUG] DrawDebugOverlay: executing javascript (length: 4480 bytes)
+2025/11/03 21:16:04.880790 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:04.883793 [DEBUG] Blue target marker detected
+2025/11/03 21:16:04.883835 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:04.883922 [DEBUG] Timer [main_loop]: 1.216202958s
+2025/11/03 21:16:05.700780 [DEBUG] runIteration: starting
+2025/11/03 21:16:05.701238 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:06.903209 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:06.903256 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:06.906739 [DEBUG] Blue target marker detected
+2025/11/03 21:16:06.906786 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:06.906791 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:06.912442 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:06.914153 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:06.915843 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:06.915850 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:06.915853 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:06.915858 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:06.915895 [DEBUG] DrawDebugOverlay: executing javascript (length: 4480 bytes)
+2025/11/03 21:16:06.918906 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:06.922269 [DEBUG] Blue target marker detected
+2025/11/03 21:16:06.922304 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:06.922395 [DEBUG] Timer [main_loop]: 1.221640209s
+2025/11/03 21:16:07.739108 [DEBUG] runIteration: starting
+2025/11/03 21:16:07.739650 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:08.934486 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:08.934542 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:08.937797 [DEBUG] Blue target marker detected
+2025/11/03 21:16:08.937836 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:08.938590 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:08.942761 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:08.944599 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:08.946328 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:08.946334 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:08.946337 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:08.946350 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:08.946398 [DEBUG] DrawDebugOverlay: executing javascript (length: 4480 bytes)
+2025/11/03 21:16:08.947293 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:08.951102 [DEBUG] Blue target marker detected
+2025/11/03 21:16:08.951140 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:08.951217 [DEBUG] Timer [main_loop]: 1.212109417s
+2025/11/03 21:16:09.767044 [DEBUG] runIteration: starting
+2025/11/03 21:16:09.767600 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:10.980843 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:10.981246 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:10.985023 [DEBUG] Blue target marker detected
+2025/11/03 21:16:10.985066 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:10.985071 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:10.989188 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:10.990934 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:10.992648 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:10.992656 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:10.992659 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:10.992663 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:10.992707 [DEBUG] DrawDebugOverlay: executing javascript (length: 4480 bytes)
+2025/11/03 21:16:10.996276 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:10.999105 [DEBUG] Blue target marker detected
+2025/11/03 21:16:10.999148 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:10.999227 [DEBUG] Timer [main_loop]: 1.232205375s
+2025/11/03 21:16:11.815649 [DEBUG] runIteration: starting
+2025/11/03 21:16:11.816185 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:13.048173 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:13.048219 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:13.050878 [DEBUG] Blue target marker detected
+2025/11/03 21:16:13.050916 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:13.050923 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:13.054778 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:13.056544 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:13.059272 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:13.059314 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:13.059319 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:13.059324 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:13.059384 [DEBUG] DrawDebugOverlay: executing javascript (length: 4480 bytes)
+2025/11/03 21:16:13.060424 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:13.063441 [DEBUG] Blue target marker detected
+2025/11/03 21:16:13.063475 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:13.063573 [DEBUG] Timer [main_loop]: 1.247927292s
+2025/11/03 21:16:13.828637 [DEBUG] runIteration: starting
+2025/11/03 21:16:13.829100 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:15.032900 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:15.032945 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:15.036424 [DEBUG] Blue target marker detected
+2025/11/03 21:16:15.036455 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:15.036459 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:15.041205 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:15.043666 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:15.045517 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:15.045526 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:15.045529 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:15.045532 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:15.045590 [DEBUG] DrawDebugOverlay: executing javascript (length: 4480 bytes)
+2025/11/03 21:16:15.048814 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:15.051523 [DEBUG] Blue target marker detected
+2025/11/03 21:16:15.051562 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:15.051662 [DEBUG] Timer [main_loop]: 1.22303725s
+2025/11/03 21:16:15.867320 [DEBUG] runIteration: starting
+2025/11/03 21:16:15.867783 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:17.065825 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:17.065879 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:17.069396 [DEBUG] Blue target marker detected
+2025/11/03 21:16:17.069431 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:17.069435 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:17.073466 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:17.075296 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:17.077290 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:17.077310 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:17.077314 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:17.077320 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:17.077356 [DEBUG] DrawDebugOverlay: executing javascript (length: 4480 bytes)
+2025/11/03 21:16:17.078340 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:17.082415 [DEBUG] Blue target marker detected
+2025/11/03 21:16:17.082443 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:17.082515 [DEBUG] Timer [main_loop]: 1.215198208s
+2025/11/03 21:16:17.898925 [DEBUG] runIteration: starting
+2025/11/03 21:16:17.899493 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:19.094791 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:19.094836 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:19.097623 [DEBUG] Blue target marker detected
+2025/11/03 21:16:19.097657 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:19.097661 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:19.101418 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:19.104471 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:19.106458 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:19.106479 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:19.106484 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:19.106489 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:19.106551 [DEBUG] DrawDebugOverlay: executing javascript (length: 4480 bytes)
+2025/11/03 21:16:19.110157 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:19.115624 [DEBUG] Blue target marker detected
+2025/11/03 21:16:19.115666 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:19.115742 [DEBUG] Timer [main_loop]: 1.216803417s
+2025/11/03 21:16:19.931822 [DEBUG] runIteration: starting
+2025/11/03 21:16:19.932281 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:21.134605 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:21.134656 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:21.138171 [DEBUG] Blue target marker detected
+2025/11/03 21:16:21.138215 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:21.138219 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:21.143202 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:21.145091 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:21.146792 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:21.146799 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:21.146802 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:21.146806 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:21.146874 [DEBUG] DrawDebugOverlay: executing javascript (length: 4480 bytes)
+2025/11/03 21:16:21.147786 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:21.150369 [DEBUG] Blue target marker detected
+2025/11/03 21:16:21.150404 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:21.150497 [DEBUG] Timer [main_loop]: 1.218680417s
+2025/11/03 21:16:21.966308 [DEBUG] runIteration: starting
+2025/11/03 21:16:21.966955 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:23.164979 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:23.165019 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:23.168158 [DEBUG] Blue target marker detected
+2025/11/03 21:16:23.168199 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:23.168203 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:23.172251 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:23.175675 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:23.177627 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:23.177637 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:23.177640 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:23.177644 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:23.177710 [DEBUG] DrawDebugOverlay: executing javascript (length: 4482 bytes)
+2025/11/03 21:16:23.180933 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:23.183969 [DEBUG] Blue target marker detected
+2025/11/03 21:16:23.184005 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:23.184135 [DEBUG] Timer [main_loop]: 1.217822875s
+2025/11/03 21:16:24.000322 [DEBUG] runIteration: starting
+2025/11/03 21:16:24.001083 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:25.204136 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:25.204178 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:25.209444 [DEBUG] Blue target marker detected
+2025/11/03 21:16:25.209494 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:25.209498 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:25.214061 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:25.215818 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:25.217542 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:25.217552 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:25.217555 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:25.217559 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:25.217628 [DEBUG] DrawDebugOverlay: executing javascript (length: 4482 bytes)
+2025/11/03 21:16:25.218789 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:25.221504 [DEBUG] Blue target marker detected
+2025/11/03 21:16:25.221534 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:25.221630 [DEBUG] Timer [main_loop]: 1.221318708s
+2025/11/03 21:16:26.037955 [DEBUG] runIteration: starting
+2025/11/03 21:16:26.038635 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:27.260070 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:27.260117 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:27.263227 [DEBUG] Blue target marker detected
+2025/11/03 21:16:27.263258 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:27.263262 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:27.267898 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:27.269756 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:27.271492 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:27.271499 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:27.271503 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:27.271511 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:27.271585 [DEBUG] DrawDebugOverlay: executing javascript (length: 4482 bytes)
+2025/11/03 21:16:27.275049 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:27.279655 [DEBUG] Blue target marker detected
+2025/11/03 21:16:27.279779 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:27.280008 [DEBUG] Timer [main_loop]: 1.241964542s
+2025/11/03 21:16:28.045610 [DEBUG] runIteration: starting
+2025/11/03 21:16:28.046135 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:29.264625 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:29.264676 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:29.268185 [DEBUG] Blue target marker detected
+2025/11/03 21:16:29.268228 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:29.268232 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:29.272819 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:29.274558 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:29.276600 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:29.276627 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:29.276632 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:29.276635 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:29.276675 [DEBUG] DrawDebugOverlay: executing javascript (length: 4482 bytes)
+2025/11/03 21:16:29.277715 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:29.280773 [DEBUG] Blue target marker detected
+2025/11/03 21:16:29.280810 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:29.280904 [DEBUG] Timer [main_loop]: 1.235308542s
+2025/11/03 21:16:30.046751 [DEBUG] runIteration: starting
+2025/11/03 21:16:30.047279 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:31.268323 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:31.268390 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:31.271678 [DEBUG] Blue target marker detected
+2025/11/03 21:16:31.271722 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:31.271725 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:31.275821 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:31.277750 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:31.279483 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:31.279489 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:31.279492 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:31.279495 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:31.279575 [DEBUG] DrawDebugOverlay: executing javascript (length: 4482 bytes)
+2025/11/03 21:16:31.283260 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:31.286455 [DEBUG] Blue target marker detected
+2025/11/03 21:16:31.286504 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:31.286594 [DEBUG] Timer [main_loop]: 1.239837875s
+2025/11/03 21:16:32.052057 [DEBUG] runIteration: starting
+2025/11/03 21:16:32.052605 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:33.263315 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:33.263357 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:33.266577 [DEBUG] Blue target marker detected
+2025/11/03 21:16:33.266604 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:33.266607 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:33.271401 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:33.273249 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:33.275319 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:33.275354 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:33.275357 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:33.275361 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:33.275446 [DEBUG] DrawDebugOverlay: executing javascript (length: 4483 bytes)
+2025/11/03 21:16:33.276508 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:33.279320 [DEBUG] Blue target marker detected
+2025/11/03 21:16:33.279355 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:33.279435 [DEBUG] Timer [main_loop]: 1.227387333s
+2025/11/03 21:16:34.095482 [DEBUG] runIteration: starting
+2025/11/03 21:16:34.095966 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:35.294296 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:35.295063 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:35.298206 [DEBUG] Blue target marker detected
+2025/11/03 21:16:35.298249 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:35.298254 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:35.303024 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:35.304856 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:35.306593 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:35.306602 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:35.306606 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:35.306610 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:35.306691 [DEBUG] DrawDebugOverlay: executing javascript (length: 4483 bytes)
+2025/11/03 21:16:35.310029 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:35.313881 [DEBUG] Blue target marker detected
+2025/11/03 21:16:35.314023 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:35.314145 [DEBUG] Timer [main_loop]: 1.2186845s
+2025/11/03 21:16:36.131216 [DEBUG] runIteration: starting
+2025/11/03 21:16:36.131749 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:37.328907 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:37.328958 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:37.331699 [DEBUG] Blue target marker detected
+2025/11/03 21:16:37.331739 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:37.331744 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:37.337132 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:37.339102 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:37.341045 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:37.341092 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:37.341117 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:37.341123 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:37.341208 [DEBUG] DrawDebugOverlay: executing javascript (length: 4483 bytes)
+2025/11/03 21:16:37.342703 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:37.346014 [DEBUG] Blue target marker detected
+2025/11/03 21:16:37.346060 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:37.346166 [DEBUG] Timer [main_loop]: 1.214945792s
+2025/11/03 21:16:38.161725 [DEBUG] runIteration: starting
+2025/11/03 21:16:38.162207 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:39.366316 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:39.366379 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:39.369874 [DEBUG] Blue target marker detected
+2025/11/03 21:16:39.369916 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:39.369921 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:39.374274 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:39.376147 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:39.377903 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:39.377910 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:39.377914 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:39.377919 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:39.378005 [DEBUG] DrawDebugOverlay: executing javascript (length: 4483 bytes)
+2025/11/03 21:16:39.381462 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:39.384877 [DEBUG] Blue target marker detected
+2025/11/03 21:16:39.384911 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:39.385007 [DEBUG] Timer [main_loop]: 1.223277375s
+2025/11/03 21:16:40.202261 [DEBUG] runIteration: starting
+2025/11/03 21:16:40.202906 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:41.160908 [INFO] Navigation completed successfully
+2025/11/03 21:16:41.160967 [INFO] Browser is now ready
+2025/11/03 21:16:41.160971 [INFO] Browser is now ready
+2025/11/03 21:16:41.408512 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:41.408608 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:41.412893 [DEBUG] Blue target marker detected
+2025/11/03 21:16:41.412926 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:41.412930 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:41.416957 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:41.418723 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:41.420440 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:41.420447 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:41.420450 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:41.420455 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:41.420519 [DEBUG] DrawDebugOverlay: executing javascript (length: 4483 bytes)
+2025/11/03 21:16:41.421636 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:41.424781 [DEBUG] Blue target marker detected
+2025/11/03 21:16:41.424817 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:41.424882 [DEBUG] Timer [main_loop]: 1.222621792s
+2025/11/03 21:16:42.240605 [DEBUG] runIteration: starting
+2025/11/03 21:16:42.241265 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:43.502048 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:43.502109 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:43.505751 [DEBUG] Blue target marker detected
+2025/11/03 21:16:43.505776 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:43.505779 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:43.510054 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:43.511801 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:43.513535 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:43.513546 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:43.513566 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:43.513580 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:43.513610 [DEBUG] DrawDebugOverlay: executing javascript (length: 4483 bytes)
+2025/11/03 21:16:43.518677 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:43.521844 [DEBUG] Blue target marker detected
+2025/11/03 21:16:43.521880 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:43.521988 [DEBUG] Timer [main_loop]: 1.281356667s
+2025/11/03 21:16:44.288106 [DEBUG] runIteration: starting
+2025/11/03 21:16:44.288666 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:45.534429 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:45.534467 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:45.537377 [DEBUG] Blue target marker detected
+2025/11/03 21:16:45.537408 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:45.537411 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:45.541213 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:45.542943 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:45.545692 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:45.545807 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:45.545811 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:45.545815 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:45.545864 [DEBUG] DrawDebugOverlay: executing javascript (length: 4483 bytes)
+2025/11/03 21:16:45.546934 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:45.550439 [DEBUG] Blue target marker detected
+2025/11/03 21:16:45.550473 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:45.550553 [DEBUG] Timer [main_loop]: 1.262454708s
+2025/11/03 21:16:46.315527 [DEBUG] runIteration: starting
+2025/11/03 21:16:46.316027 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:47.571793 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:47.571855 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:47.575569 [DEBUG] Blue target marker detected
+2025/11/03 21:16:47.575606 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:47.575609 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:47.580014 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:47.581771 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:47.583499 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:47.583510 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:47.583513 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:47.583517 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:47.583572 [DEBUG] DrawDebugOverlay: executing javascript (length: 4483 bytes)
+2025/11/03 21:16:47.586588 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:47.589363 [DEBUG] Blue target marker detected
+2025/11/03 21:16:47.589395 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:47.589492 [DEBUG] Timer [main_loop]: 1.27396175s
+2025/11/03 21:16:48.353468 [DEBUG] runIteration: starting
+2025/11/03 21:16:48.354041 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:49.600566 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:49.600613 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:49.604050 [DEBUG] Blue target marker detected
+2025/11/03 21:16:49.604086 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:49.604090 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:49.609049 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:49.610872 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:49.612560 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:49.612567 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:49.612570 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:49.612575 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:49.612611 [DEBUG] DrawDebugOverlay: executing javascript (length: 4483 bytes)
+2025/11/03 21:16:49.613578 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:49.616237 [DEBUG] Blue target marker detected
+2025/11/03 21:16:49.616269 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:49.616367 [DEBUG] Timer [main_loop]: 1.262912625s
+2025/11/03 21:16:50.382341 [DEBUG] runIteration: starting
+2025/11/03 21:16:50.382844 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:51.686223 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:51.686441 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:51.691929 [DEBUG] Blue target marker detected
+2025/11/03 21:16:51.691963 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:51.691967 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:51.697463 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:51.699389 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:51.701480 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:51.701512 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:51.701517 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:51.701522 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:51.701561 [DEBUG] DrawDebugOverlay: executing javascript (length: 4483 bytes)
+2025/11/03 21:16:51.704881 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:51.714337 [DEBUG] Blue target marker detected
+2025/11/03 21:16:51.714376 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:51.714473 [DEBUG] Timer [main_loop]: 1.332135834s
+2025/11/03 21:16:52.428824 [DEBUG] runIteration: starting
+2025/11/03 21:16:52.429410 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:53.698757 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:53.698813 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:53.702529 [DEBUG] Blue target marker detected
+2025/11/03 21:16:53.702575 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:53.702580 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:53.707473 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:53.709495 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:53.711243 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:53.711253 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:53.711272 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:53.711276 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:53.711312 [DEBUG] DrawDebugOverlay: executing javascript (length: 4483 bytes)
+2025/11/03 21:16:53.712498 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:53.715090 [DEBUG] Blue target marker detected
+2025/11/03 21:16:53.715119 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:53.715209 [DEBUG] Timer [main_loop]: 1.286394s
+2025/11/03 21:16:54.428882 [DEBUG] runIteration: starting
+2025/11/03 21:16:54.429332 [DEBUG] runIteration: calling Capture
+2025/11/03 21:16:55.670549 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:16:55.670600 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:16:55.673335 [DEBUG] MP: MaxW updated 0 -> 32
+2025/11/03 21:16:55.673517 [DEBUG] MP: Value updated 0% -> 26%
+2025/11/03 21:16:55.674038 [DEBUG] Blue target marker detected
+2025/11/03 21:16:55.674048 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:16:55.674051 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:16:55.678868 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:16:55.680622 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:16:55.682368 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:16:55.682376 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:16:55.682379 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:16:55.682382 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:16:55.682422 [DEBUG] DrawDebugOverlay: executing javascript (length: 4484 bytes)
+2025/11/03 21:16:55.685561 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:16:55.688657 [DEBUG] Blue target marker detected
+2025/11/03 21:16:55.688691 [WARN] Player is dead, stopping farming
+2025/11/03 21:16:55.688751 [DEBUG] Timer [main_loop]: 1.259887458s
+2025/11/03 21:16:56.454877 [DEBUG] runIteration: starting
+2025/11/03 21:16:56.805200 [DEBUG] Canvas element not found, game not ready yet
+2025/11/03 21:16:56.805226 [DEBUG] Timer [main_loop]: 350.315167ms
+2025/11/03 21:16:58.485593 [DEBUG] runIteration: starting
+2025/11/03 21:16:58.486995 [DEBUG] Canvas element not found, game not ready yet
+2025/11/03 21:16:58.487013 [DEBUG] Timer [main_loop]: 546.792µs
+2025/11/03 21:17:00.525469 [DEBUG] runIteration: starting
+2025/11/03 21:17:00.525935 [DEBUG] Canvas element not found, game not ready yet
+2025/11/03 21:17:00.525951 [DEBUG] Timer [main_loop]: 419.417µs
+2025/11/03 21:17:02.566658 [DEBUG] runIteration: starting
+2025/11/03 21:17:02.581044 [DEBUG] Canvas element not found, game not ready yet
+2025/11/03 21:17:02.581116 [DEBUG] Timer [main_loop]: 14.4085ms
+2025/11/03 21:17:04.569400 [DEBUG] runIteration: starting
+2025/11/03 21:17:04.570374 [DEBUG] Canvas element not found, game not ready yet
+2025/11/03 21:17:04.570387 [DEBUG] Timer [main_loop]: 545.625µs
+2025/11/03 21:17:06.611554 [DEBUG] runIteration: starting
+2025/11/03 21:17:06.612053 [DEBUG] Canvas element not found, game not ready yet
+2025/11/03 21:17:06.612064 [DEBUG] Timer [main_loop]: 466.167µs
+2025/11/03 21:17:08.653286 [DEBUG] runIteration: starting
+2025/11/03 21:17:08.653969 [DEBUG] Canvas element not found, game not ready yet
+2025/11/03 21:17:08.653984 [DEBUG] Timer [main_loop]: 519.667µs
+2025/11/03 21:17:10.696565 [DEBUG] runIteration: starting
+2025/11/03 21:17:10.697137 [DEBUG] Canvas element not found, game not ready yet
+2025/11/03 21:17:10.697151 [DEBUG] Timer [main_loop]: 538.917µs
+2025/11/03 21:17:12.737689 [DEBUG] runIteration: starting
+2025/11/03 21:17:12.738202 [DEBUG] Canvas element not found, game not ready yet
+2025/11/03 21:17:12.738214 [DEBUG] Timer [main_loop]: 486.583µs
+2025/11/03 21:17:14.776403 [DEBUG] runIteration: starting
+2025/11/03 21:17:14.776874 [DEBUG] Canvas element not found, game not ready yet
+2025/11/03 21:17:14.776884 [DEBUG] Timer [main_loop]: 432.666µs
+2025/11/03 21:17:16.816648 [DEBUG] runIteration: starting
+2025/11/03 21:17:16.817192 [DEBUG] Canvas element not found, game not ready yet
+2025/11/03 21:17:16.817212 [DEBUG] Timer [main_loop]: 513.667µs
+2025/11/03 21:17:18.858137 [DEBUG] runIteration: starting
+2025/11/03 21:17:18.859485 [DEBUG] Canvas element not found, game not ready yet
+2025/11/03 21:17:18.859497 [DEBUG] Timer [main_loop]: 518.5µs
+2025/11/03 21:17:20.898556 [DEBUG] runIteration: starting
+2025/11/03 21:17:20.941567 [DEBUG] runIteration: calling Capture
+2025/11/03 21:17:22.327440 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:17:22.327508 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:17:22.337142 [DEBUG] MP: Value updated 26% -> 0%
+2025/11/03 21:17:22.337587 [DEBUG] Blue target marker detected
+2025/11/03 21:17:22.337596 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:17:22.337600 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:17:22.343687 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:17:22.345614 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:17:22.347310 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:17:22.347317 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:17:22.347321 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:17:22.347325 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:17:22.347397 [DEBUG] DrawDebugOverlay: executing javascript (length: 4483 bytes)
+2025/11/03 21:17:22.350988 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:17:22.360575 [DEBUG] Blue target marker detected
+2025/11/03 21:17:22.360612 [WARN] Player is dead, stopping farming
+2025/11/03 21:17:22.360913 [DEBUG] Timer [main_loop]: 1.462387166s
+2025/11/03 21:17:22.920381 [DEBUG] runIteration: starting
+2025/11/03 21:17:22.920872 [DEBUG] runIteration: calling Capture
+2025/11/03 21:17:24.164902 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:17:24.164955 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:17:24.168740 [DEBUG] Blue target marker detected
+2025/11/03 21:17:24.168772 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:17:24.168776 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:17:24.173918 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:17:24.175807 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:17:24.177528 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:17:24.177536 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:17:24.177540 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:17:24.177560 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:17:24.177609 [DEBUG] DrawDebugOverlay: executing javascript (length: 4482 bytes)
+2025/11/03 21:17:24.180788 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:17:24.186317 [DEBUG] Blue target marker detected
+2025/11/03 21:17:24.186353 [WARN] Player is dead, stopping farming
+2025/11/03 21:17:24.186442 [DEBUG] Timer [main_loop]: 1.26606375s
+2025/11/03 21:17:24.952103 [DEBUG] runIteration: starting
+2025/11/03 21:17:24.952580 [DEBUG] runIteration: calling Capture
+2025/11/03 21:17:26.206264 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:17:26.207132 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:17:26.210128 [DEBUG] Blue target marker detected
+2025/11/03 21:17:26.210157 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:17:26.210162 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:17:26.213766 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:17:26.215527 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:17:26.218307 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:17:26.218350 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:17:26.218355 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:17:26.218360 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:17:26.218397 [DEBUG] DrawDebugOverlay: executing javascript (length: 4482 bytes)
+2025/11/03 21:17:26.225084 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:17:26.230260 [DEBUG] Blue target marker detected
+2025/11/03 21:17:26.230308 [WARN] Player is dead, stopping farming
+2025/11/03 21:17:26.230577 [DEBUG] Timer [main_loop]: 1.278465958s
+2025/11/03 21:17:26.996159 [DEBUG] runIteration: starting
+2025/11/03 21:17:26.996636 [DEBUG] runIteration: calling Capture
+2025/11/03 21:17:28.233856 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:17:28.233897 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:17:28.236856 [DEBUG] Blue target marker detected
+2025/11/03 21:17:28.236884 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:17:28.236887 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:17:28.242463 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:17:28.244298 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:17:28.246023 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:17:28.246030 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:17:28.246033 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:17:28.246046 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:17:28.246077 [DEBUG] DrawDebugOverlay: executing javascript (length: 4482 bytes)
+2025/11/03 21:17:28.254580 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:17:28.257710 [DEBUG] Blue target marker detected
+2025/11/03 21:17:28.257744 [WARN] Player is dead, stopping farming
+2025/11/03 21:17:28.257819 [DEBUG] Timer [main_loop]: 1.261664125s
+2025/11/03 21:17:29.022823 [DEBUG] runIteration: starting
+2025/11/03 21:17:29.023292 [DEBUG] runIteration: calling Capture
+2025/11/03 21:17:30.257282 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:17:30.257338 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:17:30.260347 [DEBUG] Blue target marker detected
+2025/11/03 21:17:30.260374 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:17:30.260377 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:17:30.264236 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:17:30.265990 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:17:30.267760 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:17:30.267771 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:17:30.267774 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:17:30.267777 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:17:30.267818 [DEBUG] DrawDebugOverlay: executing javascript (length: 4482 bytes)
+2025/11/03 21:17:30.279208 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:17:30.283381 [DEBUG] Blue target marker detected
+2025/11/03 21:17:30.283424 [WARN] Player is dead, stopping farming
+2025/11/03 21:17:30.283524 [DEBUG] Timer [main_loop]: 1.260711125s
+2025/11/03 21:17:31.048737 [DEBUG] runIteration: starting
+2025/11/03 21:17:31.049306 [DEBUG] runIteration: calling Capture
+2025/11/03 21:17:32.291400 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:17:32.291440 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:17:32.294320 [DEBUG] Blue target marker detected
+2025/11/03 21:17:32.294346 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:17:32.294349 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:17:32.298067 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:17:32.301164 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:17:32.303033 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:17:32.303043 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:17:32.303047 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:17:32.303051 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:17:32.303110 [DEBUG] DrawDebugOverlay: executing javascript (length: 4482 bytes)
+2025/11/03 21:17:32.313055 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:17:32.316943 [DEBUG] Blue target marker detected
+2025/11/03 21:17:32.316999 [WARN] Player is dead, stopping farming
+2025/11/03 21:17:32.317112 [DEBUG] Timer [main_loop]: 1.268383292s
+2025/11/03 21:17:33.082436 [DEBUG] runIteration: starting
+2025/11/03 21:17:33.083064 [DEBUG] runIteration: calling Capture
+2025/11/03 21:17:34.301514 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:17:34.301561 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:17:34.304668 [DEBUG] Blue target marker detected
+2025/11/03 21:17:34.304706 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:17:34.304710 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:17:34.310779 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:17:34.312517 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:17:34.314245 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:17:34.314260 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:17:34.314264 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:17:34.314267 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:17:34.314304 [DEBUG] DrawDebugOverlay: executing javascript (length: 4483 bytes)
+2025/11/03 21:17:34.315341 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:17:34.318310 [DEBUG] Blue target marker detected
+2025/11/03 21:17:34.318346 [WARN] Player is dead, stopping farming
+2025/11/03 21:17:34.318463 [DEBUG] Timer [main_loop]: 1.236009458s
+2025/11/03 21:17:35.084286 [DEBUG] runIteration: starting
+2025/11/03 21:17:35.084823 [DEBUG] runIteration: calling Capture
+2025/11/03 21:17:36.303564 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:17:36.303605 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:17:36.307335 [DEBUG] Blue target marker detected
+2025/11/03 21:17:36.307367 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:17:36.307370 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:17:36.311348 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:17:36.313076 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:17:36.315810 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:17:36.315846 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:17:36.315849 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:17:36.315853 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:17:36.315893 [DEBUG] DrawDebugOverlay: executing javascript (length: 4483 bytes)
+2025/11/03 21:17:36.324539 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:17:36.328528 [DEBUG] Blue target marker detected
+2025/11/03 21:17:36.328566 [WARN] Player is dead, stopping farming
+2025/11/03 21:17:36.328658 [DEBUG] Timer [main_loop]: 1.244361916s
+2025/11/03 21:17:37.092992 [DEBUG] runIteration: starting
+2025/11/03 21:17:37.093498 [DEBUG] runIteration: calling Capture
+2025/11/03 21:17:38.305841 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:17:38.306302 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:17:38.309738 [DEBUG] Blue target marker detected
+2025/11/03 21:17:38.309793 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:17:38.309798 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:17:38.313936 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:17:38.315650 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:17:38.317345 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:17:38.317352 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:17:38.317355 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:17:38.317359 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:17:38.317396 [DEBUG] DrawDebugOverlay: executing javascript (length: 4483 bytes)
+2025/11/03 21:17:38.326543 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:17:38.329766 [DEBUG] Blue target marker detected
+2025/11/03 21:17:38.329797 [WARN] Player is dead, stopping farming
+2025/11/03 21:17:38.329900 [DEBUG] Timer [main_loop]: 1.2369305s
+2025/11/03 21:17:39.093730 [DEBUG] runIteration: starting
+2025/11/03 21:17:39.094248 [DEBUG] runIteration: calling Capture
+2025/11/03 21:17:40.306874 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:17:40.306923 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:17:40.309926 [DEBUG] Blue target marker detected
+2025/11/03 21:17:40.309961 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:17:40.309965 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:17:40.314808 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:17:40.316669 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:17:40.318441 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:17:40.318450 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:17:40.318454 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:17:40.318467 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:17:40.318515 [DEBUG] DrawDebugOverlay: executing javascript (length: 4483 bytes)
+2025/11/03 21:17:40.328005 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:17:40.330954 [DEBUG] Blue target marker detected
+2025/11/03 21:17:40.330982 [WARN] Player is dead, stopping farming
+2025/11/03 21:17:40.331069 [DEBUG] Timer [main_loop]: 1.237344833s
+2025/11/03 21:17:41.096996 [DEBUG] runIteration: starting
+2025/11/03 21:17:41.097794 [DEBUG] runIteration: calling Capture
+2025/11/03 21:17:42.360610 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:17:42.360700 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:17:42.365346 [DEBUG] Blue target marker detected
+2025/11/03 21:17:42.365391 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:17:42.365396 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:17:42.369760 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:17:42.372377 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:17:42.374309 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:17:42.374330 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:17:42.374334 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:17:42.374340 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:17:42.374385 [DEBUG] DrawDebugOverlay: executing javascript (length: 4483 bytes)
+2025/11/03 21:17:42.382603 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:17:42.385614 [DEBUG] Blue target marker detected
+2025/11/03 21:17:42.385657 [WARN] Player is dead, stopping farming
+2025/11/03 21:17:42.385866 [DEBUG] Timer [main_loop]: 1.288800458s
+2025/11/03 21:17:43.098788 [DEBUG] runIteration: starting
+2025/11/03 21:17:43.099463 [DEBUG] runIteration: calling Capture
+2025/11/03 21:17:44.353512 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:17:44.353574 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:17:44.356322 [DEBUG] Blue target marker detected
+2025/11/03 21:17:44.356356 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:17:44.356360 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:17:44.359974 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:17:44.361676 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:17:44.363407 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:17:44.363418 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:17:44.363421 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:17:44.363434 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:17:44.363481 [DEBUG] DrawDebugOverlay: executing javascript (length: 4483 bytes)
+2025/11/03 21:17:44.375779 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:17:44.380227 [DEBUG] Blue target marker detected
+2025/11/03 21:17:44.380259 [WARN] Player is dead, stopping farming
+2025/11/03 21:17:44.380361 [DEBUG] Timer [main_loop]: 1.281575542s
+2025/11/03 21:17:45.138121 [DEBUG] runIteration: starting
+2025/11/03 21:17:45.138922 [DEBUG] runIteration: calling Capture
+2025/11/03 21:17:45.494686 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:17:45.494713 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:17:45.498620 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:17:45.498634 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:17:45.503201 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:17:45.505291 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:17:45.507103 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:17:45.507111 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:17:45.507115 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:17:45.507118 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:17:45.507159 [DEBUG] DrawDebugOverlay: executing javascript (length: 4483 bytes)
+2025/11/03 21:17:45.517949 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:17:45.521244 [WARN] Player is dead, stopping farming
+2025/11/03 21:17:45.521315 [DEBUG] Timer [main_loop]: 383.118709ms
+2025/11/03 21:17:47.147366 [DEBUG] runIteration: starting
+2025/11/03 21:17:47.226503 [DEBUG] runIteration: calling Capture
+2025/11/03 21:17:47.693599 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:17:47.693643 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:17:47.697000 [DEBUG] Blue target marker detected
+2025/11/03 21:17:47.697041 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:17:47.697046 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:17:47.701793 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:17:47.703540 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:17:47.705837 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:17:47.705875 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:17:47.705880 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:17:47.705885 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:17:47.705940 [DEBUG] DrawDebugOverlay: executing javascript (length: 4483 bytes)
+2025/11/03 21:17:47.716234 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:17:47.719419 [DEBUG] Blue target marker detected
+2025/11/03 21:17:47.719462 [WARN] Player is dead, stopping farming
+2025/11/03 21:17:47.719565 [DEBUG] Timer [main_loop]: 571.962791ms
+2025/11/03 21:17:49.193453 [DEBUG] runIteration: starting
+2025/11/03 21:17:49.194018 [DEBUG] runIteration: calling Capture
+2025/11/03 21:17:49.650398 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:17:49.650454 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:17:49.653398 [DEBUG] Blue target marker detected
+2025/11/03 21:17:49.653434 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:17:49.653438 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:17:49.657645 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:17:49.659425 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:17:49.661113 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:17:49.661120 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:17:49.661124 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:17:49.661128 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:17:49.661166 [DEBUG] DrawDebugOverlay: executing javascript (length: 4483 bytes)
+2025/11/03 21:17:49.671774 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:17:49.676421 [DEBUG] Blue target marker detected
+2025/11/03 21:17:49.676468 [WARN] Player is dead, stopping farming
+2025/11/03 21:17:49.676585 [DEBUG] Timer [main_loop]: 483.098125ms
+2025/11/03 21:17:51.201948 [DEBUG] runIteration: starting
+2025/11/03 21:17:51.204822 [DEBUG] runIteration: calling Capture
+2025/11/03 21:17:51.699889 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:17:51.699947 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:17:51.704596 [DEBUG] Blue target marker detected
+2025/11/03 21:17:51.704642 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:17:51.704647 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:17:51.709909 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:17:51.711714 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:17:51.713506 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:17:51.713518 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:17:51.713523 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:17:51.713528 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:17:51.713587 [DEBUG] DrawDebugOverlay: executing javascript (length: 4483 bytes)
+2025/11/03 21:17:51.722141 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:17:51.726299 [DEBUG] Blue target marker detected
+2025/11/03 21:17:51.726338 [WARN] Player is dead, stopping farming
+2025/11/03 21:17:51.726400 [DEBUG] Timer [main_loop]: 524.407958ms
+2025/11/03 21:17:53.248496 [DEBUG] runIteration: starting
+2025/11/03 21:17:53.249204 [DEBUG] runIteration: calling Capture
+2025/11/03 21:17:54.491103 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:17:54.491141 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:17:54.494017 [DEBUG] Blue target marker detected
+2025/11/03 21:17:54.494055 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:17:54.494059 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:17:54.498269 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:17:54.501316 [DEBUG] Found 0 aggressive mob candidates
+2025/11/03 21:17:54.503132 [DEBUG] Identified 0 total mobs (passive: 0, aggressive: 0)
+2025/11/03 21:17:54.503141 [DEBUG] runIteration: found 0 targets
+2025/11/03 21:17:54.503145 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:17:54.503157 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:17:54.503189 [DEBUG] DrawDebugOverlay: executing javascript (length: 4483 bytes)
+2025/11/03 21:17:54.513725 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:17:54.516687 [DEBUG] Blue target marker detected
+2025/11/03 21:17:54.516727 [WARN] Player is dead, stopping farming
+2025/11/03 21:17:54.516812 [DEBUG] Timer [main_loop]: 1.268108667s
+2025/11/03 21:17:55.275897 [DEBUG] runIteration: starting
+2025/11/03 21:17:55.276194 [DEBUG] runIteration: calling Capture
+2025/11/03 21:17:56.541633 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:17:56.541689 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:17:56.545612 [DEBUG] Blue target marker detected
+2025/11/03 21:17:56.545654 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:17:56.545660 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:17:56.549337 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:17:56.551100 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:17:56.551106 [DEBUG] Aggressive mob ACCEPTED at (48,291) size 21x12
+2025/11/03 21:17:56.551112 [DEBUG] Aggressive mob ACCEPTED at (325,278) size 13x12
+2025/11/03 21:17:56.551116 [DEBUG] Aggressive mob ACCEPTED at (241,278) size 13x12
+2025/11/03 21:17:56.551119 [DEBUG] Aggressive mob ACCEPTED at (157,278) size 13x20
+2025/11/03 21:17:56.551123 [DEBUG] Aggressive mob ACCEPTED at (73,278) size 13x12
+2025/11/03 21:17:56.552820 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:17:56.552827 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:17:56.552830 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:17:56.552834 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:17:56.552881 [DEBUG] DrawDebugOverlay: executing javascript (length: 4854 bytes)
+2025/11/03 21:17:56.564277 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:17:56.568106 [DEBUG] Blue target marker detected
+2025/11/03 21:17:56.568167 [WARN] Player is dead, stopping farming
+2025/11/03 21:17:56.568339 [DEBUG] Timer [main_loop]: 1.292480917s
+2025/11/03 21:17:57.283184 [DEBUG] runIteration: starting
+2025/11/03 21:17:57.283719 [DEBUG] runIteration: calling Capture
+2025/11/03 21:17:58.546559 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:17:58.546608 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:17:58.549603 [DEBUG] Blue target marker detected
+2025/11/03 21:17:58.549647 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:17:58.549651 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:17:58.553648 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:17:58.555427 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:17:58.555443 [DEBUG] Aggressive mob ACCEPTED at (48,292) size 22x11
+2025/11/03 21:17:58.555450 [DEBUG] Aggressive mob ACCEPTED at (325,280) size 12x10
+2025/11/03 21:17:58.555455 [DEBUG] Aggressive mob ACCEPTED at (241,280) size 12x10
+2025/11/03 21:17:58.555458 [DEBUG] Aggressive mob ACCEPTED at (157,280) size 12x10
+2025/11/03 21:17:58.555464 [DEBUG] Aggressive mob ACCEPTED at (73,280) size 12x9
+2025/11/03 21:17:58.557251 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:17:58.557281 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:17:58.557288 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:17:58.557293 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:17:58.557297 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:17:58.557338 [DEBUG] DrawDebugOverlay: executing javascript (length: 4853 bytes)
+2025/11/03 21:17:58.565421 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:17:58.569920 [DEBUG] Blue target marker detected
+2025/11/03 21:17:58.570007 [WARN] Player is dead, stopping farming
+2025/11/03 21:17:58.570133 [DEBUG] Timer [main_loop]: 1.286949208s
+2025/11/03 21:17:59.283502 [DEBUG] runIteration: starting
+2025/11/03 21:17:59.283988 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:00.568779 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:00.569160 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:00.573360 [DEBUG] Blue target marker detected
+2025/11/03 21:18:00.573405 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:00.573410 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:00.577937 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:00.579847 [DEBUG] Found 1 aggressive mob candidates
+2025/11/03 21:18:00.579867 [DEBUG] Aggressive mob ACCEPTED at (48,297) size 16x6
+2025/11/03 21:18:00.581617 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:00.581625 [DEBUG] Identified 1 total mobs (passive: 0, aggressive: 1)
+2025/11/03 21:18:00.581630 [DEBUG] runIteration: found 1 targets
+2025/11/03 21:18:00.581634 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:00.581646 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:00.581683 [DEBUG] DrawDebugOverlay: executing javascript (length: 4555 bytes)
+2025/11/03 21:18:00.589723 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:00.592552 [DEBUG] Blue target marker detected
+2025/11/03 21:18:00.592591 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:00.592686 [DEBUG] Timer [main_loop]: 1.309188583s
+2025/11/03 21:18:01.306326 [DEBUG] runIteration: starting
+2025/11/03 21:18:01.306870 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:02.598478 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:02.598514 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:02.601468 [DEBUG] Blue target marker detected
+2025/11/03 21:18:02.601500 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:02.601505 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:02.607139 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:02.608988 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:18:02.608998 [DEBUG] Aggressive mob ACCEPTED at (48,291) size 21x11
+2025/11/03 21:18:02.609002 [DEBUG] Aggressive mob ACCEPTED at (325,278) size 13x12
+2025/11/03 21:18:02.609008 [DEBUG] Aggressive mob ACCEPTED at (241,278) size 13x12
+2025/11/03 21:18:02.609012 [DEBUG] Aggressive mob ACCEPTED at (157,278) size 13x20
+2025/11/03 21:18:02.609016 [DEBUG] Aggressive mob ACCEPTED at (73,278) size 13x12
+2025/11/03 21:18:02.610768 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:02.610774 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:18:02.610779 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:18:02.610782 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:02.610786 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:02.610862 [DEBUG] DrawDebugOverlay: executing javascript (length: 4854 bytes)
+2025/11/03 21:18:02.620272 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:02.623278 [DEBUG] Blue target marker detected
+2025/11/03 21:18:02.623309 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:02.623380 [DEBUG] Timer [main_loop]: 1.317072167s
+2025/11/03 21:18:03.335761 [DEBUG] runIteration: starting
+2025/11/03 21:18:03.336042 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:04.775883 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:04.775927 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:04.779579 [DEBUG] Blue target marker detected
+2025/11/03 21:18:04.779663 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:04.779674 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:04.784586 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:04.786528 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:18:04.786550 [DEBUG] Aggressive mob ACCEPTED at (48,292) size 22x11
+2025/11/03 21:18:04.786556 [DEBUG] Aggressive mob ACCEPTED at (325,280) size 12x10
+2025/11/03 21:18:04.786560 [DEBUG] Aggressive mob ACCEPTED at (241,280) size 12x10
+2025/11/03 21:18:04.786564 [DEBUG] Aggressive mob ACCEPTED at (157,280) size 12x10
+2025/11/03 21:18:04.786567 [DEBUG] Aggressive mob ACCEPTED at (73,280) size 12x9
+2025/11/03 21:18:04.788375 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:04.788392 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:18:04.788398 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:18:04.788401 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:04.788420 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:04.788474 [DEBUG] DrawDebugOverlay: executing javascript (length: 4853 bytes)
+2025/11/03 21:18:04.799066 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:04.801943 [DEBUG] Blue target marker detected
+2025/11/03 21:18:04.801974 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:04.802067 [DEBUG] Timer [main_loop]: 1.466349s
+2025/11/03 21:18:05.363238 [DEBUG] runIteration: starting
+2025/11/03 21:18:05.363711 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:06.805916 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:06.806280 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:06.810572 [DEBUG] Blue target marker detected
+2025/11/03 21:18:06.810661 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:06.810669 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:06.814814 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:06.816602 [DEBUG] Found 1 aggressive mob candidates
+2025/11/03 21:18:06.816611 [DEBUG] Aggressive mob ACCEPTED at (48,297) size 16x6
+2025/11/03 21:18:06.818333 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:06.818339 [DEBUG] Identified 1 total mobs (passive: 0, aggressive: 1)
+2025/11/03 21:18:06.818344 [DEBUG] runIteration: found 1 targets
+2025/11/03 21:18:06.818347 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:06.818352 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:06.818413 [DEBUG] DrawDebugOverlay: executing javascript (length: 4555 bytes)
+2025/11/03 21:18:06.827455 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:06.830584 [DEBUG] Blue target marker detected
+2025/11/03 21:18:06.830624 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:06.830705 [DEBUG] Timer [main_loop]: 1.467478167s
+2025/11/03 21:18:07.392257 [DEBUG] runIteration: starting
+2025/11/03 21:18:07.392790 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:08.856316 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:08.856369 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:08.859985 [DEBUG] Blue target marker detected
+2025/11/03 21:18:08.860026 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:08.860031 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:08.864863 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:08.866662 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:18:08.866679 [DEBUG] Aggressive mob ACCEPTED at (48,291) size 21x11
+2025/11/03 21:18:08.866685 [DEBUG] Aggressive mob ACCEPTED at (325,278) size 13x12
+2025/11/03 21:18:08.866690 [DEBUG] Aggressive mob ACCEPTED at (241,278) size 13x12
+2025/11/03 21:18:08.866693 [DEBUG] Aggressive mob ACCEPTED at (157,278) size 13x20
+2025/11/03 21:18:08.866697 [DEBUG] Aggressive mob ACCEPTED at (73,278) size 13x12
+2025/11/03 21:18:08.868464 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:08.868474 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:18:08.868480 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:18:08.868484 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:08.868502 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:08.868551 [DEBUG] DrawDebugOverlay: executing javascript (length: 4854 bytes)
+2025/11/03 21:18:08.877880 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:08.883622 [DEBUG] Blue target marker detected
+2025/11/03 21:18:08.883663 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:08.883740 [DEBUG] Timer [main_loop]: 1.491507333s
+2025/11/03 21:18:09.393369 [DEBUG] runIteration: starting
+2025/11/03 21:18:09.393830 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:10.891658 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:10.891704 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:10.894547 [DEBUG] Blue target marker detected
+2025/11/03 21:18:10.894589 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:10.894594 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:10.900051 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:10.901938 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:18:10.901956 [DEBUG] Aggressive mob ACCEPTED at (48,292) size 22x11
+2025/11/03 21:18:10.901962 [DEBUG] Aggressive mob ACCEPTED at (325,280) size 12x10
+2025/11/03 21:18:10.901967 [DEBUG] Aggressive mob ACCEPTED at (241,280) size 12x10
+2025/11/03 21:18:10.901970 [DEBUG] Aggressive mob ACCEPTED at (157,280) size 12x10
+2025/11/03 21:18:10.901975 [DEBUG] Aggressive mob ACCEPTED at (73,280) size 12x9
+2025/11/03 21:18:10.904383 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:10.904531 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:18:10.904553 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:18:10.904664 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:10.904688 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:10.904746 [DEBUG] DrawDebugOverlay: executing javascript (length: 4853 bytes)
+2025/11/03 21:18:10.913554 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:10.916698 [DEBUG] Blue target marker detected
+2025/11/03 21:18:10.916741 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:10.916850 [DEBUG] Timer [main_loop]: 1.523504959s
+2025/11/03 21:18:11.426037 [DEBUG] runIteration: starting
+2025/11/03 21:18:11.426711 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:12.930416 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:12.930471 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:12.933914 [DEBUG] Blue target marker detected
+2025/11/03 21:18:12.933948 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:12.933952 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:12.939212 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:12.941156 [DEBUG] Found 1 aggressive mob candidates
+2025/11/03 21:18:12.941170 [DEBUG] Aggressive mob ACCEPTED at (48,297) size 16x6
+2025/11/03 21:18:12.942889 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:12.942896 [DEBUG] Identified 1 total mobs (passive: 0, aggressive: 1)
+2025/11/03 21:18:12.942901 [DEBUG] runIteration: found 1 targets
+2025/11/03 21:18:12.942904 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:12.942923 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:12.942976 [DEBUG] DrawDebugOverlay: executing javascript (length: 4555 bytes)
+2025/11/03 21:18:12.951413 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:12.955472 [DEBUG] Blue target marker detected
+2025/11/03 21:18:12.955512 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:12.955582 [DEBUG] Timer [main_loop]: 1.529546709s
+2025/11/03 21:18:13.466169 [DEBUG] runIteration: starting
+2025/11/03 21:18:13.466649 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:14.948844 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:14.949229 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:14.951867 [DEBUG] Blue target marker detected
+2025/11/03 21:18:14.951918 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:14.951923 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:14.956692 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:14.958455 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:18:14.958464 [DEBUG] Aggressive mob ACCEPTED at (48,291) size 21x11
+2025/11/03 21:18:14.958468 [DEBUG] Aggressive mob ACCEPTED at (325,278) size 13x12
+2025/11/03 21:18:14.958472 [DEBUG] Aggressive mob ACCEPTED at (241,278) size 13x12
+2025/11/03 21:18:14.958476 [DEBUG] Aggressive mob ACCEPTED at (157,278) size 13x20
+2025/11/03 21:18:14.958480 [DEBUG] Aggressive mob ACCEPTED at (73,278) size 13x12
+2025/11/03 21:18:14.960202 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:14.960208 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:18:14.960213 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:18:14.960216 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:14.960229 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:14.960271 [DEBUG] DrawDebugOverlay: executing javascript (length: 4854 bytes)
+2025/11/03 21:18:14.969675 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:14.974103 [DEBUG] Blue target marker detected
+2025/11/03 21:18:14.974158 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:14.974249 [DEBUG] Timer [main_loop]: 1.50810375s
+2025/11/03 21:18:15.484919 [DEBUG] runIteration: starting
+2025/11/03 21:18:15.485371 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:17.030524 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:17.030566 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:17.034378 [DEBUG] Blue target marker detected
+2025/11/03 21:18:17.034480 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:17.034498 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:17.039969 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:17.042034 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:18:17.042052 [DEBUG] Aggressive mob ACCEPTED at (48,292) size 22x11
+2025/11/03 21:18:17.042057 [DEBUG] Aggressive mob ACCEPTED at (325,280) size 12x10
+2025/11/03 21:18:17.042061 [DEBUG] Aggressive mob ACCEPTED at (241,280) size 12x10
+2025/11/03 21:18:17.042064 [DEBUG] Aggressive mob ACCEPTED at (157,280) size 12x10
+2025/11/03 21:18:17.042068 [DEBUG] Aggressive mob ACCEPTED at (73,280) size 12x9
+2025/11/03 21:18:17.043822 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:17.043827 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:18:17.043832 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:18:17.043835 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:17.043839 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:17.043898 [DEBUG] DrawDebugOverlay: executing javascript (length: 4853 bytes)
+2025/11/03 21:18:17.052612 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:17.057506 [DEBUG] Blue target marker detected
+2025/11/03 21:18:17.057541 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:17.057619 [DEBUG] Timer [main_loop]: 1.572718292s
+2025/11/03 21:18:17.517088 [DEBUG] runIteration: starting
+2025/11/03 21:18:17.517556 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:19.056814 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:19.056858 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:19.062159 [DEBUG] Blue target marker detected
+2025/11/03 21:18:19.062206 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:19.062211 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:19.066378 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:19.068192 [DEBUG] Found 1 aggressive mob candidates
+2025/11/03 21:18:19.068203 [DEBUG] Aggressive mob ACCEPTED at (48,297) size 16x6
+2025/11/03 21:18:19.070781 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:19.070864 [DEBUG] Identified 1 total mobs (passive: 0, aggressive: 1)
+2025/11/03 21:18:19.070874 [DEBUG] runIteration: found 1 targets
+2025/11/03 21:18:19.070878 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:19.070886 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:19.071009 [DEBUG] DrawDebugOverlay: executing javascript (length: 4555 bytes)
+2025/11/03 21:18:19.080137 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:19.082959 [DEBUG] Blue target marker detected
+2025/11/03 21:18:19.082995 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:19.083072 [DEBUG] Timer [main_loop]: 1.566015959s
+2025/11/03 21:18:19.542563 [DEBUG] runIteration: starting
+2025/11/03 21:18:19.543053 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:20.997668 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:20.997724 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:21.000792 [DEBUG] Blue target marker detected
+2025/11/03 21:18:21.000824 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:21.000828 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:21.006174 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:21.008029 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:18:21.008049 [DEBUG] Aggressive mob ACCEPTED at (48,291) size 21x11
+2025/11/03 21:18:21.008055 [DEBUG] Aggressive mob ACCEPTED at (325,278) size 13x12
+2025/11/03 21:18:21.008060 [DEBUG] Aggressive mob ACCEPTED at (241,278) size 13x12
+2025/11/03 21:18:21.008065 [DEBUG] Aggressive mob ACCEPTED at (157,278) size 13x20
+2025/11/03 21:18:21.008069 [DEBUG] Aggressive mob ACCEPTED at (73,278) size 13x12
+2025/11/03 21:18:21.009857 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:21.009865 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:18:21.009870 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:18:21.009873 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:21.009877 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:21.009938 [DEBUG] DrawDebugOverlay: executing javascript (length: 4854 bytes)
+2025/11/03 21:18:21.010892 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:21.013584 [DEBUG] Blue target marker detected
+2025/11/03 21:18:21.013621 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:21.013733 [DEBUG] Timer [main_loop]: 1.471193708s
+2025/11/03 21:18:21.575358 [DEBUG] runIteration: starting
+2025/11/03 21:18:21.575916 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:23.074389 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:23.074447 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:23.077461 [DEBUG] Blue target marker detected
+2025/11/03 21:18:23.077499 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:23.077503 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:23.081702 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:23.083485 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:18:23.083492 [DEBUG] Aggressive mob ACCEPTED at (48,292) size 22x11
+2025/11/03 21:18:23.083496 [DEBUG] Aggressive mob ACCEPTED at (325,280) size 12x10
+2025/11/03 21:18:23.083500 [DEBUG] Aggressive mob ACCEPTED at (241,280) size 12x10
+2025/11/03 21:18:23.083503 [DEBUG] Aggressive mob ACCEPTED at (157,280) size 12x10
+2025/11/03 21:18:23.083512 [DEBUG] Aggressive mob ACCEPTED at (73,280) size 12x9
+2025/11/03 21:18:23.085249 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:23.085289 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:18:23.085343 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:18:23.085355 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:23.085399 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:23.085440 [DEBUG] DrawDebugOverlay: executing javascript (length: 4852 bytes)
+2025/11/03 21:18:23.088578 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:23.097578 [DEBUG] Blue target marker detected
+2025/11/03 21:18:23.097623 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:23.097694 [DEBUG] Timer [main_loop]: 1.522355917s
+2025/11/03 21:18:23.608241 [DEBUG] runIteration: starting
+2025/11/03 21:18:23.608877 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:25.125451 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:25.126219 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:25.130363 [DEBUG] Blue target marker detected
+2025/11/03 21:18:25.130423 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:25.130428 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:25.134879 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:25.137076 [DEBUG] Found 1 aggressive mob candidates
+2025/11/03 21:18:25.137112 [DEBUG] Aggressive mob ACCEPTED at (48,297) size 16x6
+2025/11/03 21:18:25.138916 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:25.138925 [DEBUG] Identified 1 total mobs (passive: 0, aggressive: 1)
+2025/11/03 21:18:25.138931 [DEBUG] runIteration: found 1 targets
+2025/11/03 21:18:25.138934 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:25.138938 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:25.138982 [DEBUG] DrawDebugOverlay: executing javascript (length: 4554 bytes)
+2025/11/03 21:18:25.148843 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:25.152097 [DEBUG] Blue target marker detected
+2025/11/03 21:18:25.152129 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:25.152209 [DEBUG] Timer [main_loop]: 1.5439855s
+2025/11/03 21:18:25.611706 [DEBUG] runIteration: starting
+2025/11/03 21:18:25.612145 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:27.117704 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:27.117759 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:27.122563 [DEBUG] Blue target marker detected
+2025/11/03 21:18:27.122603 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:27.122608 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:27.127676 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:27.129658 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:18:27.129670 [DEBUG] Aggressive mob ACCEPTED at (48,291) size 21x11
+2025/11/03 21:18:27.129676 [DEBUG] Aggressive mob ACCEPTED at (325,278) size 13x12
+2025/11/03 21:18:27.129681 [DEBUG] Aggressive mob ACCEPTED at (241,278) size 13x12
+2025/11/03 21:18:27.129685 [DEBUG] Aggressive mob ACCEPTED at (157,278) size 13x20
+2025/11/03 21:18:27.129689 [DEBUG] Aggressive mob ACCEPTED at (73,278) size 13x12
+2025/11/03 21:18:27.131506 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:27.131511 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:18:27.131516 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:18:27.131519 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:27.131525 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:27.131584 [DEBUG] DrawDebugOverlay: executing javascript (length: 4853 bytes)
+2025/11/03 21:18:27.146726 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:27.152023 [DEBUG] Blue target marker detected
+2025/11/03 21:18:27.152055 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:27.152119 [DEBUG] Timer [main_loop]: 1.540446333s
+2025/11/03 21:18:27.662326 [DEBUG] runIteration: starting
+2025/11/03 21:18:27.662842 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:29.146143 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:29.146198 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:29.149492 [DEBUG] Blue target marker detected
+2025/11/03 21:18:29.149525 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:29.149529 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:29.153227 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:29.154974 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:18:29.154981 [DEBUG] Aggressive mob ACCEPTED at (48,292) size 22x11
+2025/11/03 21:18:29.154987 [DEBUG] Aggressive mob ACCEPTED at (325,280) size 12x10
+2025/11/03 21:18:29.154992 [DEBUG] Aggressive mob ACCEPTED at (241,280) size 12x10
+2025/11/03 21:18:29.154995 [DEBUG] Aggressive mob ACCEPTED at (157,280) size 12x10
+2025/11/03 21:18:29.154999 [DEBUG] Aggressive mob ACCEPTED at (73,280) size 12x9
+2025/11/03 21:18:29.156693 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:29.156698 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:18:29.156702 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:18:29.156705 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:29.156709 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:29.156761 [DEBUG] DrawDebugOverlay: executing javascript (length: 4852 bytes)
+2025/11/03 21:18:29.168462 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:29.174987 [DEBUG] Blue target marker detected
+2025/11/03 21:18:29.175029 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:29.175142 [DEBUG] Timer [main_loop]: 1.512845583s
+2025/11/03 21:18:29.685856 [DEBUG] runIteration: starting
+2025/11/03 21:18:29.686315 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:31.271931 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:31.272706 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:31.276121 [DEBUG] Blue target marker detected
+2025/11/03 21:18:31.276159 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:31.276164 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:31.280140 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:31.281940 [DEBUG] Found 1 aggressive mob candidates
+2025/11/03 21:18:31.281956 [DEBUG] Aggressive mob ACCEPTED at (48,297) size 16x6
+2025/11/03 21:18:31.284602 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:31.284642 [DEBUG] Identified 1 total mobs (passive: 0, aggressive: 1)
+2025/11/03 21:18:31.284649 [DEBUG] runIteration: found 1 targets
+2025/11/03 21:18:31.284653 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:31.284657 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:31.284707 [DEBUG] DrawDebugOverlay: executing javascript (length: 4554 bytes)
+2025/11/03 21:18:31.296812 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:31.299846 [DEBUG] Blue target marker detected
+2025/11/03 21:18:31.299883 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:31.299989 [DEBUG] Timer [main_loop]: 1.614156625s
+2025/11/03 21:18:31.708474 [DEBUG] runIteration: starting
+2025/11/03 21:18:31.709003 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:33.223228 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:33.223279 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:33.226922 [DEBUG] Blue target marker detected
+2025/11/03 21:18:33.226964 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:33.226969 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:33.230862 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:33.232605 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:18:33.232611 [DEBUG] Aggressive mob ACCEPTED at (48,291) size 21x11
+2025/11/03 21:18:33.232616 [DEBUG] Aggressive mob ACCEPTED at (325,278) size 13x12
+2025/11/03 21:18:33.232620 [DEBUG] Aggressive mob ACCEPTED at (241,278) size 13x12
+2025/11/03 21:18:33.232623 [DEBUG] Aggressive mob ACCEPTED at (157,278) size 13x20
+2025/11/03 21:18:33.232638 [DEBUG] Aggressive mob ACCEPTED at (73,278) size 13x12
+2025/11/03 21:18:33.234333 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:33.234337 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:18:33.234342 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:18:33.234345 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:33.234349 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:33.234384 [DEBUG] DrawDebugOverlay: executing javascript (length: 4854 bytes)
+2025/11/03 21:18:33.246514 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:33.250418 [DEBUG] Blue target marker detected
+2025/11/03 21:18:33.250466 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:33.250563 [DEBUG] Timer [main_loop]: 1.542102417s
+2025/11/03 21:18:33.710223 [DEBUG] runIteration: starting
+2025/11/03 21:18:33.711138 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:35.220780 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:35.220831 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:35.224029 [DEBUG] Blue target marker detected
+2025/11/03 21:18:35.224073 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:35.224078 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:35.228790 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:35.230802 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:18:35.230834 [DEBUG] Aggressive mob ACCEPTED at (48,292) size 22x11
+2025/11/03 21:18:35.230841 [DEBUG] Aggressive mob ACCEPTED at (325,280) size 12x10
+2025/11/03 21:18:35.230846 [DEBUG] Aggressive mob ACCEPTED at (241,280) size 12x10
+2025/11/03 21:18:35.230850 [DEBUG] Aggressive mob ACCEPTED at (157,280) size 12x10
+2025/11/03 21:18:35.230854 [DEBUG] Aggressive mob ACCEPTED at (73,280) size 12x9
+2025/11/03 21:18:35.232690 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:35.232696 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:18:35.232701 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:18:35.232704 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:35.232721 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:35.232758 [DEBUG] DrawDebugOverlay: executing javascript (length: 4853 bytes)
+2025/11/03 21:18:35.233824 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:35.237760 [DEBUG] Blue target marker detected
+2025/11/03 21:18:35.237803 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:35.237884 [DEBUG] Timer [main_loop]: 1.527567792s
+2025/11/03 21:18:35.747542 [DEBUG] runIteration: starting
+2025/11/03 21:18:35.748146 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:37.251441 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:37.251488 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:37.254858 [DEBUG] Blue target marker detected
+2025/11/03 21:18:37.254887 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:37.254892 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:37.259107 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:37.260869 [DEBUG] Found 1 aggressive mob candidates
+2025/11/03 21:18:37.260878 [DEBUG] Aggressive mob ACCEPTED at (48,297) size 16x6
+2025/11/03 21:18:37.263728 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:37.263799 [DEBUG] Identified 1 total mobs (passive: 0, aggressive: 1)
+2025/11/03 21:18:37.263815 [DEBUG] runIteration: found 1 targets
+2025/11/03 21:18:37.263825 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:37.263839 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:37.263982 [DEBUG] DrawDebugOverlay: executing javascript (length: 4555 bytes)
+2025/11/03 21:18:37.274992 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:37.279011 [DEBUG] Blue target marker detected
+2025/11/03 21:18:37.279047 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:37.279115 [DEBUG] Timer [main_loop]: 1.531566791s
+2025/11/03 21:18:37.789787 [DEBUG] runIteration: starting
+2025/11/03 21:18:37.790269 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:39.290529 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:39.291316 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:39.295068 [DEBUG] Blue target marker detected
+2025/11/03 21:18:39.295104 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:39.295109 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:39.299372 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:39.301139 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:18:39.301147 [DEBUG] Aggressive mob ACCEPTED at (48,291) size 21x11
+2025/11/03 21:18:39.301152 [DEBUG] Aggressive mob ACCEPTED at (325,278) size 13x12
+2025/11/03 21:18:39.301157 [DEBUG] Aggressive mob ACCEPTED at (241,278) size 13x12
+2025/11/03 21:18:39.301160 [DEBUG] Aggressive mob ACCEPTED at (157,278) size 13x20
+2025/11/03 21:18:39.301165 [DEBUG] Aggressive mob ACCEPTED at (73,278) size 13x12
+2025/11/03 21:18:39.303172 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:39.303222 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:18:39.303230 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:18:39.303234 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:39.303257 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:39.303313 [DEBUG] DrawDebugOverlay: executing javascript (length: 4854 bytes)
+2025/11/03 21:18:39.311525 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:39.315647 [DEBUG] Blue target marker detected
+2025/11/03 21:18:39.315687 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:39.315785 [DEBUG] Timer [main_loop]: 1.5260285s
+2025/11/03 21:18:39.826039 [DEBUG] runIteration: starting
+2025/11/03 21:18:39.826657 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:41.315471 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:41.315522 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:41.319091 [DEBUG] Blue target marker detected
+2025/11/03 21:18:41.319144 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:41.319150 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:41.323567 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:41.325413 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:18:41.325430 [DEBUG] Aggressive mob ACCEPTED at (48,292) size 22x11
+2025/11/03 21:18:41.325435 [DEBUG] Aggressive mob ACCEPTED at (325,280) size 12x10
+2025/11/03 21:18:41.325440 [DEBUG] Aggressive mob ACCEPTED at (241,280) size 12x10
+2025/11/03 21:18:41.325443 [DEBUG] Aggressive mob ACCEPTED at (157,280) size 12x10
+2025/11/03 21:18:41.325447 [DEBUG] Aggressive mob ACCEPTED at (73,280) size 12x9
+2025/11/03 21:18:41.327239 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:41.327247 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:18:41.327252 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:18:41.327255 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:41.327259 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:41.327345 [DEBUG] DrawDebugOverlay: executing javascript (length: 4853 bytes)
+2025/11/03 21:18:41.339596 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:41.343470 [DEBUG] Blue target marker detected
+2025/11/03 21:18:41.343508 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:41.343599 [DEBUG] Timer [main_loop]: 1.517566291s
+2025/11/03 21:18:41.854288 [DEBUG] runIteration: starting
+2025/11/03 21:18:41.860098 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:43.376674 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:43.377105 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:43.381421 [DEBUG] Blue target marker detected
+2025/11/03 21:18:43.381467 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:43.381473 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:43.385569 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:43.387472 [DEBUG] Found 1 aggressive mob candidates
+2025/11/03 21:18:43.387484 [DEBUG] Aggressive mob ACCEPTED at (48,297) size 16x6
+2025/11/03 21:18:43.389260 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:43.389272 [DEBUG] Identified 1 total mobs (passive: 0, aggressive: 1)
+2025/11/03 21:18:43.389278 [DEBUG] runIteration: found 1 targets
+2025/11/03 21:18:43.389282 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:43.389300 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:43.389381 [DEBUG] DrawDebugOverlay: executing javascript (length: 4555 bytes)
+2025/11/03 21:18:43.411842 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:43.415946 [DEBUG] Blue target marker detected
+2025/11/03 21:18:43.415996 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:43.416130 [DEBUG] Timer [main_loop]: 1.561847375s
+2025/11/03 21:18:43.875741 [DEBUG] runIteration: starting
+2025/11/03 21:18:43.876328 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:45.481150 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:45.481184 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:45.490531 [DEBUG] Blue target marker detected
+2025/11/03 21:18:45.490576 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:45.490581 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:45.495592 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:45.497530 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:18:45.497553 [DEBUG] Aggressive mob ACCEPTED at (48,291) size 21x11
+2025/11/03 21:18:45.497560 [DEBUG] Aggressive mob ACCEPTED at (325,278) size 13x12
+2025/11/03 21:18:45.497565 [DEBUG] Aggressive mob ACCEPTED at (241,278) size 13x12
+2025/11/03 21:18:45.497568 [DEBUG] Aggressive mob ACCEPTED at (157,278) size 13x20
+2025/11/03 21:18:45.497573 [DEBUG] Aggressive mob ACCEPTED at (73,278) size 13x12
+2025/11/03 21:18:45.499465 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:45.499480 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:18:45.499486 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:18:45.499490 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:45.499494 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:45.499545 [DEBUG] DrawDebugOverlay: executing javascript (length: 4854 bytes)
+2025/11/03 21:18:45.513599 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:45.519503 [DEBUG] Blue target marker detected
+2025/11/03 21:18:45.519538 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:45.519611 [DEBUG] Timer [main_loop]: 1.64389925s
+2025/11/03 21:18:45.876927 [DEBUG] runIteration: starting
+2025/11/03 21:18:45.877493 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:47.396043 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:47.396105 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:47.399299 [DEBUG] Blue target marker detected
+2025/11/03 21:18:47.399332 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:47.399336 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:47.404332 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:47.406524 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:18:47.406551 [DEBUG] Aggressive mob ACCEPTED at (48,292) size 22x11
+2025/11/03 21:18:47.406557 [DEBUG] Aggressive mob ACCEPTED at (325,280) size 12x10
+2025/11/03 21:18:47.406562 [DEBUG] Aggressive mob ACCEPTED at (241,280) size 12x10
+2025/11/03 21:18:47.406566 [DEBUG] Aggressive mob ACCEPTED at (157,280) size 12x10
+2025/11/03 21:18:47.406570 [DEBUG] Aggressive mob ACCEPTED at (73,280) size 12x9
+2025/11/03 21:18:47.408322 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:47.408330 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:18:47.408335 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:18:47.408338 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:47.408351 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:47.408391 [DEBUG] DrawDebugOverlay: executing javascript (length: 4853 bytes)
+2025/11/03 21:18:47.417908 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:47.421200 [DEBUG] Blue target marker detected
+2025/11/03 21:18:47.421237 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:47.421311 [DEBUG] Timer [main_loop]: 1.544410791s
+2025/11/03 21:18:47.879983 [DEBUG] runIteration: starting
+2025/11/03 21:18:47.880483 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:49.381612 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:49.381661 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:49.385539 [DEBUG] Blue target marker detected
+2025/11/03 21:18:49.385572 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:49.385576 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:49.389747 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:49.391511 [DEBUG] Found 1 aggressive mob candidates
+2025/11/03 21:18:49.391520 [DEBUG] Aggressive mob ACCEPTED at (48,297) size 16x6
+2025/11/03 21:18:49.393240 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:49.393247 [DEBUG] Identified 1 total mobs (passive: 0, aggressive: 1)
+2025/11/03 21:18:49.393251 [DEBUG] runIteration: found 1 targets
+2025/11/03 21:18:49.393254 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:49.393258 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:49.393329 [DEBUG] DrawDebugOverlay: executing javascript (length: 4555 bytes)
+2025/11/03 21:18:49.402913 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:49.407240 [DEBUG] Blue target marker detected
+2025/11/03 21:18:49.407298 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:49.407846 [DEBUG] Timer [main_loop]: 1.527873833s
+2025/11/03 21:18:49.918580 [DEBUG] runIteration: starting
+2025/11/03 21:18:49.919143 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:51.437500 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:51.437572 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:51.441122 [DEBUG] Blue target marker detected
+2025/11/03 21:18:51.441171 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:51.441176 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:51.445815 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:51.447548 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:18:51.447555 [DEBUG] Aggressive mob ACCEPTED at (48,291) size 21x11
+2025/11/03 21:18:51.447561 [DEBUG] Aggressive mob ACCEPTED at (325,278) size 13x12
+2025/11/03 21:18:51.447565 [DEBUG] Aggressive mob ACCEPTED at (241,278) size 13x12
+2025/11/03 21:18:51.447568 [DEBUG] Aggressive mob ACCEPTED at (157,278) size 13x20
+2025/11/03 21:18:51.447572 [DEBUG] Aggressive mob ACCEPTED at (73,278) size 13x12
+2025/11/03 21:18:51.449270 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:51.449275 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:18:51.449279 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:18:51.449282 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:51.449286 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:51.449338 [DEBUG] DrawDebugOverlay: executing javascript (length: 4854 bytes)
+2025/11/03 21:18:51.460219 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:51.463184 [DEBUG] Blue target marker detected
+2025/11/03 21:18:51.463233 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:51.463330 [DEBUG] Timer [main_loop]: 1.544694541s
+2025/11/03 21:18:51.922567 [DEBUG] runIteration: starting
+2025/11/03 21:18:51.923070 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:53.466507 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:53.466550 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:53.473416 [DEBUG] Blue target marker detected
+2025/11/03 21:18:53.473471 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:53.473476 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:53.478957 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:53.480752 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:18:53.480764 [DEBUG] Aggressive mob ACCEPTED at (48,292) size 22x11
+2025/11/03 21:18:53.480769 [DEBUG] Aggressive mob ACCEPTED at (325,280) size 12x10
+2025/11/03 21:18:53.480773 [DEBUG] Aggressive mob ACCEPTED at (241,280) size 12x10
+2025/11/03 21:18:53.480776 [DEBUG] Aggressive mob ACCEPTED at (157,280) size 12x10
+2025/11/03 21:18:53.480781 [DEBUG] Aggressive mob ACCEPTED at (73,280) size 12x9
+2025/11/03 21:18:53.482543 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:53.482555 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:18:53.482559 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:18:53.482562 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:53.482575 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:53.482610 [DEBUG] DrawDebugOverlay: executing javascript (length: 4853 bytes)
+2025/11/03 21:18:53.491555 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:53.496063 [DEBUG] Blue target marker detected
+2025/11/03 21:18:53.496106 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:53.496190 [DEBUG] Timer [main_loop]: 1.573653333s
+2025/11/03 21:18:53.954397 [DEBUG] runIteration: starting
+2025/11/03 21:18:53.954870 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:55.463403 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:55.463471 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:55.466822 [DEBUG] Blue target marker detected
+2025/11/03 21:18:55.466868 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:55.466873 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:55.471589 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:55.474494 [DEBUG] Found 1 aggressive mob candidates
+2025/11/03 21:18:55.474536 [DEBUG] Aggressive mob ACCEPTED at (48,297) size 16x6
+2025/11/03 21:18:55.476407 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:55.476433 [DEBUG] Identified 1 total mobs (passive: 0, aggressive: 1)
+2025/11/03 21:18:55.476440 [DEBUG] runIteration: found 1 targets
+2025/11/03 21:18:55.476443 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:55.476448 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:55.476484 [DEBUG] DrawDebugOverlay: executing javascript (length: 4555 bytes)
+2025/11/03 21:18:55.485554 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:55.488638 [DEBUG] Blue target marker detected
+2025/11/03 21:18:55.488676 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:55.488771 [DEBUG] Timer [main_loop]: 1.534390334s
+2025/11/03 21:18:55.999451 [DEBUG] runIteration: starting
+2025/11/03 21:18:56.000076 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:57.532138 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:57.532538 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:57.537151 [DEBUG] Blue target marker detected
+2025/11/03 21:18:57.537195 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:57.537200 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:57.541133 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:57.542879 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:18:57.542886 [DEBUG] Aggressive mob ACCEPTED at (48,291) size 21x11
+2025/11/03 21:18:57.542891 [DEBUG] Aggressive mob ACCEPTED at (325,278) size 13x12
+2025/11/03 21:18:57.542895 [DEBUG] Aggressive mob ACCEPTED at (241,278) size 13x12
+2025/11/03 21:18:57.542898 [DEBUG] Aggressive mob ACCEPTED at (157,278) size 13x20
+2025/11/03 21:18:57.542902 [DEBUG] Aggressive mob ACCEPTED at (73,278) size 13x12
+2025/11/03 21:18:57.544600 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:57.544605 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:18:57.544609 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:18:57.544612 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:57.544624 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:57.544661 [DEBUG] DrawDebugOverlay: executing javascript (length: 4854 bytes)
+2025/11/03 21:18:57.545651 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:57.549727 [DEBUG] Blue target marker detected
+2025/11/03 21:18:57.549762 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:57.549843 [DEBUG] Timer [main_loop]: 1.55039825s
+2025/11/03 21:18:58.007378 [DEBUG] runIteration: starting
+2025/11/03 21:18:58.007882 [DEBUG] runIteration: calling Capture
+2025/11/03 21:18:59.544757 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:18:59.544802 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:18:59.547461 [DEBUG] Blue target marker detected
+2025/11/03 21:18:59.547514 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:18:59.547519 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:18:59.552593 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:18:59.555243 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:18:59.555264 [DEBUG] Aggressive mob ACCEPTED at (48,292) size 22x11
+2025/11/03 21:18:59.555268 [DEBUG] Aggressive mob ACCEPTED at (325,280) size 12x10
+2025/11/03 21:18:59.555272 [DEBUG] Aggressive mob ACCEPTED at (241,280) size 12x10
+2025/11/03 21:18:59.555275 [DEBUG] Aggressive mob ACCEPTED at (157,280) size 12x10
+2025/11/03 21:18:59.555279 [DEBUG] Aggressive mob ACCEPTED at (73,280) size 12x9
+2025/11/03 21:18:59.557197 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:18:59.557216 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:18:59.557222 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:18:59.557225 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:18:59.557229 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:18:59.557273 [DEBUG] DrawDebugOverlay: executing javascript (length: 4853 bytes)
+2025/11/03 21:18:59.565159 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:18:59.568738 [DEBUG] Blue target marker detected
+2025/11/03 21:18:59.568778 [WARN] Player is dead, stopping farming
+2025/11/03 21:18:59.568878 [DEBUG] Timer [main_loop]: 1.5615265s
+2025/11/03 21:19:00.028772 [DEBUG] runIteration: starting
+2025/11/03 21:19:00.029256 [DEBUG] runIteration: calling Capture
+2025/11/03 21:19:01.534361 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:19:01.534456 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:19:01.538163 [DEBUG] Blue target marker detected
+2025/11/03 21:19:01.538208 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:19:01.538212 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:19:01.542550 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:19:01.544478 [DEBUG] Found 1 aggressive mob candidates
+2025/11/03 21:19:01.544517 [DEBUG] Aggressive mob ACCEPTED at (48,297) size 16x6
+2025/11/03 21:19:01.546307 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:19:01.546322 [DEBUG] Identified 1 total mobs (passive: 0, aggressive: 1)
+2025/11/03 21:19:01.546328 [DEBUG] runIteration: found 1 targets
+2025/11/03 21:19:01.546332 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:19:01.546336 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:19:01.546408 [DEBUG] DrawDebugOverlay: executing javascript (length: 4555 bytes)
+2025/11/03 21:19:01.556546 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:19:01.561056 [DEBUG] Blue target marker detected
+2025/11/03 21:19:01.561104 [WARN] Player is dead, stopping farming
+2025/11/03 21:19:01.561202 [DEBUG] Timer [main_loop]: 1.532456667s
+2025/11/03 21:19:02.071904 [DEBUG] runIteration: starting
+2025/11/03 21:19:02.072417 [DEBUG] runIteration: calling Capture
+2025/11/03 21:19:03.628806 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:19:03.628897 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:19:03.634447 [DEBUG] Blue target marker detected
+2025/11/03 21:19:03.634542 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:19:03.634555 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:19:03.640716 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:19:03.642569 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:19:03.642589 [DEBUG] Aggressive mob ACCEPTED at (48,291) size 21x11
+2025/11/03 21:19:03.642596 [DEBUG] Aggressive mob ACCEPTED at (325,278) size 13x12
+2025/11/03 21:19:03.642601 [DEBUG] Aggressive mob ACCEPTED at (241,278) size 13x12
+2025/11/03 21:19:03.642605 [DEBUG] Aggressive mob ACCEPTED at (157,278) size 13x20
+2025/11/03 21:19:03.642610 [DEBUG] Aggressive mob ACCEPTED at (73,278) size 13x12
+2025/11/03 21:19:03.644435 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:19:03.644456 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:19:03.644461 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:19:03.644465 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:19:03.644484 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:19:03.644533 [DEBUG] DrawDebugOverlay: executing javascript (length: 4854 bytes)
+2025/11/03 21:19:03.655059 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:19:03.659388 [DEBUG] Blue target marker detected
+2025/11/03 21:19:03.659426 [WARN] Player is dead, stopping farming
+2025/11/03 21:19:03.659514 [DEBUG] Timer [main_loop]: 1.587650916s
+2025/11/03 21:19:04.114029 [DEBUG] runIteration: starting
+2025/11/03 21:19:04.114334 [DEBUG] runIteration: calling Capture
+2025/11/03 21:19:05.761512 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:19:05.761617 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:19:05.782258 [DEBUG] Blue target marker detected
+2025/11/03 21:19:05.782320 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:19:05.782333 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:19:05.788720 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:19:05.794213 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:19:05.794293 [DEBUG] Aggressive mob ACCEPTED at (48,292) size 22x11
+2025/11/03 21:19:05.794310 [DEBUG] Aggressive mob ACCEPTED at (325,280) size 12x10
+2025/11/03 21:19:05.794322 [DEBUG] Aggressive mob ACCEPTED at (241,280) size 12x10
+2025/11/03 21:19:05.794332 [DEBUG] Aggressive mob ACCEPTED at (157,280) size 12x10
+2025/11/03 21:19:05.794344 [DEBUG] Aggressive mob ACCEPTED at (73,280) size 12x9
+2025/11/03 21:19:05.799785 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:19:05.799867 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:19:05.799888 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:19:05.799899 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:19:05.799911 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:19:05.800132 [DEBUG] DrawDebugOverlay: executing javascript (length: 4853 bytes)
+2025/11/03 21:19:05.824410 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:19:05.828717 [DEBUG] Blue target marker detected
+2025/11/03 21:19:05.828750 [WARN] Player is dead, stopping farming
+2025/11/03 21:19:05.829088 [DEBUG] Timer [main_loop]: 1.715113875s
+2025/11/03 21:19:06.135398 [DEBUG] runIteration: starting
+2025/11/03 21:19:06.136259 [DEBUG] runIteration: calling Capture
+2025/11/03 21:19:07.753061 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:19:07.753091 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:19:07.757734 [DEBUG] Blue target marker detected
+2025/11/03 21:19:07.757752 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:19:07.757757 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:19:07.762781 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:19:07.765014 [DEBUG] Found 1 aggressive mob candidates
+2025/11/03 21:19:07.765023 [DEBUG] Aggressive mob ACCEPTED at (48,297) size 16x6
+2025/11/03 21:19:07.767649 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:19:07.767659 [DEBUG] Identified 1 total mobs (passive: 0, aggressive: 1)
+2025/11/03 21:19:07.767665 [DEBUG] runIteration: found 1 targets
+2025/11/03 21:19:07.767669 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:19:07.767683 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:19:07.767728 [DEBUG] DrawDebugOverlay: executing javascript (length: 4555 bytes)
+2025/11/03 21:19:07.845939 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:19:07.852018 [DEBUG] Blue target marker detected
+2025/11/03 21:19:07.852047 [WARN] Player is dead, stopping farming
+2025/11/03 21:19:07.852142 [DEBUG] Timer [main_loop]: 1.716749375s
+2025/11/03 21:19:08.157702 [DEBUG] runIteration: starting
+2025/11/03 21:19:08.159069 [DEBUG] runIteration: calling Capture
+2025/11/03 21:19:09.658510 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:19:09.659261 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:19:09.662169 [DEBUG] Blue target marker detected
+2025/11/03 21:19:09.662207 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:19:09.662214 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:19:09.666635 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:19:09.669327 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:19:09.669379 [DEBUG] Aggressive mob ACCEPTED at (48,291) size 21x11
+2025/11/03 21:19:09.669384 [DEBUG] Aggressive mob ACCEPTED at (325,278) size 13x12
+2025/11/03 21:19:09.669391 [DEBUG] Aggressive mob ACCEPTED at (241,278) size 13x12
+2025/11/03 21:19:09.669395 [DEBUG] Aggressive mob ACCEPTED at (157,278) size 13x20
+2025/11/03 21:19:09.669415 [DEBUG] Aggressive mob ACCEPTED at (73,278) size 13x12
+2025/11/03 21:19:09.671327 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:19:09.671358 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:19:09.671365 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:19:09.671369 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:19:09.671375 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:19:09.671444 [DEBUG] DrawDebugOverlay: executing javascript (length: 4854 bytes)
+2025/11/03 21:19:09.680704 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:19:09.683426 [DEBUG] Blue target marker detected
+2025/11/03 21:19:09.683469 [WARN] Player is dead, stopping farming
+2025/11/03 21:19:09.683590 [DEBUG] Timer [main_loop]: 1.525886s
+2025/11/03 21:19:10.192604 [DEBUG] runIteration: starting
+2025/11/03 21:19:10.193493 [DEBUG] runIteration: calling Capture
+2025/11/03 21:19:11.656663 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:19:11.656732 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:19:11.659816 [DEBUG] Blue target marker detected
+2025/11/03 21:19:11.659855 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:19:11.659859 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:19:11.663605 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:19:11.665362 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:19:11.665370 [DEBUG] Aggressive mob ACCEPTED at (48,292) size 22x11
+2025/11/03 21:19:11.665375 [DEBUG] Aggressive mob ACCEPTED at (325,280) size 12x10
+2025/11/03 21:19:11.665379 [DEBUG] Aggressive mob ACCEPTED at (241,280) size 12x10
+2025/11/03 21:19:11.665383 [DEBUG] Aggressive mob ACCEPTED at (157,280) size 12x10
+2025/11/03 21:19:11.665387 [DEBUG] Aggressive mob ACCEPTED at (73,280) size 12x9
+2025/11/03 21:19:11.667190 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:19:11.667203 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:19:11.667209 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:19:11.667212 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:19:11.667231 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:19:11.667300 [DEBUG] DrawDebugOverlay: executing javascript (length: 4853 bytes)
+2025/11/03 21:19:11.675320 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:19:11.678112 [DEBUG] Blue target marker detected
+2025/11/03 21:19:11.678153 [WARN] Player is dead, stopping farming
+2025/11/03 21:19:11.678259 [DEBUG] Timer [main_loop]: 1.48565675s
+2025/11/03 21:19:12.238319 [DEBUG] runIteration: starting
+2025/11/03 21:19:12.239017 [DEBUG] runIteration: calling Capture
+2025/11/03 21:19:13.680657 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:19:13.680710 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:19:13.683586 [DEBUG] Blue target marker detected
+2025/11/03 21:19:13.683625 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:19:13.683630 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:19:13.687402 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:19:13.689145 [DEBUG] Found 1 aggressive mob candidates
+2025/11/03 21:19:13.689152 [DEBUG] Aggressive mob ACCEPTED at (48,297) size 16x6
+2025/11/03 21:19:13.690864 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:19:13.690869 [DEBUG] Identified 1 total mobs (passive: 0, aggressive: 1)
+2025/11/03 21:19:13.690874 [DEBUG] runIteration: found 1 targets
+2025/11/03 21:19:13.690878 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:19:13.690882 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:19:13.690929 [DEBUG] DrawDebugOverlay: executing javascript (length: 4555 bytes)
+2025/11/03 21:19:13.699294 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:19:13.704094 [DEBUG] Blue target marker detected
+2025/11/03 21:19:13.704135 [WARN] Player is dead, stopping farming
+2025/11/03 21:19:13.704209 [DEBUG] Timer [main_loop]: 1.465886917s
+2025/11/03 21:19:14.270082 [DEBUG] runIteration: starting
+2025/11/03 21:19:14.271511 [DEBUG] runIteration: calling Capture
+2025/11/03 21:19:15.749918 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:19:15.749964 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:19:15.752703 [DEBUG] Blue target marker detected
+2025/11/03 21:19:15.752734 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:19:15.752738 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:19:15.756347 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:19:15.758080 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:19:15.758086 [DEBUG] Aggressive mob ACCEPTED at (48,291) size 21x11
+2025/11/03 21:19:15.758091 [DEBUG] Aggressive mob ACCEPTED at (325,278) size 13x12
+2025/11/03 21:19:15.758095 [DEBUG] Aggressive mob ACCEPTED at (241,278) size 13x12
+2025/11/03 21:19:15.758098 [DEBUG] Aggressive mob ACCEPTED at (157,278) size 13x20
+2025/11/03 21:19:15.758102 [DEBUG] Aggressive mob ACCEPTED at (73,278) size 13x12
+2025/11/03 21:19:15.759795 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:19:15.759799 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:19:15.759804 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:19:15.759807 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:19:15.759824 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:19:15.759882 [DEBUG] DrawDebugOverlay: executing javascript (length: 4854 bytes)
+2025/11/03 21:19:15.768904 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:19:15.772493 [DEBUG] Blue target marker detected
+2025/11/03 21:19:15.772564 [WARN] Player is dead, stopping farming
+2025/11/03 21:19:15.772676 [DEBUG] Timer [main_loop]: 1.502485791s
+2025/11/03 21:19:16.283240 [DEBUG] runIteration: starting
+2025/11/03 21:19:16.284608 [DEBUG] runIteration: calling Capture
+2025/11/03 21:19:17.695941 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:19:17.695981 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:19:17.698767 [DEBUG] Blue target marker detected
+2025/11/03 21:19:17.698808 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:19:17.698813 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:19:17.703639 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:19:17.705407 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:19:17.705415 [DEBUG] Aggressive mob ACCEPTED at (48,292) size 22x11
+2025/11/03 21:19:17.705421 [DEBUG] Aggressive mob ACCEPTED at (325,280) size 12x10
+2025/11/03 21:19:17.705426 [DEBUG] Aggressive mob ACCEPTED at (241,280) size 12x10
+2025/11/03 21:19:17.705429 [DEBUG] Aggressive mob ACCEPTED at (157,280) size 12x10
+2025/11/03 21:19:17.705433 [DEBUG] Aggressive mob ACCEPTED at (73,280) size 12x9
+2025/11/03 21:19:17.707131 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:19:17.707136 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:19:17.707141 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:19:17.707143 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:19:17.707147 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:19:17.707185 [DEBUG] DrawDebugOverlay: executing javascript (length: 4853 bytes)
+2025/11/03 21:19:17.714593 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:19:17.718945 [DEBUG] Blue target marker detected
+2025/11/03 21:19:17.718987 [WARN] Player is dead, stopping farming
+2025/11/03 21:19:17.719080 [DEBUG] Timer [main_loop]: 1.435745334s
+2025/11/03 21:19:18.331019 [DEBUG] runIteration: starting
+2025/11/03 21:19:18.331244 [DEBUG] runIteration: calling Capture
+2025/11/03 21:19:19.799293 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:19:19.799336 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:19:19.803060 [DEBUG] Blue target marker detected
+2025/11/03 21:19:19.803105 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:19:19.803109 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:19:19.807239 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:19:19.809018 [DEBUG] Found 1 aggressive mob candidates
+2025/11/03 21:19:19.809033 [DEBUG] Aggressive mob ACCEPTED at (48,297) size 16x6
+2025/11/03 21:19:19.810779 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:19:19.810785 [DEBUG] Identified 1 total mobs (passive: 0, aggressive: 1)
+2025/11/03 21:19:19.810790 [DEBUG] runIteration: found 1 targets
+2025/11/03 21:19:19.810793 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:19:19.810806 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:19:19.810844 [DEBUG] DrawDebugOverlay: executing javascript (length: 4555 bytes)
+2025/11/03 21:19:19.822385 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:19:19.825378 [DEBUG] Blue target marker detected
+2025/11/03 21:19:19.825423 [WARN] Player is dead, stopping farming
+2025/11/03 21:19:19.825552 [DEBUG] Timer [main_loop]: 1.494578625s
+2025/11/03 21:19:20.335274 [DEBUG] runIteration: starting
+2025/11/03 21:19:20.335956 [DEBUG] runIteration: calling Capture
+2025/11/03 21:19:21.841219 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:19:21.841263 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:19:21.844767 [DEBUG] Blue target marker detected
+2025/11/03 21:19:21.844817 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:19:21.844822 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:19:21.848467 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:19:21.850229 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:19:21.850239 [DEBUG] Aggressive mob ACCEPTED at (48,291) size 21x11
+2025/11/03 21:19:21.850244 [DEBUG] Aggressive mob ACCEPTED at (325,278) size 13x12
+2025/11/03 21:19:21.850248 [DEBUG] Aggressive mob ACCEPTED at (241,278) size 13x12
+2025/11/03 21:19:21.850251 [DEBUG] Aggressive mob ACCEPTED at (157,278) size 13x20
+2025/11/03 21:19:21.850255 [DEBUG] Aggressive mob ACCEPTED at (73,278) size 13x12
+2025/11/03 21:19:21.851955 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:19:21.851960 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:19:21.851965 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:19:21.851967 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:19:21.851971 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:19:21.852013 [DEBUG] DrawDebugOverlay: executing javascript (length: 4854 bytes)
+2025/11/03 21:19:21.860322 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:19:21.863426 [DEBUG] Blue target marker detected
+2025/11/03 21:19:21.863467 [WARN] Player is dead, stopping farming
+2025/11/03 21:19:21.863547 [DEBUG] Timer [main_loop]: 1.528279208s
+2025/11/03 21:19:22.372010 [DEBUG] runIteration: starting
+2025/11/03 21:19:22.372782 [DEBUG] runIteration: calling Capture
+2025/11/03 21:19:23.845146 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:19:23.845186 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:19:23.848543 [DEBUG] Blue target marker detected
+2025/11/03 21:19:23.848584 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:19:23.848588 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:19:23.852303 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:19:23.854029 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:19:23.854037 [DEBUG] Aggressive mob ACCEPTED at (48,292) size 22x11
+2025/11/03 21:19:23.854042 [DEBUG] Aggressive mob ACCEPTED at (325,280) size 12x10
+2025/11/03 21:19:23.854045 [DEBUG] Aggressive mob ACCEPTED at (241,280) size 12x10
+2025/11/03 21:19:23.854049 [DEBUG] Aggressive mob ACCEPTED at (157,280) size 12x10
+2025/11/03 21:19:23.854053 [DEBUG] Aggressive mob ACCEPTED at (73,280) size 12x9
+2025/11/03 21:19:23.855740 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:19:23.855744 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:19:23.855749 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:19:23.855752 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:19:23.855764 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:19:23.855797 [DEBUG] DrawDebugOverlay: executing javascript (length: 4852 bytes)
+2025/11/03 21:19:23.863627 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:19:23.866787 [DEBUG] Blue target marker detected
+2025/11/03 21:19:23.866831 [WARN] Player is dead, stopping farming
+2025/11/03 21:19:23.866908 [DEBUG] Timer [main_loop]: 1.494875459s
+2025/11/03 21:19:24.376095 [DEBUG] runIteration: starting
+2025/11/03 21:19:24.377522 [DEBUG] runIteration: calling Capture
+2025/11/03 21:19:25.907192 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:19:25.907231 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:19:25.910933 [DEBUG] Blue target marker detected
+2025/11/03 21:19:25.910966 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:19:25.910970 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:19:25.914714 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:19:25.916455 [DEBUG] Found 1 aggressive mob candidates
+2025/11/03 21:19:25.916463 [DEBUG] Aggressive mob ACCEPTED at (48,297) size 16x6
+2025/11/03 21:19:25.918157 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:19:25.918161 [DEBUG] Identified 1 total mobs (passive: 0, aggressive: 1)
+2025/11/03 21:19:25.918166 [DEBUG] runIteration: found 1 targets
+2025/11/03 21:19:25.918169 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:19:25.918173 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:19:25.918211 [DEBUG] DrawDebugOverlay: executing javascript (length: 4554 bytes)
+2025/11/03 21:19:25.925976 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:19:25.929462 [DEBUG] Blue target marker detected
+2025/11/03 21:19:25.929506 [WARN] Player is dead, stopping farming
+2025/11/03 21:19:25.929594 [DEBUG] Timer [main_loop]: 1.553418958s
+2025/11/03 21:19:26.390187 [DEBUG] runIteration: starting
+2025/11/03 21:19:26.391272 [DEBUG] runIteration: calling Capture
+2025/11/03 21:19:27.868896 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:19:27.868942 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:19:27.871724 [DEBUG] Blue target marker detected
+2025/11/03 21:19:27.871775 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:19:27.871779 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:19:27.875520 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:19:27.877258 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:19:27.877265 [DEBUG] Aggressive mob ACCEPTED at (48,291) size 21x11
+2025/11/03 21:19:27.877269 [DEBUG] Aggressive mob ACCEPTED at (325,278) size 13x12
+2025/11/03 21:19:27.877273 [DEBUG] Aggressive mob ACCEPTED at (241,278) size 13x12
+2025/11/03 21:19:27.877276 [DEBUG] Aggressive mob ACCEPTED at (157,278) size 13x20
+2025/11/03 21:19:27.877280 [DEBUG] Aggressive mob ACCEPTED at (73,278) size 13x12
+2025/11/03 21:19:27.879002 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:19:27.879007 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:19:27.879011 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:19:27.879014 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:19:27.879034 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:19:27.879081 [DEBUG] DrawDebugOverlay: executing javascript (length: 4853 bytes)
+2025/11/03 21:19:27.886920 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:19:27.889623 [DEBUG] Blue target marker detected
+2025/11/03 21:19:27.889656 [WARN] Player is dead, stopping farming
+2025/11/03 21:19:27.889747 [DEBUG] Timer [main_loop]: 1.499529291s
+2025/11/03 21:19:28.400751 [DEBUG] runIteration: starting
+2025/11/03 21:19:28.404163 [DEBUG] runIteration: calling Capture
+2025/11/03 21:19:29.915639 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:19:29.915684 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:19:29.918375 [DEBUG] Blue target marker detected
+2025/11/03 21:19:29.918406 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:19:29.918410 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:19:29.922210 [DEBUG] Found 1 passive mob candidates
+2025/11/03 21:19:29.922252 [DEBUG] Passive mob ACCEPTED at (595,374) size 26x4
+2025/11/03 21:19:29.924018 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:19:29.924035 [DEBUG] Aggressive mob ACCEPTED at (48,292) size 22x11
+2025/11/03 21:19:29.924041 [DEBUG] Aggressive mob ACCEPTED at (325,280) size 12x10
+2025/11/03 21:19:29.924045 [DEBUG] Aggressive mob ACCEPTED at (241,280) size 12x10
+2025/11/03 21:19:29.924049 [DEBUG] Aggressive mob ACCEPTED at (157,280) size 12x10
+2025/11/03 21:19:29.924053 [DEBUG] Aggressive mob ACCEPTED at (73,280) size 12x9
+2025/11/03 21:19:29.925771 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:19:29.925776 [DEBUG] Identified 6 total mobs (passive: 1, aggressive: 5)
+2025/11/03 21:19:29.925781 [DEBUG] runIteration: found 6 targets
+2025/11/03 21:19:29.925784 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:19:29.925788 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:19:29.925825 [DEBUG] DrawDebugOverlay: executing javascript (length: 4926 bytes)
+2025/11/03 21:19:29.935472 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:19:29.939326 [DEBUG] Blue target marker detected
+2025/11/03 21:19:29.939366 [WARN] Player is dead, stopping farming
+2025/11/03 21:19:29.939445 [DEBUG] Timer [main_loop]: 1.53858375s
+2025/11/03 21:19:30.449028 [DEBUG] runIteration: starting
+2025/11/03 21:19:30.449867 [DEBUG] runIteration: calling Capture
+2025/11/03 21:19:31.952693 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:19:31.952736 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:19:31.955555 [DEBUG] Blue target marker detected
+2025/11/03 21:19:31.955597 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:19:31.955601 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:19:31.959370 [DEBUG] Found 2 passive mob candidates
+2025/11/03 21:19:31.959397 [DEBUG] Passive mob ACCEPTED at (511,421) size 27x7
+2025/11/03 21:19:31.959403 [DEBUG] Passive mob ACCEPTED at (548,410) size 37x19
+2025/11/03 21:19:31.961159 [DEBUG] Found 1 aggressive mob candidates
+2025/11/03 21:19:31.961167 [DEBUG] Aggressive mob ACCEPTED at (48,297) size 16x6
+2025/11/03 21:19:31.962858 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:19:31.962863 [DEBUG] Identified 3 total mobs (passive: 2, aggressive: 1)
+2025/11/03 21:19:31.962868 [DEBUG] runIteration: found 3 targets
+2025/11/03 21:19:31.962871 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:19:31.962875 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:19:31.962930 [DEBUG] DrawDebugOverlay: executing javascript (length: 4703 bytes)
+2025/11/03 21:19:31.972595 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:19:31.976033 [DEBUG] Blue target marker detected
+2025/11/03 21:19:31.976074 [WARN] Player is dead, stopping farming
+2025/11/03 21:19:31.976152 [DEBUG] Timer [main_loop]: 1.527048125s
+2025/11/03 21:19:32.487089 [DEBUG] runIteration: starting
+2025/11/03 21:19:32.487951 [DEBUG] runIteration: calling Capture
+2025/11/03 21:19:33.985016 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:19:33.985059 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:19:33.987750 [DEBUG] Blue target marker detected
+2025/11/03 21:19:33.987783 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:19:33.987787 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:19:33.991456 [DEBUG] Found 1 passive mob candidates
+2025/11/03 21:19:33.991482 [DEBUG] Passive mob ACCEPTED at (510,417) size 69x12
+2025/11/03 21:19:33.993178 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:19:33.993186 [DEBUG] Aggressive mob ACCEPTED at (52,295) size 15x6
+2025/11/03 21:19:33.993190 [DEBUG] Aggressive mob ACCEPTED at (325,278) size 13x12
+2025/11/03 21:19:33.993193 [DEBUG] Aggressive mob ACCEPTED at (241,278) size 13x12
+2025/11/03 21:19:33.993196 [DEBUG] Aggressive mob ACCEPTED at (157,278) size 13x20
+2025/11/03 21:19:33.993203 [DEBUG] Aggressive mob ACCEPTED at (73,278) size 13x12
+2025/11/03 21:19:33.994933 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:19:33.994938 [DEBUG] Identified 6 total mobs (passive: 1, aggressive: 5)
+2025/11/03 21:19:33.994942 [DEBUG] runIteration: found 6 targets
+2025/11/03 21:19:33.994945 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:19:33.994958 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:19:33.994996 [DEBUG] DrawDebugOverlay: executing javascript (length: 4928 bytes)
+2025/11/03 21:19:34.004609 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:19:34.008357 [DEBUG] Blue target marker detected
+2025/11/03 21:19:34.008402 [WARN] Player is dead, stopping farming
+2025/11/03 21:19:34.008478 [DEBUG] Timer [main_loop]: 1.521351458s
+2025/11/03 21:19:34.519377 [DEBUG] runIteration: starting
+2025/11/03 21:19:34.520614 [DEBUG] runIteration: calling Capture
+2025/11/03 21:19:36.033414 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:19:36.033791 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:19:36.037181 [DEBUG] Blue target marker detected
+2025/11/03 21:19:36.037212 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:19:36.037216 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:19:36.041477 [DEBUG] Found 2 passive mob candidates
+2025/11/03 21:19:36.041511 [DEBUG] Passive mob ACCEPTED at (511,415) size 27x13
+2025/11/03 21:19:36.041516 [DEBUG] Passive mob ACCEPTED at (549,410) size 36x18
+2025/11/03 21:19:36.043247 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:19:36.043253 [DEBUG] Aggressive mob ACCEPTED at (48,291) size 21x12
+2025/11/03 21:19:36.043257 [DEBUG] Aggressive mob ACCEPTED at (325,280) size 12x10
+2025/11/03 21:19:36.043261 [DEBUG] Aggressive mob ACCEPTED at (241,280) size 12x10
+2025/11/03 21:19:36.043264 [DEBUG] Aggressive mob ACCEPTED at (157,280) size 12x10
+2025/11/03 21:19:36.043268 [DEBUG] Aggressive mob ACCEPTED at (73,280) size 12x10
+2025/11/03 21:19:36.044955 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:19:36.044959 [DEBUG] Identified 7 total mobs (passive: 2, aggressive: 5)
+2025/11/03 21:19:36.044964 [DEBUG] runIteration: found 7 targets
+2025/11/03 21:19:36.044967 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:19:36.044970 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:19:36.045021 [DEBUG] DrawDebugOverlay: executing javascript (length: 5004 bytes)
+2025/11/03 21:19:36.054806 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:19:36.058793 [DEBUG] Blue target marker detected
+2025/11/03 21:19:36.058837 [WARN] Player is dead, stopping farming
+2025/11/03 21:19:36.058917 [DEBUG] Timer [main_loop]: 1.539453125s
+2025/11/03 21:19:36.521809 [DEBUG] runIteration: starting
+2025/11/03 21:19:36.523202 [DEBUG] runIteration: calling Capture
+2025/11/03 21:19:37.991474 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:19:37.991522 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:19:37.994391 [DEBUG] Blue target marker detected
+2025/11/03 21:19:37.994426 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:19:37.994430 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:19:37.998317 [DEBUG] Found 1 passive mob candidates
+2025/11/03 21:19:37.998341 [DEBUG] Passive mob ACCEPTED at (246,289) size 24x14
+2025/11/03 21:19:38.000230 [DEBUG] Found 1 aggressive mob candidates
+2025/11/03 21:19:38.000267 [DEBUG] Aggressive mob ACCEPTED at (48,292) size 22x11
+2025/11/03 21:19:38.002036 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:19:38.002044 [DEBUG] Identified 2 total mobs (passive: 1, aggressive: 1)
+2025/11/03 21:19:38.002050 [DEBUG] runIteration: found 2 targets
+2025/11/03 21:19:38.002053 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:19:38.002076 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:19:38.002108 [DEBUG] DrawDebugOverlay: executing javascript (length: 4631 bytes)
+2025/11/03 21:19:38.009732 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:19:38.012710 [DEBUG] Blue target marker detected
+2025/11/03 21:19:38.012756 [WARN] Player is dead, stopping farming
+2025/11/03 21:19:38.012848 [DEBUG] Timer [main_loop]: 1.490922667s
+2025/11/03 21:19:38.522634 [DEBUG] runIteration: starting
+2025/11/03 21:19:38.523652 [DEBUG] runIteration: calling Capture
+2025/11/03 21:19:40.011055 [DEBUG] runIteration: capture returned, img != nil: true
+2025/11/03 21:19:40.011099 [DEBUG] runIteration: calling UpdateStats
+2025/11/03 21:19:40.013936 [DEBUG] Blue target marker detected
+2025/11/03 21:19:40.013984 [DEBUG] runIteration: calling GetStats
+2025/11/03 21:19:40.013994 [DEBUG] runIteration: calling IdentifyMobs
+2025/11/03 21:19:40.017861 [DEBUG] Found 0 passive mob candidates
+2025/11/03 21:19:40.019582 [DEBUG] Found 5 aggressive mob candidates
+2025/11/03 21:19:40.019588 [DEBUG] Aggressive mob ACCEPTED at (48,297) size 16x6
+2025/11/03 21:19:40.019593 [DEBUG] Aggressive mob ACCEPTED at (325,278) size 13x12
+2025/11/03 21:19:40.019598 [DEBUG] Aggressive mob ACCEPTED at (241,278) size 13x12
+2025/11/03 21:19:40.019602 [DEBUG] Aggressive mob ACCEPTED at (157,278) size 13x20
+2025/11/03 21:19:40.019606 [DEBUG] Aggressive mob ACCEPTED at (73,278) size 13x12
+2025/11/03 21:19:40.021290 [DEBUG] Detected 1 violet mobs (filtered out)
+2025/11/03 21:19:40.021294 [DEBUG] Identified 5 total mobs (passive: 0, aggressive: 5)
+2025/11/03 21:19:40.021299 [DEBUG] runIteration: found 5 targets
+2025/11/03 21:19:40.021302 [DEBUG] runIteration: calling DrawDebugOverlay
+2025/11/03 21:19:40.021305 [DEBUG] DrawDebugOverlay: starting to draw overlay
+2025/11/03 21:19:40.021355 [DEBUG] DrawDebugOverlay: executing javascript (length: 4853 bytes)
+2025/11/03 21:19:40.029576 [DEBUG] DrawDebugOverlay: successfully drawn
+2025/11/03 21:19:40.033451 [DEBUG] Blue target marker detected
+2025/11/03 21:19:40.033498 [WARN] Player is dead, stopping farming
+2025/11/03 21:19:40.033603 [DEBUG] Timer [main_loop]: 1.5108735s
+2025/11/03 21:19:40.544265 [DEBUG] runIteration: starting
+2025/11/03 21:19:40.545845 [DEBUG] runIteration: calling Capture
+2025/11/03 21:19:41.828222 [INFO] Signal received: interrupt, shutting down gracefully...
+2025/11/03 21:19:41.828531 [INFO] Stopping bot...
+2025/11/03 21:19:41.828541 [INFO] Stopping behavior
+2025/11/03 21:19:41.828551 [DEBUG] Main loop already stopped or not listening
+2025/11/03 21:19:41.828555 [INFO] Saving state...
+2025/11/03 21:19:41.828558 [INFO] Saving bot state...
+2025/11/03 21:19:41.879782 [INFO] Retrieved 10 cookies from browser
+2025/11/03 21:19:41.879846 [INFO] Saved 10 cookies
+2025/11/03 21:19:41.881316 [INFO] Data saved to data.json
+2025/11/03 21:19:41.881441 [INFO] Bot state saved successfully
+2025/11/03 21:19:41.881449 [INFO] Closing browser...
+2025/11/03 21:19:41.881454 [INFO] Closing browser...
+2025/11/03 21:19:41.881458 [DEBUG] Cancelling browser context
+2025/11/03 21:19:42.021827 [DEBUG] Cancelling allocator context
+2025/11/03 21:19:42.021849 [INFO] Browser closed successfully
+2025/11/03 21:19:42.021853 [INFO] Closing logger...
+2025/11/03 21:19:42.021857 [INFO] Logger closing

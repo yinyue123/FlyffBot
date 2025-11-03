@@ -61,34 +61,104 @@
   },
   "cookies": [
     {
+      "name": "_ga_2CGVX92VC6",
+      "value": "GS2.1.s1762175833$o1$g1$t1762175874$j19$l0$h855729779",
+      "domain": ".flyff.com",
+      "path": "/",
+      "expires": 1796735874.236648,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": ""
+    },
+    {
+      "name": "FPID",
+      "value": "FPID2.2.GpedBU0YZguk9Ei%2FgrzSNc9M94yT0W%2BJld2uivu7%2B5E%3D.1762175834",
+      "domain": ".flyff.com",
+      "path": "/",
+      "expires": 1796735874.524206,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": ""
+    },
+    {
       "name": "azuriom_session",
-      "value": "eyJpdiI6IkNOaVhJM1hZN2dGaUZrclNVbWEvRWc9PSIsInZhbHVlIjoiMFViQWdRM2N1QktzSjZDdmNNYU9WQmU2c2pQV2g0dXlGQTNLZVgxUjlrMjZ4c0RHYThSWDVWVkt4YzJXL0FPc0UvODArQVRDU2ZCUU9GeFdJRllSYTBDWUY0bXh1U2xSc1Jjd0dlVWhTem9ndml5QnB3THJ2cnN5SlQ2aFk5VnoiLCJtYWMiOiI5ZjE1ZWJmOWRhMGRiMTBiOWI2Nzc1ZjE1ODgyZWZkNDVlZTg0YzhlY2YyYTAxYzIxODJhY2Y5NTcwMjk2ODdhIiwidGFnIjoiIn0%3D",
+      "value": "eyJpdiI6ImVHak9DMExocDV4cy9zZDdJRTI5WFE9PSIsInZhbHVlIjoiZ29HRnVneVN3c3pPenpyZXhTR3BMeXpIblhCdkhRN1kzN1JUZ1hObXF4VnVmemp0dk1oVUxTWWRBQ2xQejFpMFk3M3N3RzZIK1lQamkySU1pT1ZaeTMrMHhTajlYVHdnem5UQ0w0bVdhSkVxdGhaRHpPN3VGcFNXQXE3cnNleVoiLCJtYWMiOiIyYTcwYmZmYTUxZTM2ZTgyMTM5YjIyYTNlODdhYmJjNzE0Y2FiNzA2Y2M1M2QyZjE2NjA2MzY0MjUyYjVlMTUwIiwidGFnIjoiIn0%3D",
       "domain": "universe.flyff.com",
       "path": "/",
-      "expires": 1761045484.151883,
+      "expires": 1762183040.365062,
       "httpOnly": true,
       "secure": false,
       "sameSite": "Lax"
     },
     {
-      "name": "XSRF-TOKEN",
-      "value": "eyJpdiI6IklKdmdrVnR4cWdiR0N2dFJWSFhqS1E9PSIsInZhbHVlIjoiZFlXbm1VWlFqV2orWGhzM2VvV29Gbnl3dmNySWdXYVFuT0lIS3JXS0NTaGt1NHUrVitkY2dTcVRFY0pxdlJXUVhBY21DRE1nYVVpVmNRcjlNcTVTOEtnQlRuZzdrZFRSOXgzQk5kV0JNdk1pMVRNVVpXRXNYME1LTGRrTVpHZEkiLCJtYWMiOiJlYjk0MGQzMTc1NzFlZjQwOTEyNTM1YzJmZjJlNzk2Zjc0NjJmYWRkZWI3YzllNjVmY2RlMmQ4ZjBjYWI0ZWRlIiwidGFnIjoiIn0%3D",
+      "name": "remember_web_59ba36addc2b2f9401580f014c7f58ea4e30989d",
+      "value": "eyJpdiI6InBQaXhETUpWSGcrQXBpNmtReVp2ZlE9PSIsInZhbHVlIjoiZTlwL0ZnZFJPdURhWmFRL1lxUnRIWEZhWFdOc3VIbkJJc0E4eEJ2L1lhUngvaFJLMTQrZWpMMEViR2IyVGpZS1p1STQ3YUtNM3NicHFnN1FaSThBMWZZZjBLSE1VNlFnekx6QzRGMFFqOWZqQnhwdjA1Lzh5OHNCR0hQNnp1b3o5OSs1dlJ2Q3UwZGUzQnE3QzZGTFJ3UU5TVlpJSzdEOFZpMUpkN1Y5a1RXeDEvU0VQZ2NYVWJCL09FSE5pbmUxZ09UWjZzMjZrcXJ1WGVMbkFnbnkvMGF5ZUZBbHFFYktKSGdCU1BXV2pZWT0iLCJtYWMiOiIxNTRkYmExNWRiNGViMzA2MWE2OTI0NmFjN2NhMjczZGY3OGViMzBmNzNlZTFiZjk4OTI2ZTQ4MWY2YzNhOWU1IiwidGFnIjoiIn0%3D",
       "domain": "universe.flyff.com",
       "path": "/",
-      "expires": 1761045484.151736,
+      "expires": 1796735840.093622,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ga",
+      "value": "GA1.1.1248724527.1762175834",
+      "domain": ".flyff.com",
+      "path": "/",
+      "expires": 1796735858.062188,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": ""
+    },
+    {
+      "name": "FPLC",
+      "value": "zLdrh1n%2FLoE5DSjkK5df7IrjquF%2BzaqlP2AL9vd1EFoaSh8Uy6oMp3605fQNLROK3gG%2BfWtJuA9UROL3KtL3GdFtmavX%2F8mTs%2FTIMDv%2FZn79PkaL5Stx2ZvRRXS4Aw%3D%3D",
+      "domain": ".flyff.com",
+      "path": "/",
+      "expires": 1762247864.380344,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": ""
+    },
+    {
+      "name": "__stripe_sid",
+      "value": "a65117e4-7e3b-4d92-a4ea-38aa1c582924bd1bef",
+      "domain": ".universe.flyff.com",
+      "path": "/",
+      "expires": 1762177624,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Strict"
+    },
+    {
+      "name": "XSRF-TOKEN",
+      "value": "eyJpdiI6IndsRHZpWEJhSVZQZkRMZkFJcUZRdHc9PSIsInZhbHVlIjoiOGxmZ3Vxbi8wbjFUNDRMVUg5L2creDYyQzdWZ3ZpSldNK2NHaVN4QmtmMU9DcVZnaVU0UWdYejhsWGNYR0U3T3BXRWl0aTNETVdjUjlOMjFmemg1aXAxVzkyVkFWMkJkdmNsOEh5RFQvbFkvY1VLVFo1RmE5cXMzWmxEUml4bXoiLCJtYWMiOiJhMzA4Yzc1OGJmNDU0NDE2YjE4N2MzYmRiMmNmZTk1ZjIzNGI2ZWI5YmVmN2NlNDMzODE4MjA3YjM5OTE0MDI2IiwidGFnIjoiIn0%3D",
+      "domain": "universe.flyff.com",
+      "path": "/",
+      "expires": 1762183040.364995,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
     },
     {
       "name": "cto_bundle",
-      "value": "gI58SV83cVA0cFRoa0E1Vk9UQiUyQmRIY3ZsQ0E5dnNaUVFJR1RDTnBOSFMlMkJsd2ZUa2xBOUpoYzFLTlpSYmdKSERRMU9HNVgxR25lSjJ0SUt2YTZNVGhZNlhUJTJGRXV3clZmZG1mV3NabXJMcFdZQU9mU1RVWktSZENQR2VZakdKRzZPU1klMkJ6N0klMkZXR0F2dktzJTJGZlFCck4xc2hIa1NicnB1emZISWVXbkhXS2pndnlHdkpydWFDcGN3a0ltdmJiVVlGdzRGOHB2WGRxZFFmYUF0djRjaSUyQmhsYlJEa0ElM0QlM0Q",
+      "value": "MkPg1V83cVA0cFRoa0E1Vk9UQiUyQmRIY3ZsQ0ozU1NBSlQ1bTNzYW5xNjEzR0FNdGJ3cXpXZW9VbVYlMkZvbVpsSE9tc2lYVENoTERJSU1uSlFVTVRwdlRWZmtORDFVVDVKaXE1SWJpRVJqVVZaRmY5dGpKNjRJWTZXb0NvUkdSNzl1S0dDNHBzUiUyQnkwbENDczY4T0RybzRxQUt5Skg5Yk9QcEpsbjhWblI4SlVtT2RxZklCR0dMTDR5NHNtd0VuQUxyVWVaQWlRJTJCVEYyYlZuWCUyRmw2dHdkQjdnQmVjdyUzRCUzRA",
       "domain": ".flyff.com",
       "path": "/",
-      "expires": 1795201322,
+      "expires": 1796339841,
       "httpOnly": false,
       "secure": false,
       "sameSite": ""
+    },
+    {
+      "name": "__stripe_mid",
+      "value": "87ad4023-b42a-4f79-a3ad-3d14d5288a8bbd40be",
+      "domain": ".universe.flyff.com",
+      "path": "/",
+      "expires": 1793711824,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Strict"
     }
   ]
 }
