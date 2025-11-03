@@ -1,23 +1,33 @@
 // Package main - analyzer.go
 //
-// Image analysis module for Flyff Universe bot.
-// Handles screen capture, pixel detection, and game state recognition.
+// OpenCV-based image analysis module for Flyff Universe bot.
+// Uses HSV color space for more robust detection compared to RGB pixel matching.
 //
 // Key responsibilities:
 //   - Screen capture and caching
-//   - HP/MP/FP bar detection via color matching
-//   - Mob name detection (passive/aggressive/violet)
-//   - Target marker detection (red/blue)
+//   - HP/MP/FP bar detection via HSV color masking
+//   - Mob name detection (passive/aggressive/violet) using HSV
+//   - Target marker detection (red/blue) using HSV
 //   - Target distance calculation
-//   - Parallel pixel scanning for performance
+//   - Contour-based detection for improved accuracy
+//
+// Detection Pipeline:
+//   1. Capture screen image
+//   2. Convert to HSV color space
+//   3. Define ROI (Region of Interest)
+//   4. Create color masks using HSV ranges
+//   5. Apply morphological operations (erode, dilate)
+//   6. Find contours
+//   7. Filter contours by conditions (area, aspect ratio, position)
 package main
 
 import (
 	"image"
-	"image/color"
 	"math"
 	"sync"
 	"time"
+
+	"gocv.io/x/gocv"
 )
 
 // Note: Color, Bounds, Target, MobType, and other basic types are defined in data.go
@@ -93,24 +103,84 @@ func boundsOverlap(a, b Bounds) bool {
 		a.Y+a.H > b.Y
 }
 
-// Note: Point and ScreenInfo are defined in data.go
-
-// ImageAnalyzer handles image analysis
-type ImageAnalyzer struct {
-	browser    *Browser
-	screenInfo *ScreenInfo
-	lastImage  *image.RGBA
-	stats      *ClientStats
-	mu         sync.RWMutex
+// ROI represents a Region of Interest for image processing
+type ROI struct {
+	X      int
+	Y      int
+	Width  int
+	Height int
 }
 
-// NewImageAnalyzer creates a new image analyzer
+// MobColorConfig holds HSV color ranges for mob detection
+type MobColorConfig struct {
+	PassiveMobRange    HSVRange // Yellow mob names
+	AggressiveMobRange HSVRange // Red mob names
+	VioletMobRange     HSVRange // Purple mob names
+	RedMarkerRange     HSVRange // Red target marker
+	BlueMarkerRange    HSVRange // Blue target marker
+}
+
+// GetDefaultMobColorConfig returns default HSV color ranges for mobs
+// Updated with actual game screenshot values
+func GetDefaultMobColorConfig() *MobColorConfig {
+	return &MobColorConfig{
+		// Passive Mob - Yellow names
+		// Updated: H=29-31 (yellow), S=50-90, V=180-255
+		PassiveMobRange: HSVRange{
+			LowerH: 29, LowerS: 50, LowerV: 180,
+			UpperH: 31, UpperS: 90, UpperV: 255,
+		},
+
+		// Aggressive Mob - Red names
+		// Updated: H=0-5 (red), S=200-255, V=200-255
+		AggressiveMobRange: HSVRange{
+			LowerH: 0, LowerS: 200, LowerV: 200,
+			UpperH: 5, UpperS: 255, UpperV: 255,
+		},
+
+		// Violet Mob - Purple names
+		// Placeholder: H=130-160 (purple), S=100-255, V=100-255
+		VioletMobRange: HSVRange{
+			LowerH: 130, LowerS: 100, LowerV: 100,
+			UpperH: 160, UpperS: 255, UpperV: 255,
+		},
+
+		// Red Target Marker
+		// Placeholder: H=0-10 (red), S=100-255, V=200-255
+		RedMarkerRange: HSVRange{
+			LowerH: 0, LowerS: 100, LowerV: 200,
+			UpperH: 10, UpperS: 255, UpperV: 255,
+		},
+
+		// Blue Target Marker
+		// Placeholder: H=100-130 (blue), S=80-255, V=180-255
+		BlueMarkerRange: HSVRange{
+			LowerH: 100, LowerS: 80, LowerV: 180,
+			UpperH: 130, UpperS: 255, UpperV: 255,
+		},
+	}
+}
+
+// Note: Point and ScreenInfo are defined in data.go
+
+// ImageAnalyzer handles OpenCV-based image analysis
+type ImageAnalyzer struct {
+	browser         *Browser
+	screenInfo      *ScreenInfo
+	lastImage       *image.RGBA
+	stats           *ClientStats
+	mobColorConfig  *MobColorConfig
+	mu              sync.RWMutex
+}
+
+// NewImageAnalyzer creates a new image analyzer with OpenCV support
 func NewImageAnalyzer(browser *Browser) *ImageAnalyzer {
 	bounds := browser.GetScreenBounds()
 	return &ImageAnalyzer{
-		browser:    browser,
-		screenInfo: NewScreenInfo(bounds),
-		stats:      NewClientStats(),
+		browser:        browser,
+		screenInfo:     NewScreenInfo(bounds),
+		stats:          NewClientStats(),
+		mobColorConfig: GetDefaultMobColorConfig(),
 	}
 }
 
@@ -143,330 +213,329 @@ func (ia *ImageAnalyzer) GetStats() *ClientStats {
 	return ia.stats
 }
 
-// UpdateStats updates all client stats from the current image
+// UpdateStats updates all client stats from the current image using OpenCV
 func (ia *ImageAnalyzer) UpdateStats() {
 	img := ia.GetImage()
 	if img == nil {
 		return
 	}
 
-	// Update HP/MP/FP bars
-	ia.updateStatusBars(img)
+	// Convert image.RGBA to gocv.Mat
+	mat := ia.imageToMat(img)
+	if mat.Empty() {
+		return
+	}
+	defer mat.Close()
 
-	// Update target marker (stored as a Point, nil if not detected)
-	if ia.DetectTargetMarker() {
-		// Target marker is on screen - we don't store exact position, just the flag
+	// Convert to HSV color space
+	hsvMat := gocv.NewMat()
+	defer hsvMat.Close()
+	gocv.CvtColor(mat, &hsvMat, gocv.ColorBGRToHSV)
+
+	// Update HP/MP/FP bars using OpenCV HSV detection
+	ia.stats.UpdateOpenCV(&hsvMat)
+
+	// Update target marker (stored as a flag)
+	if ia.DetectTargetMarkerOpenCV(&hsvMat) {
 		ia.stats.TargetOnScreen = true
 	} else {
 		ia.stats.TargetOnScreen = false
 	}
-
-	// Update target HP
-	ia.updateTargetHP(img)
 }
 
-// updateStatusBars updates HP/MP/FP status bars
-func (ia *ImageAnalyzer) updateStatusBars(img *image.RGBA) {
-	// Update HP/MP/FP using image-based detection
-	// StatInfo.UpdateValue() handles the scanning internally
-	ia.stats.HP.UpdateValue(img)
-	ia.stats.MP.UpdateValue(img)
-	ia.stats.FP.UpdateValue(img)
-}
-
-// updateTargetHP updates target HP
-func (ia *ImageAnalyzer) updateTargetHP(img *image.RGBA) {
-	// Update target HP using image-based detection
-	// StatInfo.UpdateValue() handles the scanning internally
-	changed := ia.stats.TargetHP.UpdateValue(img)
-	if changed {
-		ia.stats.TargetIsAlive = ia.stats.TargetHP.Value > 0
-	}
-}
-
-// IdentifyMobs identifies all mobs in the current image
+// IdentifyMobs identifies all mobs in the current image using OpenCV HSV detection
 func (ia *ImageAnalyzer) IdentifyMobs(config *Config) []Target {
 	img := ia.GetImage()
 	if img == nil {
 		return nil
 	}
 
-	// Scan region - expanded to catch more mobs, filter in post-processing
-	// Changed from Y:60 to Y:0 to match Rust version's full-screen scan
-	region := Bounds{
-		X: 0,
-		Y: 0, // Start from top (was 60)
-		W: ia.screenInfo.Width,
-		H: ia.screenInfo.Height - 100, // Reduced from 170 to 100
+	// Convert to Mat
+	mat := ia.imageToMat(img)
+	if mat.Empty() {
+		return nil
+	}
+	defer mat.Close()
+
+	// Convert to HSV color space
+	hsvMat := gocv.NewMat()
+	defer hsvMat.Close()
+	gocv.CvtColor(mat, &hsvMat, gocv.ColorBGRToHSV)
+
+	// Define search region (avoid bottom UI elements)
+	searchROI := ROI{
+		X:      0,
+		Y:      0,
+		Width:  ia.screenInfo.Width,
+		Height: ia.screenInfo.Height - 100,
 	}
 
-	// Detect passive mobs (yellow names)
-	passiveColors := []Color{config.PassiveColor}
-	passivePoints := ia.scanPixelsForColors(img, region, passiveColors, config.PassiveTolerance)
-
-	// Detect aggressive mobs (red names)
-	aggressiveColors := []Color{config.AggressiveColor}
-	aggressivePoints := ia.scanPixelsForColors(img, region, aggressiveColors, config.AggressiveTolerance)
-
-	// Detect violet mobs (purple names)
-	violetColors := []Color{config.VioletColor}
-	violetPoints := ia.scanPixelsForColors(img, region, violetColors, config.VioletTolerance)
-
-	LogDebug("Found %d passive points, %d aggressive points, %d violet points",
-		len(passivePoints), len(aggressivePoints), len(violetPoints))
-
-	// Cluster points into mobs
 	var mobs []Target
 
-	// Process passive mobs
-	passiveClusters := clusterPoints(passivePoints, 50, 3)
-	LogDebug("Passive clustering: %d points -> %d clusters", len(passivePoints), len(passiveClusters))
-	for _, bounds := range passiveClusters {
-		// Filter: width check + avoid HP bar region (y < 110)
-		// Matching Rust logic (image_analyzer.rs:164-166): w > min && w < max
-		if bounds.W > config.MinMobNameWidth && bounds.W < config.MaxMobNameWidth && bounds.Y >= 110 {
-			LogDebug("Passive mob ACCEPTED at (%d,%d) size %dx%d", bounds.X, bounds.Y, bounds.W, bounds.H)
+	// Detect passive mobs (yellow names) using HSV
+	passiveBounds := ia.detectMobsByHSV(&hsvMat, searchROI, ia.mobColorConfig.PassiveMobRange, config)
+	LogDebug("Found %d passive mob candidates", len(passiveBounds))
+	for _, bounds := range passiveBounds {
+		// Filter by position (avoid HP bar region at top-left)
+		if bounds.Y >= 110 {
 			mobs = append(mobs, Target{
 				Type:   MobPassive,
 				Bounds: bounds,
 			})
+			LogDebug("Passive mob ACCEPTED at (%d,%d) size %dx%d", bounds.X, bounds.Y, bounds.W, bounds.H)
 		} else {
-			LogDebug("Passive cluster REJECTED at (%d,%d) size %dx%d (width must be >%d and <%d, y: %d)",
-				bounds.X, bounds.Y, bounds.W, bounds.H, config.MinMobNameWidth, config.MaxMobNameWidth, bounds.Y)
+			LogDebug("Passive mob REJECTED at (%d,%d) - too high (y < 110)", bounds.X, bounds.Y)
 		}
 	}
 
-	// Process aggressive mobs
-	aggressiveClusters := clusterPoints(aggressivePoints, 50, 3)
-	LogDebug("Aggressive clustering: %d points -> %d clusters", len(aggressivePoints), len(aggressiveClusters))
-	for _, bounds := range aggressiveClusters {
-		// Filter: width check + avoid HP bar region (y < 110)
-		// Matching Rust logic (image_analyzer.rs:164-166): w > min && w < max
-		if bounds.W > config.MinMobNameWidth && bounds.W < config.MaxMobNameWidth && bounds.Y >= 110 {
-			LogDebug("Aggressive mob ACCEPTED at (%d,%d) size %dx%d", bounds.X, bounds.Y, bounds.W, bounds.H)
+	// Detect aggressive mobs (red names) using HSV
+	aggressiveBounds := ia.detectMobsByHSV(&hsvMat, searchROI, ia.mobColorConfig.AggressiveMobRange, config)
+	LogDebug("Found %d aggressive mob candidates", len(aggressiveBounds))
+	for _, bounds := range aggressiveBounds {
+		// Filter by position (avoid HP bar region at top-left)
+		if bounds.Y >= 110 {
 			mobs = append(mobs, Target{
 				Type:   MobAggressive,
 				Bounds: bounds,
 			})
+			LogDebug("Aggressive mob ACCEPTED at (%d,%d) size %dx%d", bounds.X, bounds.Y, bounds.W, bounds.H)
 		} else {
-			LogDebug("Aggressive cluster REJECTED at (%d,%d) size %dx%d (width must be >%d and <%d, y: %d)",
-				bounds.X, bounds.Y, bounds.W, bounds.H, config.MinMobNameWidth, config.MaxMobNameWidth, bounds.Y)
+			LogDebug("Aggressive mob REJECTED at (%d,%d) - too high (y < 110)", bounds.X, bounds.Y)
 		}
 	}
 
-	// Violet mobs are detected but filtered out
-	if len(violetPoints) > 0 {
-		violetClusters := clusterPoints(violetPoints, 50, 3)
-		for _, bounds := range violetClusters {
-			// Matching Rust logic: w > min && w < max
-			if bounds.W > config.MinMobNameWidth && bounds.W < config.MaxMobNameWidth {
-				LogDebug("Detected violet mob at (%d,%d), filtering out", bounds.X, bounds.Y)
-			}
-		}
+	// Detect violet mobs (for logging, filtered out)
+	violetBounds := ia.detectMobsByHSV(&hsvMat, searchROI, ia.mobColorConfig.VioletMobRange, config)
+	if len(violetBounds) > 0 {
+		LogDebug("Detected %d violet mobs (filtered out)", len(violetBounds))
 	}
 
-	LogDebug("Identified %d total mobs (passive clusters: %d, aggressive clusters: %d)",
-		len(mobs), len(passiveClusters), len(aggressiveClusters))
+	LogDebug("Identified %d total mobs (passive: %d, aggressive: %d)",
+		len(mobs), len(passiveBounds), len(aggressiveBounds))
 
 	return mobs
 }
 
-// DetectTargetMarker detects the target marker above selected target
-func (ia *ImageAnalyzer) DetectTargetMarker() bool {
-	img := ia.GetImage()
-	if img == nil {
-		return false
+// detectMobsByHSV detects mobs using HSV color masking and contour detection
+func (ia *ImageAnalyzer) detectMobsByHSV(hsvMat *gocv.Mat, roi ROI, colorRange HSVRange, config *Config) []Bounds {
+	// Ensure ROI is within image bounds
+	if roi.X < 0 || roi.Y < 0 ||
+	   roi.X+roi.Width > hsvMat.Cols() || roi.Y+roi.Height > hsvMat.Rows() {
+		return nil
 	}
 
-	// Search in upper-middle area of screen
-	region := Bounds{
-		X: ia.screenInfo.Width / 4,
-		Y: ia.screenInfo.Height / 6,
-		W: ia.screenInfo.Width / 2,
-		H: ia.screenInfo.Height / 3,
+	// Extract ROI
+	roiMat := hsvMat.Region(image.Rect(roi.X, roi.Y, roi.X+roi.Width, roi.Y+roi.Height))
+	defer roiMat.Close()
+
+	// Create HSV color mask
+	mask := ia.createHSVMask(&roiMat, colorRange)
+	defer mask.Close()
+
+	// Apply morphological operations to reduce noise
+	morphed := ia.applyMorphology(&mask)
+	defer morphed.Close()
+
+	// Find contours
+	contours := gocv.FindContours(morphed, gocv.RetrievalExternal, gocv.ChainApproxSimple)
+	defer contours.Close()
+
+	// Convert contours to bounds and filter by mob name width constraints
+	var bounds []Bounds
+	for i := 0; i < contours.Size(); i++ {
+		contour := contours.At(i)
+		rect := gocv.BoundingRect(contour)
+
+		// Filter by width (mob name width constraints)
+		if rect.Dx() > config.MinMobNameWidth && rect.Dx() < config.MaxMobNameWidth {
+			// Convert back to screen coordinates
+			screenBounds := Bounds{
+				X: roi.X + rect.Min.X,
+				Y: roi.Y + rect.Min.Y,
+				W: rect.Dx(),
+				H: rect.Dy(),
+			}
+
+			// Skip HP bar region (top-left corner)
+			if screenBounds.X <= 250 && screenBounds.Y <= 110 {
+				continue
+			}
+
+			bounds = append(bounds, screenBounds)
+		}
+	}
+
+	return bounds
+}
+
+// DetectTargetMarkerOpenCV detects the target marker using OpenCV HSV detection
+func (ia *ImageAnalyzer) DetectTargetMarkerOpenCV(hsvMat *gocv.Mat) bool {
+	// Search in upper-middle area of screen where target markers appear
+	markerROI := ROI{
+		X:      ia.screenInfo.Width / 4,
+		Y:      ia.screenInfo.Height / 6,
+		Width:  ia.screenInfo.Width / 2,
+		Height: ia.screenInfo.Height / 3,
 	}
 
 	// Try blue marker first (for Azria and other zones)
-	blueMarkerColors := []Color{
-		NewColor(131, 148, 205),
-	}
-	bluePoints := ia.scanPixelsForColors(img, region, blueMarkerColors, 5)
-
-	if len(bluePoints) > 20 {
-		LogDebug("Blue target marker detected (%d points)", len(bluePoints))
+	blueMarkerDetected := ia.detectMarker(hsvMat, markerROI, ia.mobColorConfig.BlueMarkerRange)
+	if blueMarkerDetected {
+		LogDebug("Blue target marker detected")
 		return true
 	}
 
-	// Fallback to red marker (normal zones)
-	redMarkerColors := []Color{
-		NewColor(246, 90, 106),
-	}
-	redPoints := ia.scanPixelsForColors(img, region, redMarkerColors, 5)
-
-	if len(redPoints) > 20 {
-		LogDebug("Red target marker detected (%d points)", len(redPoints))
+	// Try red marker (normal zones)
+	redMarkerDetected := ia.detectMarker(hsvMat, markerROI, ia.mobColorConfig.RedMarkerRange)
+	if redMarkerDetected {
+		LogDebug("Red target marker detected")
 		return true
 	}
 
 	return false
 }
 
-// DetectTargetDistance calculates distance to target marker
+// DetectTargetMarker detects the target marker (wrapper for compatibility)
+func (ia *ImageAnalyzer) DetectTargetMarker() bool {
+	img := ia.GetImage()
+	if img == nil {
+		return false
+	}
+
+	mat := ia.imageToMat(img)
+	if mat.Empty() {
+		return false
+	}
+	defer mat.Close()
+
+	hsvMat := gocv.NewMat()
+	defer hsvMat.Close()
+	gocv.CvtColor(mat, &hsvMat, gocv.ColorBGRToHSV)
+
+	return ia.DetectTargetMarkerOpenCV(&hsvMat)
+}
+
+// detectMarker detects a marker using HSV color masking
+func (ia *ImageAnalyzer) detectMarker(hsvMat *gocv.Mat, roi ROI, colorRange HSVRange) bool {
+	// Ensure ROI is within image bounds
+	if roi.X < 0 || roi.Y < 0 ||
+	   roi.X+roi.Width > hsvMat.Cols() || roi.Y+roi.Height > hsvMat.Rows() {
+		return false
+	}
+
+	// Extract ROI
+	roiMat := hsvMat.Region(image.Rect(roi.X, roi.Y, roi.X+roi.Width, roi.Y+roi.Height))
+	defer roiMat.Close()
+
+	// Create HSV color mask
+	mask := ia.createHSVMask(&roiMat, colorRange)
+	defer mask.Close()
+
+	// Count non-zero pixels in the mask
+	nonZero := gocv.CountNonZero(mask)
+
+	// Threshold: need at least 20 pixels to consider marker detected
+	return nonZero > 20
+}
+
+// DetectTargetDistance calculates distance to target marker using OpenCV
 func (ia *ImageAnalyzer) DetectTargetDistance() int {
 	img := ia.GetImage()
 	if img == nil {
 		return 9999
 	}
 
-	// Search for target marker
-	region := Bounds{
-		X: ia.screenInfo.Width / 4,
-		Y: ia.screenInfo.Height / 6,
-		W: ia.screenInfo.Width / 2,
-		H: ia.screenInfo.Height / 3,
-	}
-
-	// Try both colors
-	bluePoints := ia.scanPixelsForColors(img, region, []Color{NewColor(131, 148, 205)}, 5)
-	redPoints := ia.scanPixelsForColors(img, region, []Color{NewColor(246, 90, 106)}, 5)
-
-	var markerPoints []Point
-	if len(bluePoints) > len(redPoints) {
-		markerPoints = bluePoints
-	} else {
-		markerPoints = redPoints
-	}
-
-	if len(markerPoints) == 0 {
+	mat := ia.imageToMat(img)
+	if mat.Empty() {
 		return 9999
 	}
+	defer mat.Close()
 
-	// Calculate center of marker
-	bounds := pointsToBounds(markerPoints)
-	markerX := bounds.X + bounds.W/2
-	markerY := bounds.Y + bounds.H/2
+	// Convert to HSV
+	hsvMat := gocv.NewMat()
+	defer hsvMat.Close()
+	gocv.CvtColor(mat, &hsvMat, gocv.ColorBGRToHSV)
+
+	// Search region for target marker
+	markerROI := ROI{
+		X:      ia.screenInfo.Width / 4,
+		Y:      ia.screenInfo.Height / 6,
+		Width:  ia.screenInfo.Width / 2,
+		Height: ia.screenInfo.Height / 3,
+	}
+
+	// Try to find marker center
+	markerCenter := ia.findMarkerCenter(&hsvMat, markerROI)
+	if markerCenter == nil {
+		return 9999
+	}
 
 	// Calculate distance from screen center
 	centerX := ia.screenInfo.Width / 2
 	centerY := ia.screenInfo.Height / 2
 
-	dx := float64(markerX - centerX)
-	dy := float64(markerY - centerY)
+	dx := float64(markerCenter.X - centerX)
+	dy := float64(markerCenter.Y - centerY)
 	distance := int(math.Sqrt(dx*dx + dy*dy))
 
 	return distance
 }
 
-// scanPixelsForColors scans a region for pixels matching any of the given colors
-func (ia *ImageAnalyzer) scanPixelsForColors(img *image.RGBA, region Bounds, colors []Color, tolerance uint8) []Point {
-	var points []Point
-
-	bounds := img.Bounds()
-	minX := max(region.X, bounds.Min.X)
-	minY := max(region.Y, bounds.Min.Y)
-	maxX := min(region.X+region.W, bounds.Max.X)
-	maxY := min(region.Y+region.H, bounds.Max.Y)
-
-	for y := minY; y < maxY; y++ {
-		for x := minX; x < maxX; x++ {
-			// Skip HP bar region (matching Rust logic at line 231-233)
-			if x <= 250 && y <= 110 {
-				continue
-			}
-
-			c := img.RGBAAt(x, y)
-
-			// Check if pixel matches any target color
-			for _, targetColor := range colors {
-				if colorMatches(c, targetColor, tolerance) {
-					points = append(points, Point{X: x, Y: y})
-					break
-				}
-			}
-		}
+// findMarkerCenter finds the center of the target marker
+func (ia *ImageAnalyzer) findMarkerCenter(hsvMat *gocv.Mat, roi ROI) *Point {
+	// Try blue marker first
+	blueCenter := ia.findMarkerCenterByColor(hsvMat, roi, ia.mobColorConfig.BlueMarkerRange)
+	if blueCenter != nil {
+		return blueCenter
 	}
 
-	return points
+	// Try red marker
+	redCenter := ia.findMarkerCenterByColor(hsvMat, roi, ia.mobColorConfig.RedMarkerRange)
+	return redCenter
 }
 
-// colorMatches checks if a color matches a target color within tolerance
-func colorMatches(c color.RGBA, target Color, tolerance uint8) bool {
-	// Allow pixels with alpha >= 250 to handle anti-aliasing and semi-transparent text
-	// This matches the Rust version which doesn't check alpha at all
-	if c.A < 250 {
-		return false
-	}
-
-	rDiff := abs(int(c.R) - int(target.R))
-	gDiff := abs(int(c.G) - int(target.G))
-	bDiff := abs(int(c.B) - int(target.B))
-
-	return rDiff <= int(tolerance) && gDiff <= int(tolerance) && bDiff <= int(tolerance)
-}
-
-// clusterPoints clusters nearby points into bounding boxes
-func clusterPoints(points []Point, distanceX, distanceY int) []Bounds {
-	if len(points) == 0 {
+// findMarkerCenterByColor finds marker center for a specific color using contours
+func (ia *ImageAnalyzer) findMarkerCenterByColor(hsvMat *gocv.Mat, roi ROI, colorRange HSVRange) *Point {
+	// Ensure ROI is within image bounds
+	if roi.X < 0 || roi.Y < 0 ||
+	   roi.X+roi.Width > hsvMat.Cols() || roi.Y+roi.Height > hsvMat.Rows() {
 		return nil
 	}
 
-	// CRITICAL: Sort points by X axis first (matching Rust's sorted_by at point_cloud.rs:78)
-	// Without sorting, clustering will not work correctly!
-	sortedPoints := make([]Point, len(points))
-	copy(sortedPoints, points)
+	// Extract ROI
+	roiMat := hsvMat.Region(image.Rect(roi.X, roi.Y, roi.X+roi.Width, roi.Y+roi.Height))
+	defer roiMat.Close()
 
-	// Sort by X coordinate
-	for i := 0; i < len(sortedPoints); i++ {
-		for j := i + 1; j < len(sortedPoints); j++ {
-			if sortedPoints[i].X > sortedPoints[j].X {
-				sortedPoints[i], sortedPoints[j] = sortedPoints[j], sortedPoints[i]
-			}
+	// Create mask
+	mask := ia.createHSVMask(&roiMat, colorRange)
+	defer mask.Close()
+
+	// Find contours
+	contours := gocv.FindContours(mask, gocv.RetrievalExternal, gocv.ChainApproxSimple)
+	defer contours.Close()
+
+	if contours.Size() == 0 {
+		return nil
+	}
+
+	// Find largest contour (main marker shape)
+	maxArea := 0.0
+	var maxRect image.Rectangle
+	for i := 0; i < contours.Size(); i++ {
+		contour := contours.At(i)
+		area := gocv.ContourArea(contour)
+		if area > maxArea {
+			maxArea = area
+			maxRect = gocv.BoundingRect(contour)
 		}
 	}
 
-	// First cluster by X axis
-	xClusters := make([][]Point, 0)
-	currentCluster := []Point{sortedPoints[0]}
+	// Calculate center (convert back to screen coordinates)
+	centerX := roi.X + maxRect.Min.X + maxRect.Dx()/2
+	centerY := roi.Y + maxRect.Min.Y + maxRect.Dy()/2
 
-	for i := 1; i < len(sortedPoints); i++ {
-		if abs(sortedPoints[i].X-sortedPoints[i-1].X) <= distanceX {
-			currentCluster = append(currentCluster, sortedPoints[i])
-		} else {
-			xClusters = append(xClusters, currentCluster)
-			currentCluster = []Point{sortedPoints[i]}
-		}
-	}
-	xClusters = append(xClusters, currentCluster)
-
-	// Then cluster each X cluster by Y axis
-	var bounds []Bounds
-	for _, xCluster := range xClusters {
-		// Sort by Y
-		for i := 0; i < len(xCluster); i++ {
-			for j := i + 1; j < len(xCluster); j++ {
-				if xCluster[i].Y > xCluster[j].Y {
-					xCluster[i], xCluster[j] = xCluster[j], xCluster[i]
-				}
-			}
-		}
-
-		// Cluster by Y distance
-		yCluster := []Point{xCluster[0]}
-		for i := 1; i < len(xCluster); i++ {
-			if abs(xCluster[i].Y-xCluster[i-1].Y) <= distanceY {
-				yCluster = append(yCluster, xCluster[i])
-			} else {
-				bounds = append(bounds, pointsToBounds(yCluster))
-				yCluster = []Point{xCluster[i]}
-			}
-		}
-		bounds = append(bounds, pointsToBounds(yCluster))
-	}
-
-	return bounds
+	return &Point{X: centerX, Y: centerY}
 }
-
-// Note: pointsToBounds is defined in data.go
 
 // FindClosestMob finds the closest mob to the screen center
 func (ia *ImageAnalyzer) FindClosestMob(mobs []Target) *Target {
@@ -511,55 +580,54 @@ func (ia *ImageAnalyzer) DetectTargetHP() int {
 	return ia.stats.TargetHP.Value
 }
 
-// getStatusBarColors returns the color array for a status bar type
-func getStatusBarColors(kind StatusBarKind) []Color {
-	switch kind {
-	case StatusBarHP:
-		return []Color{
-			NewColor(174, 18, 55),
-			NewColor(188, 24, 62),
-			NewColor(204, 30, 70),
-			NewColor(220, 36, 78),
-		}
-	case StatusBarMP:
-		return []Color{
-			NewColor(20, 84, 196),
-			NewColor(36, 132, 220),
-			NewColor(44, 164, 228),
-			NewColor(56, 188, 232),
-		}
-	case StatusBarFP:
-		return []Color{
-			NewColor(45, 230, 29),
-			NewColor(28, 172, 28),
-			NewColor(44, 124, 52),
-			NewColor(20, 146, 20),
-		}
-	default:
-		return nil
+// Helper methods
+
+// imageToMat converts image.RGBA to gocv.Mat (BGR format for OpenCV)
+func (ia *ImageAnalyzer) imageToMat(img *image.RGBA) gocv.Mat {
+	if img == nil {
+		return gocv.NewMat()
 	}
+
+	// Convert RGBA to BGR for OpenCV
+	mat, err := gocv.ImageToMatRGB(img)
+	if err != nil {
+		LogError("Failed to convert image to mat: %v", err)
+		return gocv.NewMat()
+	}
+
+	return mat
 }
 
-// abs returns absolute value of an integer
-func abs(x int) int {
-	if x < 0 {
-		return -x
-	}
-	return x
+// createHSVMask creates a binary mask based on HSV color range
+func (ia *ImageAnalyzer) createHSVMask(hsvMat *gocv.Mat, colorRange HSVRange) gocv.Mat {
+	// Create lower and upper bound scalars for HSV range
+	lower := gocv.NewScalar(float64(colorRange.LowerH), float64(colorRange.LowerS), float64(colorRange.LowerV), 0)
+	upper := gocv.NewScalar(float64(colorRange.UpperH), float64(colorRange.UpperS), float64(colorRange.UpperV), 0)
+
+	// Create mask using inRange operation
+	mask := gocv.NewMat()
+	gocv.InRangeWithScalar(*hsvMat, lower, upper, &mask)
+
+	return mask
 }
 
-// max returns the maximum of two integers
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
+// applyMorphology applies morphological operations to reduce noise
+func (ia *ImageAnalyzer) applyMorphology(mask *gocv.Mat) gocv.Mat {
+	// Create structuring element (kernel) for morphological operations
+	// closesize = 10 for mob detection
+	kernel := gocv.GetStructuringElement(gocv.MorphRect, image.Pt(10, 10))
+	defer kernel.Close()
 
-// min returns the minimum of two integers
-func min(a, b int) int {
-	if a < b {
-		return a
+	// Apply morphological closing (dilation followed by erosion)
+	// closeiter = 5 iterations for mob detection
+	// This fills small holes and connects nearby regions
+	result := mask.Clone()
+	for i := 0; i < 5; i++ {
+		temp := gocv.NewMat()
+		gocv.Dilate(result, &temp, kernel)
+		gocv.Erode(temp, &result, kernel)
+		temp.Close()
 	}
-	return b
+
+	return result
 }
