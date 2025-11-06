@@ -1,702 +1,616 @@
 // Package main - farming.go
 //
-// This file implements the Farming Behavior with a state machine.
-// It handles autonomous mob hunting, attacking, and item collection.
-//
-// State Machine States:
-//   - NoEnemyFound: No mobs detected, initiating search
-//   - SearchingForEnemy: Actively searching for targets
-//   - EnemyFound: Mob detected, initiating attack
-//   - VerifyTarget: Verifying target selection was successful
-//   - Attacking: Currently in combat with target
-//   - AfterEnemyKill: Processing kill, picking up items
-//
-// State Transitions:
-//   NoEnemyFound -> SearchingForEnemy (after rotation/movement)
-//   SearchingForEnemy -> NoEnemyFound (no mobs found)
-//   SearchingForEnemy -> EnemyFound (mob detected)
-//   EnemyFound -> VerifyTarget (clicked on mob)
-//   VerifyTarget -> Attacking (target confirmed)
-//   VerifyTarget -> SearchingForEnemy (target not confirmed)
-//   Attacking -> AfterEnemyKill (mob defeated)
-//   Attacking -> SearchingForEnemy (target lost or invalid)
-//   AfterEnemyKill -> SearchingForEnemy (ready for next target)
-//
-// Key Features:
-//   - Obstacle avoidance with retry limits
-//   - Area avoidance system (blacklist failed locations)
-//   - AOE farming support for multiple mobs
-//   - Aggressive mob prioritization
-//   - Kill statistics tracking
-//   - Automatic pickup after kills
+// This file implements the Farming behavior with a state machine.
+// It handles autonomous mob hunting, attacking, and resource management.
 package main
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 )
 
-// FarmingState represents the current state of the farming behavior
-type FarmingState int
+// Stage represents the current state of the farming behavior
+type Stage int
 
 const (
-	FarmingStateNoEnemyFound FarmingState = iota
-	FarmingStateSearchingForEnemy
-	FarmingStateEnemyFound
-	FarmingStateVerifyTarget
-	FarmingStateAttacking
-	FarmingStateAfterEnemyKill
+	StageInitializing Stage = iota
+	StageNoEnemyFound
+	StageSearchingForEnemy
+	StageNavigating
+	StageEnemyFound
+	StageAttacking
+	StageEscaping
+	StageAfterEnemyKill
+	StageDead
+	StageOffline
 )
 
-// String returns the string representation of the state
-func (s FarmingState) String() string {
+// String returns the string representation of the stage
+func (s Stage) String() string {
 	switch s {
-	case FarmingStateNoEnemyFound:
+	case StageInitializing:
+		return "Initializing"
+	case StageNoEnemyFound:
 		return "NoEnemyFound"
-	case FarmingStateSearchingForEnemy:
+	case StageSearchingForEnemy:
 		return "SearchingForEnemy"
-	case FarmingStateEnemyFound:
+	case StageNavigating:
+		return "Navigating"
+	case StageEnemyFound:
 		return "EnemyFound"
-	case FarmingStateVerifyTarget:
-		return "VerifyTarget"
-	case FarmingStateAttacking:
+	case StageAttacking:
 		return "Attacking"
-	case FarmingStateAfterEnemyKill:
+	case StageEscaping:
+		return "Escaping"
+	case StageAfterEnemyKill:
 		return "AfterEnemyKill"
+	case StageDead:
+		return "Dead"
+	case StageOffline:
+		return "Offline"
 	default:
 		return "Unknown"
 	}
 }
 
-// FarmingBehavior implements autonomous mob hunting with state machine
-type FarmingBehavior struct {
-	// State machine
-	state FarmingState
-
-	// Timing
-	lastKillTime          time.Time
-	lastSearchTime        time.Time
-	lastInitialAttackTime time.Time
-	lastNoEnemyTime       *time.Time
-
-	// Attack management
-	currentTarget     *Target
-	isAttacking       bool
-	alreadyAttackCount int
-	lastClickPos      *Point
-
-	// Obstacle and avoidance
-	rotationAttempts      int
-	obstacleAvoidanceCount int
-	avoidanceList         *AvoidanceList
-	avoidedBounds         []AvoidedArea
-
-	// Statistics
-	killCount             int
-	stealedTargetCount    int
-	lastKilledType        MobType
-	concurrentMobsAttack  int
-
-	// Wait management
-	waitDuration *time.Duration
-	waitStart    time.Time
-
-	// Pickup pet management
-	lastSummonPetTime time.Time
-	slotUsageTimes    map[int]time.Time // slot number -> last usage time
+// RetryState tracks retry attempts for various checks
+type RetryState struct {
+	State  int // Number of times state bar not detected
+	Target int // Number of times target not detected consecutively
+	Map    int // Number of times map not detected
 }
 
-// NewFarmingBehavior creates a new farming behavior
-func NewFarmingBehavior() *FarmingBehavior {
-	return &FarmingBehavior{
-		state:                FarmingStateSearchingForEnemy,
-		avoidanceList:        NewAvoidanceList(),
-		lastKillTime:         time.Now(),
-		avoidedBounds:        make([]AvoidedArea, 0),
-		lastKilledType:       MobPassive,
-		slotUsageTimes:       make(map[int]time.Time),
-		lastSummonPetTime:    time.Now(),
-	}
+// SearchingEnemyState tracks searching behavior
+type SearchingEnemyState struct {
+	UpAndDown   int       // 1-3: looking down, 4-6: looking up
+	Reverse     bool      // true: turn left, false: turn right
+	Count       int       // Remaining rotation count
+	Wander      int       // Wander counter
+	ForwardTime time.Time // Time when started moving forward
+	Careful     bool      // Careful mode when too many mobs
 }
 
-// GetState returns the current state name
-func (fb *FarmingBehavior) GetState() string {
-	return fb.state.String()
+// TargetState tracks current target information
+type TargetState struct {
+	LastHP       int       // Last recorded HP
+	LastHPUpdate time.Time // Last time HP was updated
 }
 
-// Run executes one iteration of farming behavior
-func (fb *FarmingBehavior) Run(analyzer *ImageAnalyzer, movement *MovementCoordinator, config *Config, stats *Statistics) error {
-	// Update player stats
-	analyzer.UpdateStats()
-	clientStats := analyzer.GetStats()
-
-	// Check if player is alive
-	if clientStats.IsAlive != AliveStateAlive {
-		LogWarn("Player is dead, stopping farming")
-		return nil
-	}
-
-	// Update timestamps
-	fb.updateTimestamps()
-
-	// Check restorations (HP/MP/FP)
-	fb.checkRestorations(movement, config, clientStats)
-
-	// Check if we should wait
-	if fb.waitCooldown() {
-		// Use buffs during wait if available
-		if len(config.BuffSlots) > 0 {
-			movement.UseSkill(config.BuffSlots)
-			fb.wait(1500 * time.Millisecond)
-		}
-
-		// Only return early if we're not in critical states
-		shouldReturn := fb.state == FarmingStateAfterEnemyKill
-		if shouldReturn {
-			return nil
-		}
-	}
-
-	// State machine execution
-	fb.state = fb.runStateMachine(analyzer, movement, config, stats, clientStats)
-
-	return nil
+// ObstacleState tracks obstacle avoidance
+type ObstacleState struct {
+	Count int // Number of obstacle avoidance attempts
 }
 
-// runStateMachine executes the state machine and returns next state
-func (fb *FarmingBehavior) runStateMachine(analyzer *ImageAnalyzer, movement *MovementCoordinator, config *Config, stats *Statistics, clientStats *ClientStats) FarmingState {
-	switch fb.state {
-	case FarmingStateNoEnemyFound:
-		return fb.onNoEnemyFound(movement, config)
-	case FarmingStateSearchingForEnemy:
-		return fb.onSearchingForEnemy(analyzer, config)
-	case FarmingStateEnemyFound:
-		return fb.onEnemyFound(movement)
-	case FarmingStateVerifyTarget:
-		return fb.onVerifyTarget(clientStats)
-	case FarmingStateAttacking:
-		return fb.onAttacking(analyzer, movement, config, clientStats)
-	case FarmingStateAfterEnemyKill:
-		return fb.afterEnemyKill(movement, config, stats)
-	default:
-		return FarmingStateSearchingForEnemy
+// Farming implements the farming behavior
+type Farming struct {
+	Stage          Stage
+	Retry          RetryState
+	SearchingEnemy SearchingEnemyState
+	Target         TargetState
+	Obstacle       ObstacleState
+	Config         *Config
+	Browser        *Browser
+	Detector       *ClientDetect // To be implemented
+}
+
+// NewFarming creates a new farming behavior
+func NewFarming(cfg *Config, browser *Browser) *Farming {
+	return &Farming{
+		Stage:   StageInitializing,
+		Config:  cfg,
+		Browser: browser,
 	}
 }
 
-// onNoEnemyFound handles the state when no enemy is found
-func (fb *FarmingBehavior) onNoEnemyFound(movement *MovementCoordinator, config *Config) FarmingState {
-	// Check for timeout if configured
-	if fb.lastNoEnemyTime == nil {
-		now := time.Now()
-		fb.lastNoEnemyTime = &now
-	} else if config.MobsTimeout > 0 {
-		if time.Since(*fb.lastNoEnemyTime).Milliseconds() > int64(config.MobsTimeout) {
-			LogError("No enemies found for too long, exiting")
-			// Exit application
-			return FarmingStateNoEnemyFound
-		}
+// Restore handles HP/MP/FP restoration and buff management
+func (f *Farming) Restore() {
+	cfg := f.Config
+
+	// TODO: Check if state bar and map are open
+	// if !stateBarOpen || !mapOpen {
+	//     f.Stage = StageInitializing
+	//     return
+	// }
+
+	// Check if disconnected (no kills for a long time)
+	if time.Since(cfg.Status.Player.LastKilledTime).Seconds() > float64(cfg.Stat.Settings.WatchDogTime) {
+		cfg.Log("WatchDog timeout: No kills for %d seconds", cfg.Stat.Settings.WatchDogTime)
+		f.Stage = StageOffline
+		return
 	}
 
-	// Try rotating first
-	if fb.rotationAttempts < 30 {
-		movement.RotateRight(50 * time.Millisecond)
-		movement.Wait(50 * time.Millisecond)
-		fb.rotationAttempts++
-		return FarmingStateSearchingForEnemy
+	// Don't restore if dead, initializing, or offline
+	if f.Stage == StageDead || f.Stage == StageInitializing || f.Stage == StageOffline {
+		return
 	}
 
-	// Use circle movement if configured
-	if config.CircleMoveDuration > 0 {
-		fb.moveCirclePattern(movement, time.Duration(config.CircleMoveDuration)*time.Millisecond)
-	} else {
-		fb.rotationAttempts = 0
-		return fb.state
-	}
-
-	return FarmingStateSearchingForEnemy
-}
-
-// moveCirclePattern performs circular movement pattern
-func (fb *FarmingBehavior) moveCirclePattern(movement *MovementCoordinator, rotationDuration time.Duration) {
-	movement.HoldKeys([]string{"W", "Space", "D"})
-	movement.Wait(rotationDuration)
-	movement.ReleaseKey("D")
-	movement.Wait(20 * time.Millisecond)
-	movement.ReleaseKeys([]string{"Space", "W"})
-	movement.HoldKeyFor("S", 50*time.Millisecond)
-}
-
-// onSearchingForEnemy handles searching for enemies
-func (fb *FarmingBehavior) onSearchingForEnemy(analyzer *ImageAnalyzer, config *Config) FarmingState {
-	// Check if should stop fighting
-	if config.StopFighting {
-		return FarmingStateVerifyTarget
-	}
-
-	// Identify mobs
-	mobs := analyzer.IdentifyMobs(config)
-	if len(mobs) == 0 {
-		return FarmingStateNoEnemyFound
-	}
-
-	// Prioritize mobs
-	mobList := fb.prioritizeMobs(analyzer, config, mobs)
-	if len(mobList) == 0 {
-		return FarmingStateNoEnemyFound
-	}
-
-	fb.rotationAttempts = 0
-
-	// Find closest mob avoiding blacklisted areas
-	var closest *Target
-	if len(fb.avoidedBounds) == 0 {
-		closest = analyzer.FindClosestMob(mobList)
-	} else {
-		// Filter mobs that are in avoided areas
-		for i := range mobList {
-			mob := &mobList[i]
-			attackCoords := mob.AttackCoords()
-			shouldAvoid := false
-
-			for _, avoided := range fb.avoidedBounds {
-				if avoided.Bounds.Contains(attackCoords) {
-					shouldAvoid = true
-					break
-				}
-			}
-
-			if !shouldAvoid {
-				if closest == nil {
-					closest = mob
-				} else {
-					// Check distance
-					screenCenter := analyzer.screenInfo.Center()
-					currentDist := attackCoords.Distance(screenCenter)
-					closestDist := closest.AttackCoords().Distance(screenCenter)
-					if currentDist < closestDist {
-						closest = mob
-					}
-				}
-			}
-		}
-	}
-
-	if closest == nil {
-		return FarmingStateSearchingForEnemy
-	}
-
-	fb.currentTarget = closest
-	return FarmingStateEnemyFound
-}
-
-// prioritizeMobs prioritizes aggressive mobs if configured
-func (fb *FarmingBehavior) prioritizeMobs(analyzer *ImageAnalyzer, config *Config, mobs []Target) []Target {
-	if !config.PrioritizeAggro {
-		// Return all non-violet mobs
-		result := make([]Target, 0)
-		for _, mob := range mobs {
-			if mob.Type != MobViolet {
-				result = append(result, mob)
-			}
-		}
-		return result
-	}
-
-	// Get aggressive mobs
-	aggressive := make([]Target, 0)
-	passive := make([]Target, 0)
-
-	for _, mob := range mobs {
-		if mob.Type == MobAggressive {
-			aggressive = append(aggressive, mob)
-		} else if mob.Type == MobPassive {
-			passive = append(passive, mob)
-		}
-	}
-
-	// If no aggressive or just killed aggressive, use passive if HP is good
-	clientHP := analyzer.GetStats().HP.Value
-	if (len(aggressive) == 0 ||
-		(fb.lastKilledType == MobAggressive && len(aggressive) == 1 &&
-		 time.Since(fb.lastKillTime).Milliseconds() < 5000)) &&
-		clientHP >= config.MinHPAttack {
-		return passive
-	}
-
-	return aggressive
-}
-
-// onEnemyFound handles when an enemy is found
-func (fb *FarmingBehavior) onEnemyFound(movement *MovementCoordinator) FarmingState {
-	if fb.currentTarget == nil {
-		return FarmingStateSearchingForEnemy
-	}
-
-	// Get attack coordinates
-	attackCoords := fb.currentTarget.AttackCoords()
-	fb.lastClickPos = &attackCoords
-
-	// Click on mob
-	movement.ClickTarget(attackCoords)
-
-	// Wait before verifying
-	time.Sleep(150 * time.Millisecond)
-
-	fb.isAttacking = false
-	return FarmingStateVerifyTarget
-}
-
-// onVerifyTarget verifies the target was selected
-func (fb *FarmingBehavior) onVerifyTarget(clientStats *ClientStats) FarmingState {
-	// Check if target marker exists and is a mover (not NPC)
-	if clientStats.TargetOnScreen && clientStats.TargetIsAlive {
-		LogDebug("Target verified and is alive")
-		return FarmingStateAttacking
-	}
-
-	// Failed to select target
-	fb.avoidLastClick()
-	return FarmingStateSearchingForEnemy
-}
-
-// onAttacking handles the attacking state
-func (fb *FarmingBehavior) onAttacking(analyzer *ImageAnalyzer, movement *MovementCoordinator, config *Config, clientStats *ClientStats) FarmingState {
-	if !fb.isAttacking {
-		fb.rotationAttempts = 0
-		fb.obstacleAvoidanceCount = 0
-		fb.lastInitialAttackTime = time.Now()
-		fb.isAttacking = true
-		fb.alreadyAttackCount = 0
-	}
-
-	// Check if target still exists and is alive
-	if !clientStats.TargetOnScreen || !clientStats.TargetIsAlive {
-		// Check if we're still alive - if so, mob is dead
-		if clientStats.IsAlive == AliveStateAlive {
-			LogInfo("Target defeated")
-
-			// Record mob type
-			if fb.currentTarget != nil {
-				fb.lastKilledType = fb.currentTarget.Type
-			}
-
-			fb.concurrentMobsAttack = 0
-			fb.isAttacking = false
-			return FarmingStateAfterEnemyKill
-		}
-
-		fb.isAttacking = false
-		return FarmingStateSearchingForEnemy
-	}
-
-	// Get target HP
-	targetHP := analyzer.DetectTargetHP()
-
-	// Check for obstacle avoidance
-	lastUpdate := time.Since(clientStats.TargetHP.LastUpdateTime)
-	obstacleTimeout := time.Duration(config.ObstacleAvoidanceCooldown) * time.Millisecond
-
-	if !clientStats.TargetOnScreen || lastUpdate > obstacleTimeout {
-		if targetHP == 100 {
-			if fb.avoidObstacle(movement, analyzer, 2) {
-				return FarmingStateSearchingForEnemy
-			}
-		} else if fb.avoidObstacle(movement, analyzer, config.ObstacleAvoidanceMaxTry) {
-			return FarmingStateSearchingForEnemy
-		}
-	}
-
-	// Use attack skills
-	if len(config.AttackSlots) > 0 {
-		movement.UseSkill(config.AttackSlots)
-	}
-
-	// Check for AOE farming
-	if config.MaxAOEFarming > 1 {
-		if fb.concurrentMobsAttack < config.MaxAOEFarming {
-			if targetHP < 90 {
-				fb.concurrentMobsAttack++
-				return fb.abortAttack(movement, analyzer)
-			}
-			return fb.state
-		}
-	}
-
-	// Use AOE skills if target is close enough
-	targetDistance := clientStats.TargetDistance
-	if targetDistance < 75 && len(config.AOEAttackSlots) > 0 {
-		movement.UseSkill(config.AOEAttackSlots)
-	}
-
-	return fb.state
-}
-
-// avoidObstacle attempts to avoid obstacle
-func (fb *FarmingBehavior) avoidObstacle(movement *MovementCoordinator, analyzer *ImageAnalyzer, maxTries int) bool {
-	if fb.obstacleAvoidanceCount < maxTries {
-		if fb.obstacleAvoidanceCount == 0 {
-			// First try: press Z and move forward
-			movement.PressKey("Z")
-			movement.HoldKeys([]string{"W", "Space"})
-			movement.Wait(800 * time.Millisecond)
-			movement.ReleaseKeys([]string{"Space", "W"})
+	// HP restoration
+	if cfg.Status.Player.HP < 100 {
+		// Try to use food
+		page, slot := cfg.GetAvailableSlot(SlotTypeFood, cfg.Status.Player.HP)
+		if page != -1 || slot != -1 {
+			f.UseSlot(page, slot)
+			cfg.AddAction(fmt.Sprintf("use_food(%d:%d)", page, slot))
 		} else {
-			// Random direction movement
-			directions := []string{"A", "D"}
-			rotationKey := directions[fb.obstacleAvoidanceCount%2]
-
-			movement.HoldKeys([]string{"W", "Space"})
-			movement.HoldKeyFor(rotationKey, 200*time.Millisecond)
-			movement.Wait(800 * time.Millisecond)
-			movement.ReleaseKeys([]string{"Space", "W"})
-			movement.PressKey("Z")
+			// Try to use pill
+			page, slot = cfg.GetAvailableSlot(SlotTypePill, cfg.Status.Player.HP)
+			if page != -1 || slot != -1 {
+				f.UseSlot(page, slot)
+				cfg.AddAction(fmt.Sprintf("use_pill(%d:%d)", page, slot))
+			} else if cfg.Status.Player.HP < cfg.Stat.Attack.EscapeHP {
+				// HP too low and restoration on cooldown, escape!
+				cfg.Log("HP too low (%d%%), escaping!", cfg.Status.Player.HP)
+				f.Stage = StageEscaping
+			}
 		}
-
-		// Reset target HP update time
-		analyzer.GetStats().TargetHP.ResetLastUpdateTime()
-		fb.obstacleAvoidanceCount++
-		return false
 	}
 
-	// Too many attempts, abort
-	fb.abortAttack(movement, analyzer)
-	return true
+	// MP restoration
+	if cfg.Status.Player.MP < 100 {
+		page, slot := cfg.GetAvailableSlot(SlotTypeMPRestore, cfg.Status.Player.MP)
+		if page != -1 || slot != -1 {
+			f.UseSlot(page, slot)
+			cfg.AddAction(fmt.Sprintf("use_mp(%d:%d)", page, slot))
+		}
+	}
+
+	// FP restoration
+	if cfg.Status.Player.FP < 100 {
+		page, slot := cfg.GetAvailableSlot(SlotTypeFPRestore, cfg.Status.Player.FP)
+		if page != -1 || slot != -1 {
+			f.UseSlot(page, slot)
+			cfg.AddAction(fmt.Sprintf("use_fp(%d:%d)", page, slot))
+		}
+	}
+
+	// Buff
+	page, slot := cfg.GetAvailableSlot(SlotTypeBuff, 0)
+	if page != -1 || slot != -1 {
+		f.UseSlot(page, slot)
+		cfg.AddAction(fmt.Sprintf("use_buff(%d:%d)", page, slot))
+		time.Sleep(time.Duration(cfg.Stat.Settings.BuffInterval) * time.Millisecond)
+	}
 }
 
-// abortAttack aborts the current attack
-func (fb *FarmingBehavior) abortAttack(movement *MovementCoordinator, analyzer *ImageAnalyzer) FarmingState {
-	fb.isAttacking = false
+// AfterEnemyKill handles post-kill actions (pickup, pet)
+func (f *Farming) AfterEnemyKill() {
+	cfg := f.Config
 
-	if fb.alreadyAttackCount > 0 {
-		// Add marker area to avoidance
-		if analyzer.GetStats().TargetMarker != nil {
-			markerX := analyzer.GetStats().TargetMarker.X
-			markerY := analyzer.GetStats().TargetMarker.Y
-			bounds := Bounds{X: markerX - 20, Y: markerY - 20, W: 40, H: 40}
-			growAmount := fb.alreadyAttackCount * 10
-			grownBounds := bounds.Grow(growAmount)
+	// Increment kill count
+	cfg.AddKilled()
+	cfg.Log("Killed mob! Total: %d", cfg.Status.Player.Killed)
 
-			fb.avoidedBounds = append(fb.avoidedBounds, AvoidedArea{
-				Bounds:    grownBounds,
-				CreatedAt: time.Now(),
-				Duration:  2 * time.Second,
-			})
-		}
-		fb.alreadyAttackCount++
+	// Wait for defeat interval
+	time.Sleep(time.Duration(cfg.Stat.Attack.DefeatInterval) * time.Millisecond)
+
+	// Try to use pet for pickup
+	page, slot := cfg.GetAvailableSlot(SlotTypePet, 0)
+	if page != -1 || slot != -1 {
+		f.UseSlot(page, slot)
+		cfg.AddAction(fmt.Sprintf("summon_pet(%d:%d)", page, slot))
 	} else {
-		fb.obstacleAvoidanceCount = 0
-		fb.isAttacking = false
-		fb.avoidLastClick()
-	}
-
-	movement.PressKey("Escape")
-	return FarmingStateSearchingForEnemy
-}
-
-// avoidLastClick adds last click position to avoidance list
-func (fb *FarmingBehavior) avoidLastClick() {
-	if fb.lastClickPos != nil {
-		marker := Bounds{
-			X: fb.lastClickPos.X - 1,
-			Y: fb.lastClickPos.Y - 1,
-			W: 2,
-			H: 2,
+		// Use pickup action
+		page, slot = cfg.GetAvailableSlot(SlotTypePick, 0)
+		if page != -1 || slot != -1 {
+			// Press 10 times, 300ms interval
+			for i := 0; i < 10; i++ {
+				f.UseSlot(page, slot)
+				time.Sleep(300 * time.Millisecond)
+			}
+			cfg.AddAction("pickup_items")
 		}
-		fb.avoidedBounds = append(fb.avoidedBounds, AvoidedArea{
-			Bounds:    marker,
-			CreatedAt: time.Now(),
-			Duration:  5 * time.Second,
-		})
 	}
+
+	// Switch to searching state
+	f.Stage = StageSearchingForEnemy
 }
 
-// afterEnemyKill handles post-kill actions
-func (fb *FarmingBehavior) afterEnemyKill(movement *MovementCoordinator, config *Config, stats *Statistics) FarmingState {
-	// Record kill statistics
-	killTime := time.Since(fb.lastInitialAttackTime)
-	searchTime := fb.lastInitialAttackTime.Sub(fb.lastKillTime)
-	stats.AddKill(killTime, searchTime)
+// Attacking handles the attack logic
+func (f *Farming) Attacking() {
+	cfg := f.Config
 
-	fb.killCount++
-	fb.stealedTargetCount = 0
-	fb.lastKillTime = time.Now()
+	// TODO: Get target info from Detector
+	// Need to implement Detector to get real data
+	hasTarget := cfg.Status.Target != nil
 
-	LogInfo(fmt.Sprintf("Kill #%d - Search: %v, Kill: %v", fb.killCount, searchTime, killTime))
-
-	// Pickup items
-	fb.performPickup(movement, config)
-
-	// Reset for next target
-	fb.currentTarget = nil
-
-	return FarmingStateSearchingForEnemy
-}
-
-// updatePickupPet checks if pickup pet should be unsummoned based on cooldown
-func (fb *FarmingBehavior) updatePickupPet(movement *MovementCoordinator, config *Config) {
-	// Check if pet slot is configured
-	if config.PickupPetSlot < 0 {
-		return
-	}
-
-	// Get cooldown for pet slot (default to 3 seconds if not configured)
-	cooldown := 3000 // ms
-	if cd, ok := config.SlotCooldowns[config.PickupPetSlot]; ok && cd > 0 {
-		cooldown = cd
-	}
-
-	// Check if enough time has passed since last summon
-	timeSinceLastSummon := time.Since(fb.lastSummonPetTime).Milliseconds()
-	if timeSinceLastSummon > int64(cooldown) {
-		LogDebug("Unsummoning pickup pet (cooldown expired)")
-		fb.sendSlot(movement, config, config.PickupPetSlot)
-		fb.lastSummonPetTime = time.Now()
-	}
-}
-
-// performPickup performs item pickup using pet or motion
-func (fb *FarmingBehavior) performPickup(movement *MovementCoordinator, config *Config) {
-	// Try pet-based pickup first
-	if config.PickupPetSlot >= 0 {
-		LogDebug("Picking up items with pet")
-		fb.sendSlot(movement, config, config.PickupPetSlot)
-		fb.lastSummonPetTime = time.Now()
-		time.Sleep(1500 * time.Millisecond)
-		fb.updatePickupPet(movement, config)
-		return
-	}
-
-	// Fallback to motion-based pickup
-	if config.PickupMotionSlot >= 0 {
-		LogDebug("Picking up items with motion")
-		fb.sendSlot(movement, config, config.PickupMotionSlot)
-		time.Sleep(1 * time.Second)
-		return
-	}
-
-	// Legacy pickup slots support
-	if len(config.PickupSlots) > 0 {
-		LogDebug("Picking up items (legacy)")
-		movement.UseSkill(config.PickupSlots)
-		time.Sleep(1 * time.Second)
-	}
-}
-
-// sendSlot sends a slot keystroke with cooldown tracking
-func (fb *FarmingBehavior) sendSlot(movement *MovementCoordinator, config *Config, slot int) {
-	// Check if slot is on cooldown
-	if lastUsage, ok := fb.slotUsageTimes[slot]; ok {
-		cooldown := 0
-		if cd, hasCd := config.SlotCooldowns[slot]; hasCd {
-			cooldown = cd
+	// Check if target is lost
+	if !hasTarget {
+		f.Retry.Target++
+		if f.Retry.Target >= 5 {
+			cfg.Log("Target lost (5 times), searching for new target")
+			f.Retry.Target = 0
+			f.Stage = StageSearchingForEnemy
 		}
+		return
+	}
 
-		timeSinceLastUse := time.Since(lastUsage).Milliseconds()
-		if timeSinceLastUse < int64(cooldown) {
-			LogDebug("Slot %d on cooldown, skipping", slot)
+	f.Retry.Target = 0
+
+	// Check if target is a mob (passive or aggressive)
+	// TODO: Need to get actual mob info from Detector
+	// if target is not mob {
+	//     f.Browser.SendKey("Escape", "press")
+	//     cfg.AddAction("cancel_target")
+	//     f.Stage = StageSearchingForEnemy
+	//     return
+	// }
+
+	// Check if HP decreased
+	if cfg.Status.Target != nil && cfg.Status.Target.HP < f.Target.LastHP {
+		f.Target.LastHP = cfg.Status.Target.HP
+		f.Target.LastHPUpdate = time.Now()
+		cfg.Status.Attack.LastUpdateHP = cfg.Status.Target.HP
+		cfg.Status.Attack.LastUpdateTime = time.Now()
+	}
+
+	// Check for obstacle (HP not changing for a long time)
+	timeSinceLastUpdate := time.Since(f.Target.LastHPUpdate).Milliseconds()
+	if timeSinceLastUpdate > int64(cfg.Stat.Attack.ObstacleThresholdTime) {
+		cfg.Log("Obstacle detected: HP not changing for %dms", timeSinceLastUpdate)
+
+		if cfg.Status.Target != nil && cfg.Status.Target.HP == 100 {
+			// Never hit the target
+			cfg.Log("Never hit target, canceling")
+			f.Browser.SendKey("Escape", "press")
+			cfg.AddAction("cancel_obstacle_target")
+			f.Stage = StageSearchingForEnemy
+			f.Obstacle.Count = 0
+			return
+		} else if f.Obstacle.Count < cfg.Stat.Attack.ObstacleAvoidCount {
+			// Try to avoid obstacle
+			cfg.Log("Avoiding obstacle (attempt %d/%d)", f.Obstacle.Count, cfg.Stat.Attack.ObstacleAvoidCount)
+			f.Browser.SendKey("w", "press")
+			time.Sleep(100 * time.Millisecond)
+
+			// Random left/right movement
+			if rand.Intn(2) == 0 {
+				f.Browser.SendKey("ArrowLeft", "hold")
+			} else {
+				f.Browser.SendKey("ArrowRight", "hold")
+			}
+			f.Browser.SendKey(" ", "press") // Jump
+			time.Sleep(10 * time.Millisecond)
+
+			if rand.Intn(2) == 0 {
+				f.Browser.SendKey("ArrowLeft", "release")
+			} else {
+				f.Browser.SendKey("ArrowRight", "release")
+			}
+
+			f.Obstacle.Count++
+			f.Target.LastHPUpdate = time.Now() // Reset update time
+			time.Sleep(time.Duration(cfg.Stat.Attack.ObstacleCoolDown) * time.Millisecond)
+		} else {
+			// Give up after max attempts
+			cfg.Log("Obstacle avoidance failed, giving up")
+			f.Browser.SendKey("Escape", "press")
+			cfg.AddAction("give_up_obstacle")
+			f.Stage = StageSearchingForEnemy
+			f.Obstacle.Count = 0
 			return
 		}
 	}
 
-	// Use the slot
-	movement.UseSlot(slot)
-	fb.slotUsageTimes[slot] = time.Now()
-}
-
-// checkRestorations checks and uses restoration items/skills
-func (fb *FarmingBehavior) checkRestorations(movement *MovementCoordinator, config *Config, stats *ClientStats) {
-	// Use party skills
-	fb.usePartySkills(movement, config)
-
-	hpValue := stats.HP.Value
-
-	if hpValue > 0 {
-		// Check HP - Pills first, then heal skills, then food
-		if hpValue < config.HealThreshold {
-			if len(config.HealSlots) > 0 {
-				LogDebug("HP low (%d%%), using heal skill", hpValue)
-				movement.UseSkill(config.HealSlots)
-			} else if len(config.AOEHealSlots) > 0 {
-				LogDebug("HP low (%d%%), using AOE heal", hpValue)
-				movement.UseSkill(config.AOEHealSlots)
-				time.Sleep(100 * time.Millisecond)
-				movement.UseSkill(config.AOEHealSlots)
-				time.Sleep(100 * time.Millisecond)
-				movement.UseSkill(config.AOEHealSlots)
-			}
-		}
-
-		// Check MP
-		mpValue := stats.MP.Value
-		if mpValue < config.MPThreshold && len(config.MPRestoreSlots) > 0 {
-			LogDebug("MP low (%d%%), restoring", mpValue)
-			movement.UseSkill(config.MPRestoreSlots)
-		}
-
-		// Check FP
-		fpValue := stats.FP.Value
-		if fpValue < config.FPThreshold && len(config.FPRestoreSlots) > 0 {
-			LogDebug("FP low (%d%%), restoring", fpValue)
-			movement.UseSkill(config.FPRestoreSlots)
-		}
-	}
-}
-
-// usePartySkills uses party buff skills
-func (fb *FarmingBehavior) usePartySkills(movement *MovementCoordinator, config *Config) {
-	if len(config.PartySkillSlots) == 0 {
+	// Check attack timeout
+	attackDuration := time.Since(cfg.Status.Attack.AttackTime).Seconds()
+	if attackDuration > float64(cfg.Stat.Attack.MaxTime) {
+		cfg.Log("Attack timeout (%ds), giving up", cfg.Stat.Attack.MaxTime)
+		f.Browser.SendKey("Escape", "press")
+		cfg.AddAction("timeout_give_up")
+		f.Stage = StageSearchingForEnemy
 		return
 	}
 
-	// Use all party skills that are not on cooldown
-	for _, slot := range config.PartySkillSlots {
-		// Check if slot is on cooldown using sendSlot
-		fb.sendSlot(movement, config, slot)
-		// Small delay between skills
-		fb.wait(100 * time.Millisecond)
+	// Check if target is dead
+	if cfg.Status.Target != nil && cfg.Status.Target.HP == 0 {
+		cfg.Log("Target killed!")
+		f.Stage = StageAfterEnemyKill
+		f.Obstacle.Count = 0
+		return
+	}
+
+	// Use attack skill
+	page, slot := cfg.GetAvailableSlot(SlotTypeAttack, cfg.Status.Player.HP)
+	if page != -1 || slot != -1 {
+		f.UseSlot(page, slot)
+		cfg.AddAction(fmt.Sprintf("attack(%d:%d)", page, slot))
 	}
 }
 
-// updateTimestamps updates internal timestamps
-func (fb *FarmingBehavior) updateTimestamps() {
-	// Update avoided bounds - remove expired ones
-	now := time.Now()
-	active := make([]AvoidedArea, 0)
+// SearchingForEnemy handles the enemy search logic
+func (f *Farming) SearchingForEnemy() {
+	cfg := f.Config
 
-	for _, avoided := range fb.avoidedBounds {
-		if now.Sub(avoided.CreatedAt) < avoided.Duration {
-			active = append(active, avoided)
+	// TODO: Get target and mobs info from Detector
+	hasTarget := cfg.Status.Target != nil
+	mobsCount := len(cfg.Status.Mobs)
+
+	// If target exists
+	if hasTarget {
+		// TODO: Check if it's a mob
+		// if target is mob {
+		// Initialize attack parameters
+		cfg.Status.Attack.AttackTime = time.Now()
+		f.Target.LastHP = 100
+		f.Target.LastHPUpdate = time.Now()
+		f.Obstacle.Count = 0
+		f.Stage = StageAttacking
+		cfg.Log("Target acquired, starting attack")
+		return
+		// } else {
+		//     f.Browser.SendKey("Escape", "press")
+		//     cfg.AddAction("cancel_non_mob")
+		//     return
+		// }
+	}
+
+	// If mobs detected
+	if mobsCount > 0 {
+		// Too many mobs, enter careful mode
+		if mobsCount > 7 && !f.SearchingEnemy.Careful {
+			cfg.Log("Too many mobs (%d), adjusting view", mobsCount)
+			f.Browser.SendKey("ArrowUp", "press")
+			cfg.AddAction("careful_mode")
+			f.SearchingEnemy.Careful = true
+			return
 		}
+
+		// Stop moving forward if currently moving
+		if !f.SearchingEnemy.ForwardTime.IsZero() {
+			f.Browser.SendKey("w", "release")
+			cfg.AddAction("stop_forward")
+			f.SearchingEnemy.ForwardTime = time.Time{}
+		}
+
+		// Click on mob (click first one)
+		// TODO: Need to parse coordinates from mobs list
+		// f.Browser.SimpleClick(x, y)
+		cfg.Log("Clicking on mob")
+		cfg.AddAction("click_mob")
+		return
 	}
 
-	fb.avoidedBounds = active
-}
-
-// wait sets a wait duration
-func (fb *FarmingBehavior) wait(duration time.Duration) {
-	if fb.waitDuration != nil {
-		newDuration := *fb.waitDuration + duration
-		fb.waitDuration = &newDuration
+	// No mobs, start rotation search
+	if f.SearchingEnemy.Count > 0 {
+		// Still have rotation attempts left
+		if f.SearchingEnemy.Reverse {
+			f.Browser.SendKey("ArrowLeft", "press")
+			cfg.AddAction("rotate_left")
+		} else {
+			f.Browser.SendKey("ArrowRight", "press")
+			cfg.AddAction("rotate_right")
+		}
+		f.SearchingEnemy.Count--
 	} else {
-		fb.waitStart = time.Now()
-		fb.waitDuration = &duration
+		// Rotation attempts exhausted, change strategy
+		if f.SearchingEnemy.UpAndDown >= 1 && f.SearchingEnemy.UpAndDown <= 3 {
+			// Look down
+			f.Browser.SendKey("ArrowDown", "press")
+			cfg.AddAction("look_down")
+			f.SearchingEnemy.Count = rand.Intn(6) + 7 // 7-12
+			f.SearchingEnemy.UpAndDown++
+		} else if f.SearchingEnemy.UpAndDown >= 4 && f.SearchingEnemy.UpAndDown <= 6 {
+			// Look up
+			f.Browser.SendKey("ArrowUp", "press")
+			cfg.AddAction("look_up")
+			f.SearchingEnemy.Count = rand.Intn(6) + 7 // 7-12
+			f.SearchingEnemy.UpAndDown++
+		} else if cfg.Stat.Navigate {
+			// Navigation enabled
+			cfg.Log("Entering navigation mode")
+			f.Stage = StageNavigating
+		} else {
+			// Move forward
+			cfg.Log("Moving forward to find mobs")
+			f.Browser.SendKey("w", "hold")
+			cfg.AddAction("move_forward")
+
+			// Record start time, duration 20-40 seconds
+			duration := rand.Intn(21) + 20 // 20-40
+			f.SearchingEnemy.ForwardTime = time.Now().Add(time.Duration(duration) * time.Second)
+
+			// Random jump
+			if rand.Intn(3) == 1 {
+				jumpDuration := rand.Float64()*1.5 + 0.5 // 0.5-2.0
+				time.Sleep(time.Duration(jumpDuration*1000) * time.Millisecond)
+				f.Browser.SendKey(" ", "press")
+				cfg.AddAction("jump")
+			}
+
+			// Random left/right strafe
+			direct := rand.Intn(6)
+			if direct == 1 {
+				moveDuration := rand.Float64()*1.5 + 0.5 // 0.5-2.0
+				f.Browser.SendKey("ArrowLeft", "hold")
+				time.Sleep(time.Duration(moveDuration*1000) * time.Millisecond)
+				f.Browser.SendKey("ArrowLeft", "release")
+				cfg.AddAction("strafe_left")
+			} else if direct == 2 {
+				moveDuration := rand.Float64()*1.5 + 0.5 // 0.5-2.0
+				f.Browser.SendKey("ArrowRight", "hold")
+				time.Sleep(time.Duration(moveDuration*1000) * time.Millisecond)
+				f.Browser.SendKey("ArrowRight", "release")
+				cfg.AddAction("strafe_right")
+			}
+
+			// Reset
+			f.SearchingEnemy.UpAndDown = 1
+			f.SearchingEnemy.Reverse = !f.SearchingEnemy.Reverse
+		}
+	}
+
+	// Check if need to stop moving forward
+	if !f.SearchingEnemy.ForwardTime.IsZero() && time.Now().After(f.SearchingEnemy.ForwardTime) {
+		f.Browser.SendKey("w", "release")
+		cfg.AddAction("stop_forward_timeout")
+		f.SearchingEnemy.ForwardTime = time.Time{}
+		f.SearchingEnemy.UpAndDown = 1
 	}
 }
 
-// waitCooldown checks if we should wait
-func (fb *FarmingBehavior) waitCooldown() bool {
-	if fb.waitDuration != nil {
-		if time.Since(fb.waitStart) < *fb.waitDuration {
-			return true
-		}
-		fb.waitDuration = nil
+// Offline handles disconnection recovery
+func (f *Farming) Offline() {
+	cfg := f.Config
+	cfg.Log("Handling offline state")
+
+	// Refresh browser
+	err := f.Browser.Refresh()
+	if err != nil {
+		cfg.Log("Failed to refresh browser: %v", err)
 	}
+
+	// Wait for page to load
+	time.Sleep(5 * time.Second)
+
+	// Press Enter every second until state bar appears
+	for i := 0; i < 30; i++ {
+		// TODO: Check if state bar appears
+		// if stateBarAppears {
+		//     break
+		// }
+		f.Browser.SendKey("Enter", "press")
+		cfg.AddAction("reconnect_enter")
+		time.Sleep(1 * time.Second)
+	}
+
+	// Press ESC 10 times
+	for i := 0; i < 10; i++ {
+		f.Browser.SendKey("Escape", "press")
+		cfg.AddAction("cleanup_esc")
+		time.Sleep(1 * time.Second)
+	}
+
+	// Increment disconnect count
+	// TODO: Need to add disconnect counter to struct
+	cfg.Log("Reconnection attempt completed")
+
+	// Switch to initializing state
+	f.Stage = StageInitializing
+}
+
+// Initializing checks if the game is ready
+func (f *Farming) Initializing() bool {
+	cfg := f.Config
+	cfg.Log("Initializing...")
+
+	// TODO: Check if state bar is open
+	stateBarOpen := true // Temporary
+	for i := 0; i < 5; i++ {
+		if stateBarOpen {
+			break
+		}
+		// Press T key
+		f.Browser.SendKey("t", "press")
+		cfg.AddAction("open_state_bar")
+		time.Sleep(5 * time.Second)
+		// TODO: Check again
+	}
+
+	// TODO: Check if map is open
+	mapOpen := true // Temporary
+	for i := 0; i < 5; i++ {
+		if mapOpen {
+			break
+		}
+		// Press M key (assumed)
+		f.Browser.SendKey("m", "press")
+		cfg.AddAction("open_map")
+		time.Sleep(5 * time.Second)
+		// TODO: Check again
+	}
+
+	if stateBarOpen && mapOpen {
+		cfg.Log("Initialization completed")
+		f.Stage = StageSearchingForEnemy
+		return true
+	}
+
 	return false
 }
 
-// Stop stops the farming behavior
-func (fb *FarmingBehavior) Stop() {
-	fb.isAttacking = false
-	fb.currentTarget = nil
-	fb.state = FarmingStateSearchingForEnemy
+// UseSlot uses a skill/item slot
+func (f *Farming) UseSlot(page, slot int) error {
+	// Switch page if needed
+	if page != -1 {
+		f.Browser.SendKey(fmt.Sprintf("F%d", page), "press")
+		f.Config.UpdateCurrentPage(page)
+		time.Sleep(100 * time.Millisecond)
+	}
+
+	// Press slot key
+	return f.Browser.SendKey(fmt.Sprintf("%d", slot), "press")
+}
+
+// Start is the main farming loop
+func (f *Farming) Start() {
+	cfg := f.Config
+	cfg.Log("Starting farming behavior")
+
+	for cfg.IsEnabled() {
+		// Capture screenshot
+		img, err := f.Browser.Capture()
+		if err != nil {
+			cfg.Log("Failed to capture: %v", err)
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
+		// TODO: Call detect to update state
+		// f.Detector.UpdateClientDetect(img)
+		_ = img // Temporary to avoid unused error
+
+		// Restore HP/MP/FP
+		f.Restore()
+
+		// Update stage to config
+		cfg.UpdateStage(f.Stage.String())
+
+		// Execute logic based on stage
+		switch f.Stage {
+		case StageInitializing:
+			f.Initializing()
+
+		case StageSearchingForEnemy:
+			f.SearchingForEnemy()
+
+		case StageAttacking:
+			f.Attacking()
+
+		case StageAfterEnemyKill:
+			f.AfterEnemyKill()
+
+		case StageEscaping:
+			// TODO: Implement escape logic
+			cfg.Log("Escaping...")
+			f.Stage = StageSearchingForEnemy
+
+		case StageDead:
+			// TODO: Implement death handling
+			cfg.Log("Dead, waiting for respawn...")
+			f.Browser.SendKey("Enter", "press")
+			time.Sleep(time.Duration(cfg.Stat.Settings.DeathConfirm) * time.Millisecond)
+
+		case StageOffline:
+			f.Offline()
+
+		case StageNavigating:
+			// TODO: Implement navigation logic
+			cfg.Log("Navigating...")
+			f.Stage = StageSearchingForEnemy
+		}
+
+		// Save status
+		err = cfg.SaveStatus()
+		if err != nil {
+			cfg.Log("Failed to save status: %v", err)
+		}
+
+		// Sleep based on capture interval
+		if cfg.Stat.Type > 0 {
+			time.Sleep(time.Duration(1000) * time.Millisecond) // Default 1 second
+		}
+	}
+
+	cfg.Log("Farming behavior stopped")
 }

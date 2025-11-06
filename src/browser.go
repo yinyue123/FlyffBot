@@ -1,26 +1,7 @@
 // Package main - browser.go
 //
-// This file implements the Browser controller that manages chromedp for game interaction.
-// It provides screen capture, cookie management, and action logging.
-//
-// Key Responsibilities:
-//   - Chromedp browser lifecycle management (start, navigate, close)
-//   - Screenshot capture with timeout protection (5s)
-//   - Cookie persistence (save/load for session continuation)
-//   - Action logging for behavior tracking (used by debug overlay in debug.go)
-//
-// Browser Architecture:
-// The Browser uses nested contexts for proper resource management:
-//   - allocCtx: Allocator context for browser process management
-//   - ctx: Browser context for page operations
-// Both contexts have cancel functions for graceful cleanup.
-//
-// Timeout Strategy:
-//   - Navigation: 60 seconds (slow network tolerance)
-//   - Screenshot: 5 seconds (prevent hanging)
-//   - Canvas check: 2 seconds (quick validation)
-//
-// Note: Debug overlay rendering has been moved to debug.go for better code organization.
+// This file manages the browser controller for game interaction.
+// It provides browser lifecycle management, JavaScript injection, and game actions.
 package main
 
 import (
@@ -28,8 +9,7 @@ import (
 	"context"
 	"fmt"
 	"image"
-	_ "image/png" // Register PNG decoder
-	"sync"
+	_ "image/png"
 	"time"
 
 	"github.com/chromedp/cdproto/cdp"
@@ -37,147 +17,139 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-// formatInt converts an integer to string for JavaScript injection.
-//
-// This helper function is used when building JavaScript code strings to ensure
-// proper formatting of integer values without quotes.
-//
-// Parameters:
-//   - i: Integer value to format
-//
-// Returns:
-//   - string: Integer formatted as string (e.g., 123 -> "123")
-func formatInt(i int) string {
-	return fmt.Sprintf("%d", i)
-}
-
-// formatIntSlice converts an integer slice to comma-separated string for JavaScript.
-//
-// Used to format skill slot arrays for display in the debug overlay panel.
-//
-// Parameters:
-//   - slice: Integer array to format
-//
-// Returns:
-//   - string: Comma-separated values (e.g., [0, 1, 2] -> "0, 1, 2")
-//   - string: Empty string if slice is empty
-func formatIntSlice(slice []int) string {
-	if len(slice) == 0 {
-		return ""
-	}
-	result := fmt.Sprintf("%d", slice[0])
-	for i := 1; i < len(slice); i++ {
-		result += fmt.Sprintf(", %d", slice[i])
-	}
-	return result
-}
-
-// ActionLog represents a recorded user action for debug overlay display.
-//
-// ActionLog entries are stored in a ring buffer (last 10 actions) and displayed
-// in the debug overlay to help visualize bot behavior in real-time.
-//
-// Fields:
-//   - Message: Human-readable action description (e.g., "Click at (400, 300)")
-//   - Timestamp: When the action occurred (used for time-based display)
-type ActionLog struct {
-	Message   string
-	Timestamp time.Time
-}
-
-// Browser manages the chromedp browser instance for game interaction.
-//
-// Lifecycle:
-//   1. NewBrowser(): Create instance with empty action log
-//   2. Start(): Initialize chromedp contexts and navigate to game URL
-//   3. CheckCanvasExists(): Verify game is loaded
-//   4. Capture(): Take screenshots repeatedly
-//   5. DrawDebugOverlay(): Render detection visualization
-//   6. Close(): Clean up contexts and browser process
-//
-// Concurrency:
-// Browser operations are thread-safe for read access to action logs (RWMutex).
-// Context operations are protected by chromedp's internal synchronization.
-//
-// Error Handling:
-// All chromedp operations use context timeouts to prevent indefinite blocking.
-// Errors are logged but do not crash the application.
+// Browser manages the chromedp browser instance
 type Browser struct {
 	ctx         context.Context
 	cancel      context.CancelFunc
 	allocCtx    context.Context
 	allocCancel context.CancelFunc
-	actionLogs  []ActionLog
-	logMutex    sync.RWMutex
 }
+
+// EvalJS contains the JavaScript code to inject into the game page
+const EvalJS = `
+const client = document.querySelector('canvas')
+const input = document.querySelector('input')
+const DEBUG = false
+function addTargetMarker(color = 'red', x = 0, y = 0,) {
+    if (!DEBUG) return
+    const targetMarker = document.createElement('div')
+    const targetMarkerStyle = ` + "`position: fixed; width: 2px; height: 2px; background-color: ${color}; border-radius: 50%;z-index: 9999;left: ${x}px;top: ${y}px;`" + `
+    targetMarker.style = targetMarkerStyle
+    document.body.appendChild(targetMarker)
+
+    setTimeout(() => {
+        targetMarker.remove()
+    }, 1000)
+}
+
+function isMob() {
+    return document.body.style.cursor.indexOf('curattack') > 0
+}
+function dispatchEvent(event) {
+    return client.dispatchEvent(event)
+}
+
+function after(duration = 0, callback) {
+    setTimeout(callback, duration)
+}
+
+let checkMobTimeout = null;
+function mouseEvent(type, x, y, { checkMob = false, delay = 50, duration } = {}) {
+    if (checkMobTimeout) {
+        clearTimeout(checkMobTimeout)
+        checkMobTimeout = null
+    }
+    function waitDuration(type) {
+        if (duration) {
+            after(duration, () => {
+                dispatchEvent(new MouseEvent(type ?? 'mouseup', { clientX: x, clientY: y }))
+            })
+        } else if (type) {
+            dispatchEvent(new MouseEvent(type, { key }))
+        }
+    }
+    switch (type) {
+        case 'move':
+            dispatchEvent(new MouseEvent('mousemove', { clientX: x, clientY: y }))
+            break;
+        case 'press':
+            dispatchEvent(new MouseEvent('mousedown', { clientX: x, clientY: y }))
+            waitDuration('mouseup')
+            break;
+        case 'hold':
+            dispatchEvent(new MouseEvent('mousedown', { clientX: x, clientY: y }))
+            waitDuration()
+            break;
+        case 'release':
+            dispatchEvent(new MouseEvent('mouseup', { clientX: x, clientY: y }))
+            break;
+        case 'moveClick':
+            dispatchEvent(new MouseEvent('mousemove', { clientX: x, clientY: y }))
+
+            if (checkMob) {
+                checkMobTimeout = setTimeout(() => {
+                    if (isMob()) {
+                        dispatchEvent(new MouseEvent('mousedown', { clientX: x, clientY: y }))
+                        dispatchEvent(new MouseEvent('mouseup', { clientX: x, clientY: y }))
+                        addTargetMarker('green', x, y)
+                    } else {
+                        addTargetMarker('red', x, y)
+                    }
+                }, delay)
+            } else if (!checkMob) {
+                addTargetMarker('blue', x, y)
+                dispatchEvent(new MouseEvent('mousedown', { clientX: x, clientY: y }))
+                dispatchEvent(new MouseEvent('mouseup', { clientX: x, clientY: y }))
+            }
+            break;
+    }
+}
+function keyboardEvent(keyMode, key, duration = null) {
+    function waitDuration(type) {
+        if (duration) {
+            setTimeout(() => {
+                dispatchEvent(new KeyboardEvent(type ?? 'keyup', { key }))
+            }, duration)
+        } else if (type) {
+            dispatchEvent(new KeyboardEvent(type, { key }))
+        }
+    }
+    switch (keyMode) {
+        case 'press':
+            dispatchEvent(new KeyboardEvent('keydown', { key }))
+            waitDuration('keyup')
+            break;
+        case 'hold':
+            dispatchEvent(new KeyboardEvent('keydown', { key }))
+            waitDuration()
+            break;
+        case 'release':
+            dispatchEvent(new KeyboardEvent('keyup', { key }))
+            break;
+    }
+}
+
+function sendSlot(slotBarIndex, slotIndex) {
+    keyboardEvent('press', ` + "`F${slotBarIndex + 1}`" + `)
+    keyboardEvent('press', slotIndex)
+}
+
+function setInputChat(text) {
+    input.value = text
+    input.select()
+}
+`
 
 // NewBrowser creates a new browser instance
 func NewBrowser() *Browser {
-	return &Browser{
-		actionLogs: make([]ActionLog, 0, 10),
-	}
+	return &Browser{}
 }
 
-// LogAction logs an action for debug display (keeps last 10)
-func (b *Browser) LogAction(message string) {
-	b.logMutex.Lock()
-	defer b.logMutex.Unlock()
-
-	b.actionLogs = append(b.actionLogs, ActionLog{
-		Message:   message,
-		Timestamp: time.Now(),
-	})
-
-	// Keep only last 10 actions
-	if len(b.actionLogs) > 10 {
-		b.actionLogs = b.actionLogs[len(b.actionLogs)-10:]
-	}
-}
-
-// GetActionLogs returns recent action logs
-func (b *Browser) GetActionLogs() []ActionLog {
-	b.logMutex.RLock()
-	defer b.logMutex.RUnlock()
-
-	logs := make([]ActionLog, len(b.actionLogs))
-	copy(logs, b.actionLogs)
-	return logs
-}
-
-// Start initializes chromedp browser and navigates to the game URL.
-//
-// This function performs the complete browser startup sequence including context
-// creation, cookie restoration, and navigation with timeout protection.
-//
-// Parameters:
-//   - cookies: Previously saved cookies to restore session (can be empty for new session)
-//
-// Returns:
-//   - error: Navigation error (timeout or network failure), nil on success
-//
-// Algorithm:
-//   1. Create exec allocator context with browser options:
-//      - headless=false (show browser window)
-//      - disable-gpu=false (enable GPU acceleration)
-//      - disable automation detection flags
-//      - Set window size to 800x600
-//   2. Create browser context with custom logger
-//   3. If cookies provided, set them before navigation
-//   4. Navigate to https://universe.flyff.com/play with 60s timeout
-//   5. Log success or error
-//
-// Timeout Protection:
-// Uses 60-second timeout for navigation to handle slow networks or game server issues.
-// Timeout error is logged but does not crash the program.
-//
-// Notes:
-//   - Browser window is visible for debugging and user interaction
-//   - Automation flags are disabled to avoid detection
-//   - Failed navigation can be retried by calling Start() again
-func (b *Browser) Start(cookies []CookieData) error {
+// Start initializes the browser and loads the game
+func (b *Browser) Start(cfg *Config) error {
 	// Create allocator context
 	opts := append(chromedp.DefaultExecAllocatorOptions[:],
-		chromedp.Flag("headless", false), // Show browser window
+		chromedp.Flag("headless", false),
 		chromedp.Flag("disable-gpu", false),
 		chromedp.Flag("enable-automation", false),
 		chromedp.Flag("disable-blink-features", "AutomationControlled"),
@@ -185,105 +157,51 @@ func (b *Browser) Start(cookies []CookieData) error {
 	)
 
 	b.allocCtx, b.allocCancel = chromedp.NewExecAllocator(context.Background(), opts...)
-	LogInfo("Browser allocator context created")
+	b.ctx, b.cancel = chromedp.NewContext(b.allocCtx)
 
-	// Create context
-	b.ctx, b.cancel = chromedp.NewContext(b.allocCtx, chromedp.WithLogf(func(format string, args ...interface{}) {
-		LogDebug(format, args...)
-	}))
-	LogInfo("Browser context created")
+	// Get cookies from config
+	cookies := cfg.Cookies
 
-	// Navigate to game with timeout (if we have cookies, set them first)
+	// Set cookies before navigation
 	if len(cookies) > 0 {
-		LogInfo("Setting %d cookies before navigation", len(cookies))
-		err := b.SetCookies(cookies)
+		cfg.Log("Setting %d cookies before navigation", len(cookies))
+		err := b.setCookies(cookies)
 		if err != nil {
-			LogWarn("Failed to set cookies before navigation: %v", err)
+			cfg.Log("Warning: failed to set cookies: %v", err)
 		}
 	}
 
-	LogInfo("Navigating to https://universe.flyff.com/play")
-
-	// Navigate - chromedp.Run will use the browser context
-	// We run the navigation in a goroutine to not block if it takes long
+	// Navigate to game
+	cfg.Log("Navigating to https://universe.flyff.com/play")
 	err := chromedp.Run(b.ctx,
 		chromedp.Navigate("https://universe.flyff.com/play"),
 	)
 
 	if err != nil {
-		LogError("Navigation error: %v", err)
+		cfg.Log("Navigation error: %v", err)
 		return err
 	}
 
-	LogInfo("Navigation completed successfully")
-	LogInfo("Browser is now ready")
+	// Wait for page to load
+	time.Sleep(2 * time.Second)
+
+	// Inject JavaScript
+	err = b.InjectJS()
+	if err != nil {
+		cfg.Log("Warning: failed to inject JS: %v", err)
+	}
+
+	cfg.Log("Browser started successfully")
 	return nil
 }
 
-// CheckCanvasExists checks if the game canvas element exists in the page
-func (b *Browser) CheckCanvasExists() bool {
-	// Check if context is still valid
-	if b.ctx == nil || b.ctx.Err() != nil {
-		LogDebug("Browser context is invalid")
-		return false
-	}
-
-	var canvasExists bool
-	checkCtx, cancel := context.WithTimeout(b.ctx, 2*time.Second)
-	defer cancel()
-
-	err := chromedp.Run(checkCtx,
-		chromedp.Evaluate(`document.getElementById('canvas') !== null`, &canvasExists),
-	)
-
-	if err != nil {
-		LogDebug("Failed to check canvas existence: %v", err)
-		return false
-	}
-
-	return canvasExists
-}
-
-// Capture takes a screenshot of the current browser page.
-//
-// This is the primary function for obtaining game frames for image recognition.
-// Uses chromedp's CaptureScreenshot action with timeout protection.
-//
-// Returns:
-//   - *image.RGBA: Screenshot as RGBA image, nil if capture fails
-//   - error: Capture error (timeout, invalid context), nil on success
-//
-// Algorithm:
-//   1. Validate browser context is still active
-//   2. Create 5-second timeout context
-//   3. Capture screenshot via chromedp (returns PNG bytes)
-//   4. Decode PNG bytes to image.Image
-//   5. Convert to *image.RGBA format (required by analyzer)
-//   6. Return RGBA image or error
-//
-// Performance:
-// Typical capture time: 10-50ms depending on screen resolution and content.
-// Timeout set to 5 seconds to handle edge cases without blocking indefinitely.
-//
-// Error Handling:
-// Returns nil image and logs error if:
-//   - Context is invalid or cancelled
-//   - Screenshot operation times out
-//   - Image decoding fails
-//
-// Notes:
-//   - Captures entire browser viewport (800x600 default)
-//   - Does not capture areas outside the browser window
-//   - Thread-safe (uses chromedp's internal synchronization)
+// Capture takes a screenshot of the browser
 func (b *Browser) Capture() (*image.RGBA, error) {
-	// Check if context is still valid
 	if b.ctx == nil || b.ctx.Err() != nil {
-		LogDebug("Browser context is invalid")
-		return nil, nil
+		return nil, fmt.Errorf("browser context is invalid")
 	}
 
 	var buf []byte
-	// Use a timeout for screenshot to avoid hanging
 	captureCtx, cancel := context.WithTimeout(b.ctx, 5*time.Second)
 	defer cancel()
 
@@ -292,7 +210,6 @@ func (b *Browser) Capture() (*image.RGBA, error) {
 	)
 
 	if err != nil {
-		LogDebug("Screenshot failed: %v", err)
 		return nil, err
 	}
 
@@ -314,36 +231,10 @@ func (b *Browser) Capture() (*image.RGBA, error) {
 	return rgba, nil
 }
 
-// GetScreenBounds returns the browser viewport bounds
-func (b *Browser) GetScreenBounds() image.Rectangle {
-	return image.Rectangle{Max: image.Point{X: 800, Y: 600}}
-}
-
-// GetRecentLogs gets recent action logs (last 5)
-func (b *Browser) GetRecentLogs() []ActionLog {
-	b.logMutex.RLock()
-	defer b.logMutex.RUnlock()
-
-	count := 5
-	if len(b.actionLogs) < count {
-		count = len(b.actionLogs)
-	}
-
-	if count == 0 {
-		return []ActionLog{}
-	}
-
-	// Return last N logs
-	result := make([]ActionLog, count)
-	copy(result, b.actionLogs[len(b.actionLogs)-count:])
-	return result
-}
-
-
-// GetCookies retrieves all cookies from the browser
-func (b *Browser) GetCookies() ([]CookieData, error) {
+// SaveCookie saves browser cookies to config
+func (b *Browser) SaveCookie(cfg *Config) error {
 	if b.ctx == nil || b.ctx.Err() != nil {
-		return nil, fmt.Errorf("browser context is invalid")
+		return fmt.Errorf("browser context is invalid")
 	}
 
 	var cookies []*network.Cookie
@@ -356,14 +247,15 @@ func (b *Browser) GetCookies() ([]CookieData, error) {
 	)
 
 	if err != nil {
-		LogError("Failed to get cookies: %v", err)
-		return nil, err
+		cfg.Log("Failed to get cookies: %v", err)
+		return err
 	}
 
-	// Convert network cookies to CookieData
-	cookieData := make([]CookieData, len(cookies))
+	// Convert to config cookie format
+	cfg.mu.Lock()
+	cfg.Cookies = make([]Cookie, len(cookies))
 	for i, c := range cookies {
-		cookieData[i] = CookieData{
+		cfg.Cookies[i] = Cookie{
 			Name:     c.Name,
 			Value:    c.Value,
 			Domain:   c.Domain,
@@ -374,65 +266,128 @@ func (b *Browser) GetCookies() ([]CookieData, error) {
 			SameSite: string(c.SameSite),
 		}
 	}
+	cfg.mu.Unlock()
 
-	LogInfo("Retrieved %d cookies from browser", len(cookieData))
-	return cookieData, nil
+	// Save to file
+	err = cfg.SaveCookies()
+	if err != nil {
+		cfg.Log("Failed to save cookies to file: %v", err)
+		return err
+	}
+
+	cfg.Log("Saved %d cookies", len(cookies))
+	return nil
 }
 
-// SetCookies sets cookies in the browser
-func (b *Browser) SetCookies(cookies []CookieData) error {
+// Refresh reloads the current page (for reconnection)
+func (b *Browser) Refresh() error {
+	if b.ctx == nil || b.ctx.Err() != nil {
+		return fmt.Errorf("browser context is invalid")
+	}
+
+	err := chromedp.Run(b.ctx,
+		chromedp.Reload(),
+	)
+
+	if err != nil {
+		return err
+	}
+
+	// Wait for page to reload
+	time.Sleep(2 * time.Second)
+
+	// Re-inject JavaScript
+	return b.InjectJS()
+}
+
+// Stop closes the browser
+func (b *Browser) Stop() {
+	if b.cancel != nil {
+		b.cancel()
+	}
+	if b.allocCancel != nil {
+		b.allocCancel()
+	}
+}
+
+// InjectJS injects the eval.js script into the page
+func (b *Browser) InjectJS() error {
+	if b.ctx == nil || b.ctx.Err() != nil {
+		return fmt.Errorf("browser context is invalid")
+	}
+
+	return chromedp.Run(b.ctx,
+		chromedp.Evaluate(EvalJS, nil),
+	)
+}
+
+// Eval executes custom JavaScript code
+func (b *Browser) Eval(js string) error {
+	if b.ctx == nil || b.ctx.Err() != nil {
+		return fmt.Errorf("browser context is invalid")
+	}
+
+	return chromedp.Run(b.ctx,
+		chromedp.Evaluate(js, nil),
+	)
+}
+
+// SimpleClick performs a simple click at the given coordinates
+func (b *Browser) SimpleClick(x, y int) error {
+	js := fmt.Sprintf("mouseEvent('moveClick', %d, %d);", x, y)
+	return b.Eval(js)
+}
+
+// SendMessage sets the chat input text
+func (b *Browser) SendMessage(text string) error {
+	js := fmt.Sprintf("setInputChat('%s')", text)
+	return b.Eval(js)
+}
+
+// SendSlot sends a slot action (page + slot)
+func (b *Browser) SendSlot(page, slot int) error {
+	// page is 1-9, convert to 0-8 for slotBarIndex
+	slotBarIndex := page - 1
+	js := fmt.Sprintf("sendSlot(%d, %d)", slotBarIndex, slot)
+	return b.Eval(js)
+}
+
+// SendKey sends a keyboard event
+func (b *Browser) SendKey(key string, mode string) error {
+	// mode can be: "press", "hold", "release"
+	js := fmt.Sprintf("keyboardEvent('%s', '%s');", mode, key)
+	return b.Eval(js)
+}
+
+// setCookies is an internal helper to set cookies in the browser
+func (b *Browser) setCookies(cookies []Cookie) error {
 	if len(cookies) == 0 {
 		return nil
 	}
 
-	err := chromedp.Run(b.ctx,
+	return chromedp.Run(b.ctx,
 		chromedp.ActionFunc(func(ctx context.Context) error {
 			for _, c := range cookies {
-				// Use network.SetCookie to set each cookie
 				params := network.SetCookie(c.Name, c.Value).
 					WithDomain(c.Domain).
 					WithPath(c.Path).
 					WithHTTPOnly(c.HTTPOnly).
 					WithSecure(c.Secure)
 
-				// Set expires if valid
 				if c.Expires > 0 {
 					expires := cdp.TimeSinceEpoch(time.Unix(int64(c.Expires), 0))
 					params = params.WithExpires(&expires)
 				}
 
-				// Set SameSite if valid
 				if c.SameSite != "" {
 					params = params.WithSameSite(network.CookieSameSite(c.SameSite))
 				}
 
 				if err := params.Do(ctx); err != nil {
-					LogWarn("Failed to set cookie %s: %v", c.Name, err)
+					return err
 				}
 			}
 			return nil
 		}),
 	)
-
-	if err != nil {
-		LogError("Failed to set cookies: %v", err)
-		return err
-	}
-
-	LogInfo("Set %d cookies in browser", len(cookies))
-	return nil
-}
-
-// Close closes the browser
-func (b *Browser) Close() {
-	LogInfo("Closing browser...")
-	if b.cancel != nil {
-		LogDebug("Cancelling browser context")
-		b.cancel()
-	}
-	if b.allocCancel != nil {
-		LogDebug("Cancelling allocator context")
-		b.allocCancel()
-	}
-	LogInfo("Browser closed successfully")
 }
