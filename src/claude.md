@@ -171,6 +171,7 @@ UpdateClientDetect(mat图片) {
 //
 
 更新config.go
+请你把data.go的逻辑删了，重新生成一个config.go。config.go逻辑如下，先不用管其他的go文件，帮我把config.go生成完。随后其他文件我会做调整。
 一共三个文件
 stat.json用作给程序下配置。是只读文件。程序要每秒读一次stat.json。并更新stat结构体里的值。
 cookie.json保存了浏览器中的cookie。是读写文件。程序启动时先读取cookie，再跳转到网页。程序退出时，将cookie保存到这个文件。
@@ -328,20 +329,41 @@ log() {
 
 }
 
+// slot结构体中，threshold，cooldown这两个参数可空
 
-// 更新浏览器browser.go
-
+// browser.go
+重新组织browser.go中的内容，只允许有以下函数
 init()
 
-start(url, cookiePath, )
+// 传入url和cookie
+start(config) {
+	调用config类中的获取cookie函数
+	获取并加载cookie
+	跳转到universe.flyff.com网页
+	设置分辨率
+}
 
 capture()
 
-saveCookie(cookiePath)
+saveCookie(config类) {
+	将cookie保存到config类，并调用保存函数
+}
 
+//刷新网页，断线重连
+refresh()
+
+// 关闭网页
+stop()
+
+// 注入的js路径如下
+/Users/yinyue/flyff/neuz/src-tauri/src/platform/eval.js
+// 你要把这个文件内容放到browser.go中
 injectJS()
 
+// 留作我以后其他注入使用
 eval()
+
+// 这几个函数的实现参考/Users/yinyue/flyff/neuz/src-tauri/src/platform/shared.rs
 simpleClick()
 sendMessage()
 sendSlot()
@@ -349,6 +371,7 @@ sendKey()
 
 
 // farming
+备份farming.go，重新组织farming.go中的内容，逻辑如下，只允许有以下内容或函数
 
 enmu stage (
 	Initializing,
@@ -515,17 +538,6 @@ searchingForEnemy() {
 	}
 }
 
-start() {
-	while (stat.enable) {
-		截图
-		调用detect(stage)
-		restore()
-		switch (stage) { //不同的阶段
-			case :
-		}
-	}
-}
-
 offline {
 	// 调用浏览器刷新
 	// 然后每隔1秒，按一次回车
@@ -544,7 +556,25 @@ initialing() {
 	// 如果就绪，返回真
 }
 
-searchingForEnemy
+start() {
+	while (stat.enable) {
+		截图
+		调用detect(stage)
+		restore()
+		switch (stage) { //不同的阶段
+			case :
+		}
+		saveStatus()
+	}
+}
+
+
+请你结合detect.go的代码修改我的farming。创建好ClientDetect结构体后。获取我的状态可以调用UpdateState(mat, &cd.MyStats, cd.Debug, "My")。获取target怪物的状态可以用UpdateState(mat, &cd.Target, cd.Debug, "Target")。获取mobs的坐标可以用UpdateMobs(mat, &cd.Mobs, cd.Debug)。NewFarming()函数需要把ClientDetect的指针传进去。另外获取我和怪物的状态是每次都需要的。但是检测怪物范围比较大，只在搜索怪物的时候和导航的时候才需要用到。
+
+
 
 //
 main
+
+
+阅读当前目录的四个go文件，帮我写个main函数。先调用InitConfig来创建config。判断当前程序启动有没有携带启动参数，如果有，就携带第一个参数，设置为当前的启动参数。没有就传空值。然后调用浏览器NewBrowser，创建浏览器，启动浏览器。再调用NewClientDetect创建检测的。最后再创建NewFarming，启动farming。

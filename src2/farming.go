@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
-
-	"gocv.io/x/gocv"
 )
 
 // Stage represents the current state of the farming behavior
@@ -607,22 +605,21 @@ func (f *Farming) Start() {
 			continue
 		}
 
-		// Convert image.RGBA to gocv.Mat
-		mat, err := gocv.ImageToMatRGB(img)
+		// Update image in detector (converts to Mat internally)
+		err = f.Detector.UpdateImage(img)
 		if err != nil {
-			cfg.Log("Failed to convert image to Mat: %v", err)
+			cfg.Log("Failed to update image: %v", err)
 			time.Sleep(1 * time.Second)
 			continue
 		}
-		defer mat.Close()
 
 		// Update player and target state (always needed)
-		UpdateState(mat, &f.Detector.MyStats, f.Detector.Debug, "My")
-		UpdateState(mat, &f.Detector.Target, f.Detector.Debug, "Target")
+		f.Detector.UpdateMyStats()
+		f.Detector.UpdateTargetStats()
 
 		// Update mobs detection only when searching or navigating
 		if f.Stage == StageSearchingForEnemy || f.Stage == StageNavigating {
-			UpdateMobs(mat, &f.Detector.Mobs, f.Detector.Debug)
+			f.Detector.UpdateMobs()
 		}
 
 		// Restore HP/MP/FP

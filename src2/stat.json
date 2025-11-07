@@ -1,0 +1,62 @@
+{
+  "enable": true,
+  "restorer": true,
+  "detect": true,
+  "navigate": true,
+  "debug": true,
+  "type": 1,
+  "slots": [
+    {
+      "page": 1,
+      "slot": 1,
+      "type": 1,
+      "threshold": 0,
+      "cooldown": 1500,
+      "enable": true
+    },
+    {
+      "page": 1,
+      "slot": 2,
+      "type": 11,
+      "threshold": 50,
+      "cooldown": 3000,
+      "enable": true
+    },
+    {
+      "page": 1,
+      "slot": 3,
+      "type": 12,
+      "threshold": 30,
+      "cooldown": 30000,
+      "enable": true
+    },
+    {
+      "page": 1,
+      "slot": 4,
+      "type": 21,
+      "threshold": 30,
+      "cooldown": 30000,
+      "enable": true
+    }
+  ],
+  "attack": {
+    "attackMinHP": 30,
+    "defeatInterval": 1000,
+    "obstacleThresholdTime": 10000,
+    "obstacleAvoidCount": 20,
+    "obstacleCoolDown": 1000,
+    "escapeHp": 10,
+    "maxTime": 300
+  },
+  "settings": {
+    "buffInterval": 1000,
+    "deathConfirm": 1000,
+    "shoutMessage": "123",
+    "shoutInterval": 30,
+    "watchDogTime": 600,
+    "watchDogRetry": 3
+  },
+  "status": "status.json",
+  "cookies": "cookie.json",
+  "log": "bot.log"
+}

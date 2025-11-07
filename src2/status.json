@@ -1,0 +1,42 @@
+{
+  "player": {
+    "hp": 0,
+    "mp": 0,
+    "fp": 0,
+    "currentPage": 0,
+    "startTime": 1963498,
+    "killed": 0,
+    "lastKilledTime": 1963498,
+    "stage": "Initializing"
+  },
+  "target": null,
+  "attack": {
+    "lastUpdateHp": 0,
+    "lastUpdateTime": 0,
+    "obstacleAvoidCount": 0,
+    "attackTime": 0
+  },
+  "actions": [
+    "log: [HSV] MyMP - Min(H:99, S:114, V:190) Max(H:117, S:200, V:240)",
+    "log: [HSV] MyFP - Min(H:52, S:150, V:150) Max(H:60, S:173, V:230)",
+    "log: State bar not open, switching to Initializing",
+    "log: Initializing...",
+    "open_state_bar",
+    "open_state_bar",
+    "open_state_bar",
+    "open_state_bar",
+    "open_state_bar",
+    "log: Initialization failed: stateBar=false, map=true"
+  ],
+  "cooldown": {
+    "attack": 0,
+    "hp_food": 0,
+    "hp_pill": 0,
+    "mp": 0,
+    "fp": 0,
+    "buff": 0,
+    "obstacle": 0,
+    "slots": {}
+  },
+  "mobs": []
+}

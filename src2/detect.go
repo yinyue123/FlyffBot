@@ -100,16 +100,19 @@ type Mobs struct {
 
 // ClientDetect holds all client detection data
 type ClientDetect struct {
-	Debug   bool     // If true, save detection images and results to current directory
-	MyStats StatsBar // Player stats
-	Target  StatsBar // Target stats
-	Mobs    Mobs     // Mobs detection
+	Debug   bool      // If true, save detection images and results to current directory
+	MyStats StatsBar  // Player stats
+	Target  StatsBar  // Target stats
+	Mobs    Mobs      // Mobs detection
+	mat     *gocv.Mat // Current frame image in Mat format (pointer, nil if not initialized)
+	Config  *Config   // Config reference for logging
 }
 
 // NewClientDetect creates and initializes a new ClientDetect
-func NewClientDetect() *ClientDetect {
+func NewClientDetect(cfg *Config) *ClientDetect {
 	cd := &ClientDetect{
-		Debug: false,
+		Debug:  false,
+		Config: cfg,
 	}
 
 	// Initialize MyStats
@@ -200,8 +203,32 @@ func NewClientDetect() *ClientDetect {
 	return cd
 }
 
-// UpdateStateDetect detects a single bar and updates its info
-func UpdateStateDetect(mat gocv.Mat, barInfo *BarInfo, roi ROIArea, filter Filter, debug bool, debugName string) {
+// UpdateImage converts *image.RGBA to gocv.Mat and stores it internally
+func (cd *ClientDetect) UpdateImage(img *image.RGBA) error {
+	// Close previous mat if it exists
+	if cd.mat != nil {
+		cd.mat.Close()
+	}
+
+	// Convert image.RGBA to gocv.Mat
+	mat, err := gocv.ImageToMatRGB(img)
+	if err != nil {
+		return err
+	}
+
+	cd.mat = &mat
+	return nil
+}
+
+// Close releases the mat resource
+func (cd *ClientDetect) Close() {
+	if cd.mat != nil {
+		cd.mat.Close()
+	}
+}
+
+// updateStateDetect detects a single bar and updates its info (uses internal mat)
+func (cd *ClientDetect) updateStateDetect(barInfo *BarInfo, roi ROIArea, filter Filter, debug bool, debugName string) {
 	// If bar kind is unused, skip detection
 	if barInfo.BarKind == BarKindUnused {
 		return
@@ -210,27 +237,27 @@ func UpdateStateDetect(mat gocv.Mat, barInfo *BarInfo, roi ROIArea, filter Filte
 	// Adjust ROI for negative values (relative to image size)
 	actualROI := roi
 	if actualROI.MinX < 0 {
-		actualROI.MinX = mat.Cols() + actualROI.MinX
+		actualROI.MinX = cd.mat.Cols() + actualROI.MinX
 	}
 	if actualROI.MaxX < 0 {
-		actualROI.MaxX = mat.Cols() + actualROI.MaxX
+		actualROI.MaxX = cd.mat.Cols() + actualROI.MaxX
 	}
 	if actualROI.MinY < 0 {
-		actualROI.MinY = mat.Rows() + actualROI.MinY
+		actualROI.MinY = cd.mat.Rows() + actualROI.MinY
 	}
 	if actualROI.MaxY < 0 {
-		actualROI.MaxY = mat.Rows() + actualROI.MaxY
+		actualROI.MaxY = cd.mat.Rows() + actualROI.MaxY
 	}
 
 	// Ensure ROI is within image bounds
 	if actualROI.MinX < 0 || actualROI.MinY < 0 ||
-	   actualROI.MaxX > mat.Cols() || actualROI.MaxY > mat.Rows() ||
+	   actualROI.MaxX > cd.mat.Cols() || actualROI.MaxY > cd.mat.Rows() ||
 	   actualROI.MinX >= actualROI.MaxX || actualROI.MinY >= actualROI.MaxY {
 		return
 	}
 
 	// Extract ROI
-	roiMat := mat.Region(image.Rect(actualROI.MinX, actualROI.MinY, actualROI.MaxX, actualROI.MaxY))
+	roiMat := cd.mat.Region(image.Rect(actualROI.MinX, actualROI.MinY, actualROI.MaxX, actualROI.MaxY))
 	defer roiMat.Close()
 
 	// Convert to HSV
@@ -241,6 +268,14 @@ func UpdateStateDetect(mat gocv.Mat, barInfo *BarInfo, roi ROIArea, filter Filte
 	// Create HSV mask
 	lower := gocv.NewScalar(float64(barInfo.MinH), float64(barInfo.MinS), float64(barInfo.MinV), 0)
 	upper := gocv.NewScalar(float64(barInfo.MaxH), float64(barInfo.MaxS), float64(barInfo.MaxV), 0)
+
+	// Log HSV range
+	if cd.Config != nil && debug {
+		cd.Config.Log("[HSV] %s - Min(H:%d, S:%d, V:%d) Max(H:%d, S:%d, V:%d)",
+			debugName, barInfo.MinH, barInfo.MinS, barInfo.MinV,
+			barInfo.MaxH, barInfo.MaxS, barInfo.MaxV)
+	}
+
 	mask := gocv.NewMat()
 	defer mask.Close()
 	gocv.InRangeWithScalar(hsvMat, lower, upper, &mask)
@@ -330,7 +365,7 @@ func UpdateStateDetect(mat gocv.Mat, barInfo *BarInfo, roi ROIArea, filter Filte
 		defer debugImg.Close()
 
 		// Draw ROI rectangle
-		gocv.Rectangle(&mat, image.Rect(actualROI.MinX, actualROI.MinY, actualROI.MaxX, actualROI.MaxY),
+		gocv.Rectangle(cd.mat, image.Rect(actualROI.MinX, actualROI.MinY, actualROI.MaxX, actualROI.MaxY),
 			color.RGBA{0, 255, 0, 255}, 2)
 
 		// Draw detected bar
@@ -346,11 +381,11 @@ func UpdateStateDetect(mat gocv.Mat, barInfo *BarInfo, roi ROIArea, filter Filte
 						rect.Max.X + actualROI.MinX,
 						rect.Max.Y + actualROI.MinY,
 					)
-					gocv.Rectangle(&mat, absRect, color.RGBA{255, 0, 0, 255}, 2)
+					gocv.Rectangle(cd.mat, absRect, color.RGBA{255, 0, 0, 255}, 2)
 
 					// Add text
 					text := fmt.Sprintf("%s: %d%% (w=%d, mw=%d)", debugName, barInfo.Value, barInfo.Width, barInfo.MaxWidth)
-					gocv.PutText(&mat, text,
+					gocv.PutText(cd.mat, text,
 						image.Pt(absRect.Min.X, absRect.Min.Y-5),
 						gocv.FontHersheyPlain, 1.0, color.RGBA{255, 255, 0, 255}, 1)
 					break
@@ -360,7 +395,7 @@ func UpdateStateDetect(mat gocv.Mat, barInfo *BarInfo, roi ROIArea, filter Filte
 
 		// Save the image
 		filename := fmt.Sprintf("%s.jpeg", debugName)
-		gocv.IMWrite(filename, mat)
+		gocv.IMWrite(filename, *cd.mat)
 
 		// Save mask
 		maskFilename := fmt.Sprintf("%s_mask.jpeg", debugName)
@@ -368,12 +403,12 @@ func UpdateStateDetect(mat gocv.Mat, barInfo *BarInfo, roi ROIArea, filter Filte
 	}
 }
 
-// UpdateState updates the state of a StatsBar
-func UpdateState(mat gocv.Mat, statsBar *StatsBar, debug bool, namePrefix string) {
+// updateState updates the state of a StatsBar (uses internal mat)
+func (cd *ClientDetect) updateState(statsBar *StatsBar, debug bool, namePrefix string) {
 	// Update each bar
-	UpdateStateDetect(mat, &statsBar.HP, statsBar.ROI, statsBar.Filter, debug, namePrefix+"HP")
-	UpdateStateDetect(mat, &statsBar.MP, statsBar.ROI, statsBar.Filter, debug, namePrefix+"MP")
-	UpdateStateDetect(mat, &statsBar.FP, statsBar.ROI, statsBar.Filter, debug, namePrefix+"FP")
+	cd.updateStateDetect(&statsBar.HP, statsBar.ROI, statsBar.Filter, debug, namePrefix+"HP")
+	cd.updateStateDetect(&statsBar.MP, statsBar.ROI, statsBar.Filter, debug, namePrefix+"MP")
+	cd.updateStateDetect(&statsBar.FP, statsBar.ROI, statsBar.Filter, debug, namePrefix+"FP")
 
 	// Check if stats are open (if HP, FP, MP all 0 for 5+ times, not open)
 	if statsBar.HP.Value == 0 && statsBar.MP.Value == 0 && statsBar.FP.Value == 0 {
@@ -401,35 +436,35 @@ func UpdateState(mat gocv.Mat, statsBar *StatsBar, debug bool, namePrefix string
 	statsBar.Alive = statsBar.HP.Value > 0
 }
 
-// UpdateMobsDetect detects mobs and updates the mobs list
-func UpdateMobsDetect(mat gocv.Mat, mobsList *[]MobsPosition, mobsInfo *MobsInfo, roi ROIArea, filter Filter, debug bool, debugName string) {
+// updateMobsDetect detects mobs and updates the mobs list (uses internal mat)
+func (cd *ClientDetect) updateMobsDetect(mobsList *[]MobsPosition, mobsInfo *MobsInfo, roi ROIArea, filter Filter, debug bool, debugName string) {
 	// Clear mobs list
 	*mobsList = (*mobsList)[:0]
 
 	// Adjust ROI for negative values (relative to image size)
 	actualROI := roi
 	if actualROI.MinX < 0 {
-		actualROI.MinX = mat.Cols() + actualROI.MinX
+		actualROI.MinX = cd.mat.Cols() + actualROI.MinX
 	}
 	if actualROI.MaxX < 0 {
-		actualROI.MaxX = mat.Cols() + actualROI.MaxX
+		actualROI.MaxX = cd.mat.Cols() + actualROI.MaxX
 	}
 	if actualROI.MinY < 0 {
-		actualROI.MinY = mat.Rows() + actualROI.MinY
+		actualROI.MinY = cd.mat.Rows() + actualROI.MinY
 	}
 	if actualROI.MaxY < 0 {
-		actualROI.MaxY = mat.Rows() + actualROI.MaxY
+		actualROI.MaxY = cd.mat.Rows() + actualROI.MaxY
 	}
 
 	// Ensure ROI is within image bounds
 	if actualROI.MinX < 0 || actualROI.MinY < 0 ||
-	   actualROI.MaxX > mat.Cols() || actualROI.MaxY > mat.Rows() ||
+	   actualROI.MaxX > cd.mat.Cols() || actualROI.MaxY > cd.mat.Rows() ||
 	   actualROI.MinX >= actualROI.MaxX || actualROI.MinY >= actualROI.MaxY {
 		return
 	}
 
 	// Extract ROI
-	roiMat := mat.Region(image.Rect(actualROI.MinX, actualROI.MinY, actualROI.MaxX, actualROI.MaxY))
+	roiMat := cd.mat.Region(image.Rect(actualROI.MinX, actualROI.MinY, actualROI.MaxX, actualROI.MaxY))
 	defer roiMat.Close()
 
 	// Convert to HSV
@@ -440,6 +475,14 @@ func UpdateMobsDetect(mat gocv.Mat, mobsList *[]MobsPosition, mobsInfo *MobsInfo
 	// Create HSV mask
 	lower := gocv.NewScalar(float64(mobsInfo.MinH), float64(mobsInfo.MinS), float64(mobsInfo.MinV), 0)
 	upper := gocv.NewScalar(float64(mobsInfo.MaxH), float64(mobsInfo.MaxS), float64(mobsInfo.MaxV), 0)
+
+	// Log HSV range
+	if cd.Config != nil && debug {
+		cd.Config.Log("[HSV] %s Mobs - Min(H:%d, S:%d, V:%d) Max(H:%d, S:%d, V:%d)",
+			debugName, mobsInfo.MinH, mobsInfo.MinS, mobsInfo.MinV,
+			mobsInfo.MaxH, mobsInfo.MaxS, mobsInfo.MaxV)
+	}
+
 	mask := gocv.NewMat()
 	defer mask.Close()
 	gocv.InRangeWithScalar(hsvMat, lower, upper, &mask)
@@ -496,7 +539,7 @@ func UpdateMobsDetect(mat gocv.Mat, mobsList *[]MobsPosition, mobsInfo *MobsInfo
 			// Debug: draw rectangles
 			if debug {
 				absRect := image.Rect(mob.MinX, mob.MinY, mob.MaxX, mob.MaxY)
-				gocv.Rectangle(&mat, absRect, color.RGBA{0, 255, 255, 255}, 2)
+				gocv.Rectangle(cd.mat, absRect, color.RGBA{0, 255, 255, 255}, 2)
 			}
 		}
 	}
@@ -504,18 +547,18 @@ func UpdateMobsDetect(mat gocv.Mat, mobsList *[]MobsPosition, mobsInfo *MobsInfo
 	// Debug: save processed image
 	if debug && debugName != "" {
 		// Draw ROI rectangle
-		gocv.Rectangle(&mat, image.Rect(actualROI.MinX, actualROI.MinY, actualROI.MaxX, actualROI.MaxY),
+		gocv.Rectangle(cd.mat, image.Rect(actualROI.MinX, actualROI.MinY, actualROI.MaxX, actualROI.MaxY),
 			color.RGBA{0, 255, 0, 255}, 2)
 
 		// Add text
 		text := fmt.Sprintf("%s: %d mobs", debugName, len(*mobsList))
-		gocv.PutText(&mat, text,
+		gocv.PutText(cd.mat, text,
 			image.Pt(actualROI.MinX, actualROI.MinY+20),
 			gocv.FontHersheyPlain, 1.5, color.RGBA{255, 255, 0, 255}, 2)
 
 		// Save the image
 		filename := fmt.Sprintf("%s.jpeg", debugName)
-		gocv.IMWrite(filename, mat)
+		gocv.IMWrite(filename, *cd.mat)
 
 		// Save mask
 		maskFilename := fmt.Sprintf("%s_mask.jpeg", debugName)
@@ -523,16 +566,31 @@ func UpdateMobsDetect(mat gocv.Mat, mobsList *[]MobsPosition, mobsInfo *MobsInfo
 	}
 }
 
-// UpdateMobs updates all mobs detection
-func UpdateMobs(mat gocv.Mat, mobs *Mobs, debug bool) {
-	UpdateMobsDetect(mat, &mobs.AggressiveMobs, &mobs.AggressiveInfo, mobs.ROI, mobs.Filter, debug, "Aggressive")
-	UpdateMobsDetect(mat, &mobs.PassiveMobs, &mobs.PassiveInfo, mobs.ROI, mobs.Filter, debug, "Passive")
-	UpdateMobsDetect(mat, &mobs.VioletMobs, &mobs.VioletInfo, mobs.ROI, mobs.Filter, debug, "Violet")
+// updateMobs updates all mobs detection (uses internal mat)
+func (cd *ClientDetect) updateMobs(debug bool) {
+	cd.updateMobsDetect(&cd.Mobs.AggressiveMobs, &cd.Mobs.AggressiveInfo, cd.Mobs.ROI, cd.Mobs.Filter, debug, "Aggressive")
+	cd.updateMobsDetect(&cd.Mobs.PassiveMobs, &cd.Mobs.PassiveInfo, cd.Mobs.ROI, cd.Mobs.Filter, debug, "Passive")
+	cd.updateMobsDetect(&cd.Mobs.VioletMobs, &cd.Mobs.VioletInfo, cd.Mobs.ROI, cd.Mobs.Filter, debug, "Violet")
 }
 
-// UpdateClientDetect updates all client detection data
-func (cd *ClientDetect) UpdateClientDetect(mat gocv.Mat) {
-	UpdateState(mat, &cd.MyStats, cd.Debug, "My")
-	UpdateState(mat, &cd.Target, cd.Debug, "Target")
-	UpdateMobs(mat, &cd.Mobs, cd.Debug)
+// UpdateMyStats updates player stats detection
+func (cd *ClientDetect) UpdateMyStats() {
+	cd.updateState(&cd.MyStats, cd.Debug, "My")
+}
+
+// UpdateTargetStats updates target stats detection
+func (cd *ClientDetect) UpdateTargetStats() {
+	cd.updateState(&cd.Target, cd.Debug, "Target")
+}
+
+// UpdateMobs updates mobs detection
+func (cd *ClientDetect) UpdateMobs() {
+	cd.updateMobs(cd.Debug)
+}
+
+// UpdateClientDetect updates all client detection data (uses internal mat)
+func (cd *ClientDetect) UpdateClientDetect() {
+	cd.updateState(&cd.MyStats, cd.Debug, "My")
+	cd.updateState(&cd.Target, cd.Debug, "Target")
+	cd.updateMobs(cd.Debug)
 }
