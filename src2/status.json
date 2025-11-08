@@ -4,9 +4,9 @@
     "mp": 0,
     "fp": 0,
     "currentPage": 0,
-    "startTime": 1963498,
+    "startTime": 1021939,
     "killed": 0,
-    "lastKilledTime": 1963498,
+    "lastKilledTime": 1021939,
     "stage": "Initializing"
   },
   "target": null,
@@ -17,8 +17,8 @@
     "attackTime": 0
   },
   "actions": [
-    "log: [HSV] MyMP - Min(H:99, S:114, V:190) Max(H:117, S:200, V:240)",
-    "log: [HSV] MyFP - Min(H:52, S:150, V:150) Max(H:60, S:173, V:230)",
+    "log: [HSV] MyMP - Min(H:190, S:114, V:190) Max(H:234, S:230, V:250)",
+    "log: [HSV] MyFP - Min(H:104, S:150, V:150) Max(H:130, S:220, V:240)",
     "log: State bar not open, switching to Initializing",
     "log: Initializing...",
     "open_state_bar",

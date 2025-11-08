@@ -46,13 +46,13 @@ type BarInfo struct {
 
 // Filter defines filtering constraints for detection
 type Filter struct {
-	MinWidth   int              // Minimum width for filtering
-	MaxWidth   int              // Maximum width for filtering
-	MinHeight  int              // Minimum height for filtering
-	MaxHeight  int              // Maximum height for filtering
-	MorphShape gocv.MorphShape  // Morphology shape (default: MorphRect)
-	MorphPoint image.Point      // Morphology kernel size (default: image.Pt(5, 5))
-	MorphIter  int              // Morphology iterations (default: 3)
+	MinWidth   int             // Minimum width for filtering
+	MaxWidth   int             // Maximum width for filtering
+	MinHeight  int             // Minimum height for filtering
+	MaxHeight  int             // Maximum height for filtering
+	MorphShape gocv.MorphShape // Morphology shape (default: MorphRect)
+	MorphPoint image.Point     // Morphology kernel size (default: image.Pt(5, 5))
+	MorphIter  int             // Morphology iterations (default: 3)
 }
 
 // StatsBar represents a group of status bars (HP/MP/FP)
@@ -117,23 +117,29 @@ func NewClientDetect(cfg *Config) *ClientDetect {
 
 	// Initialize MyStats
 	cd.MyStats.ROI = ROIArea{MinX: 0, MinY: 0, MaxX: 500, MaxY: 350}
+	// cd.MyStats.HP = BarInfo{
+	// 	BarKind: BarKindHP,
+	// 	MinH:    340, MaxH: 350,
+	// 	MinS: 120, MaxS: 240,
+	// 	MinV: 150, MaxV: 240,
+	// }
 	cd.MyStats.HP = BarInfo{
 		BarKind: BarKindHP,
-		MinH: 170, MaxH: 175,
-		MinS: 120, MaxS: 200,
-		MinV: 150, MaxV: 230,
+		MinH:    133, MaxH: 181,
+		MinS: 110, MaxS: 240,
+		MinV: 115, MaxV: 240,
 	}
 	cd.MyStats.MP = BarInfo{
 		BarKind: BarKindMP,
-		MinH: 99, MaxH: 117,
-		MinS: 114, MaxS: 200,
-		MinV: 190, MaxV: 240,
+		MinH:    190, MaxH: 234,
+		MinS: 114, MaxS: 230,
+		MinV: 190, MaxV: 250,
 	}
 	cd.MyStats.FP = BarInfo{
 		BarKind: BarKindFP,
-		MinH: 52, MaxH: 60,
-		MinS: 150, MaxS: 173,
-		MinV: 150, MaxV: 230,
+		MinH:    104, MaxH: 130,
+		MinS: 150, MaxS: 220,
+		MinV: 150, MaxV: 240,
 	}
 	cd.MyStats.Filter = Filter{
 		MinWidth:   1,
@@ -149,13 +155,13 @@ func NewClientDetect(cfg *Config) *ClientDetect {
 	cd.Target.ROI = ROIArea{MinX: 400, MinY: 200, MaxX: -400, MaxY: 200}
 	cd.Target.HP = BarInfo{
 		BarKind: BarKindTargetHP,
-		MinH: 170, MaxH: 175,
+		MinH:    340, MaxH: 350,
 		MinS: 120, MaxS: 200,
 		MinV: 150, MaxV: 230,
 	}
 	cd.Target.MP = BarInfo{
 		BarKind: BarKindTargetMP,
-		MinH: 99, MaxH: 117,
+		MinH:    198, MaxH: 234,
 		MinS: 114, MaxS: 200,
 		MinV: 190, MaxV: 240,
 	}
@@ -173,17 +179,17 @@ func NewClientDetect(cfg *Config) *ClientDetect {
 	// Initialize Mobs
 	cd.Mobs.ROI = ROIArea{MinX: 0, MinY: 0, MaxX: -1, MaxY: -100} // Full screen except bottom 100px
 	cd.Mobs.AggressiveInfo = MobsInfo{
-		MinH: 0, MaxH: 5,
+		MinH: 0, MaxH: 10,
 		MinS: 200, MaxS: 255,
 		MinV: 200, MaxV: 255,
 	}
 	cd.Mobs.PassiveInfo = MobsInfo{
-		MinH: 29, MaxH: 31,
+		MinH: 58, MaxH: 62,
 		MinS: 50, MaxS: 90,
 		MinV: 180, MaxV: 255,
 	}
 	cd.Mobs.VioletInfo = MobsInfo{
-		MinH: 130, MaxH: 160,
+		MinH: 260, MaxH: 320,
 		MinS: 100, MaxS: 255,
 		MinV: 100, MaxV: 255,
 	}
@@ -251,8 +257,8 @@ func (cd *ClientDetect) updateStateDetect(barInfo *BarInfo, roi ROIArea, filter 
 
 	// Ensure ROI is within image bounds
 	if actualROI.MinX < 0 || actualROI.MinY < 0 ||
-	   actualROI.MaxX > cd.mat.Cols() || actualROI.MaxY > cd.mat.Rows() ||
-	   actualROI.MinX >= actualROI.MaxX || actualROI.MinY >= actualROI.MaxY {
+		actualROI.MaxX > cd.mat.Cols() || actualROI.MaxY > cd.mat.Rows() ||
+		actualROI.MinX >= actualROI.MaxX || actualROI.MinY >= actualROI.MaxY {
 		return
 	}
 
@@ -314,7 +320,7 @@ func (cd *ClientDetect) updateStateDetect(barInfo *BarInfo, roi ROIArea, filter 
 
 		// Filter by size constraints
 		if width >= filter.MinWidth && width <= filter.MaxWidth &&
-		   height >= filter.MinHeight && height <= filter.MaxHeight {
+			height >= filter.MinHeight && height <= filter.MaxHeight {
 			if width > maxWidth {
 				maxWidth = width
 			}
@@ -376,10 +382,10 @@ func (cd *ClientDetect) updateStateDetect(barInfo *BarInfo, roi ROIArea, filter 
 				if rect.Dx() == maxWidth {
 					// Adjust coordinates to absolute position
 					absRect := image.Rect(
-						rect.Min.X + actualROI.MinX,
-						rect.Min.Y + actualROI.MinY,
-						rect.Max.X + actualROI.MinX,
-						rect.Max.Y + actualROI.MinY,
+						rect.Min.X+actualROI.MinX,
+						rect.Min.Y+actualROI.MinY,
+						rect.Max.X+actualROI.MinX,
+						rect.Max.Y+actualROI.MinY,
 					)
 					gocv.Rectangle(cd.mat, absRect, color.RGBA{255, 0, 0, 255}, 2)
 
@@ -458,8 +464,8 @@ func (cd *ClientDetect) updateMobsDetect(mobsList *[]MobsPosition, mobsInfo *Mob
 
 	// Ensure ROI is within image bounds
 	if actualROI.MinX < 0 || actualROI.MinY < 0 ||
-	   actualROI.MaxX > cd.mat.Cols() || actualROI.MaxY > cd.mat.Rows() ||
-	   actualROI.MinX >= actualROI.MaxX || actualROI.MinY >= actualROI.MaxY {
+		actualROI.MaxX > cd.mat.Cols() || actualROI.MaxY > cd.mat.Rows() ||
+		actualROI.MinX >= actualROI.MaxX || actualROI.MinY >= actualROI.MaxY {
 		return
 	}
 
@@ -520,7 +526,7 @@ func (cd *ClientDetect) updateMobsDetect(mobsList *[]MobsPosition, mobsInfo *Mob
 
 		// Filter by size constraints
 		if width >= filter.MinWidth && width <= filter.MaxWidth &&
-		   height >= filter.MinHeight && height <= filter.MaxHeight {
+			height >= filter.MinHeight && height <= filter.MaxHeight {
 			// Convert to screen coordinates
 			mob := MobsPosition{
 				MinX: actualROI.MinX + rect.Min.X,

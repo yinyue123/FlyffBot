@@ -578,3 +578,12 @@ main
 
 
 阅读当前目录的四个go文件，帮我写个main函数。先调用InitConfig来创建config。判断当前程序启动有没有携带启动参数，如果有，就携带第一个参数，设置为当前的启动参数。没有就传空值。然后调用浏览器NewBrowser，创建浏览器，启动浏览器。再调用NewClientDetect创建检测的。最后再创建NewFarming，启动farming。
+
+在detect类中加个mat的对象，再加个UpdateImage的函数。浏览器截图的*image.RGBA通过这个函数转换转成gocv的mat，放在类的变量中。这样不用在farming.go中引入gocv的东西。另外类之间不用在传递mat的值了。
+
+
+// debug
+
+请你参考browser.go和detect.go中的代码。帮我改下debug_hsv.go中的代码。功能改为打开浏览器，并跳转到flyff的网站。然后debug窗口中不断截图，可以调整hsv的滑块和截图范围的滑块，然后显示mask和result。另外显示hsv的用滑块来实现，不要用按键来调整。在屏幕对应的result位置一直显示对应位置检测颜色的结果，不要消失。
+
+
