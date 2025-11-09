@@ -79,6 +79,7 @@ type Stat struct {
 	Navigate       bool           `json:"navigate"`   // Whether navigation is enabled
 	Debug          bool           `json:"debug"`      // Whether to save debug screenshots
 	Type           int            `json:"type"`       // 0=disable, 1=farming, 2=support, 3=auto shout
+	Interval       int            `json:"interval"`   // Frame interval in milliseconds
 	Slots          []Slot         `json:"slots"`      // Slot configurations
 	Attack         AttackSettings `json:"attack"`     // Attack settings
 	Settings       Settings       `json:"settings"`   // General settings
@@ -253,6 +254,7 @@ func (c *Config) createDefaultStat() {
 		Navigate: true,
 		Debug:    false,
 		Type:     1, // Farming mode
+		Interval: 200, // Frame interval in milliseconds
 		Slots: []Slot{
 			{Page: 1, Slot: 1, Type: SlotTypeAttack, Threshold: &threshold0, Cooldown: &cooldown1500, Enable: true},
 			{Page: 1, Slot: 2, Type: SlotTypeFood, Threshold: &threshold50, Cooldown: &cooldown3000, Enable: true},
@@ -689,4 +691,19 @@ func (c *Config) GetType() int {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.Stat.Type
+}
+
+// WaitInterval waits for the configured frame interval since startTime
+// If the elapsed time exceeds the interval, it returns immediately without sleeping
+func (c *Config) WaitInterval(startTime time.Time) {
+	c.mu.RLock()
+	interval := c.Stat.Interval
+	c.mu.RUnlock()
+
+	elapsed := time.Since(startTime)
+	sleepDuration := time.Duration(interval)*time.Millisecond - elapsed
+
+	if sleepDuration > 0 {
+		time.Sleep(sleepDuration)
+	}
 }

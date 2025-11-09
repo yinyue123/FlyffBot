@@ -59,12 +59,12 @@ func (d *Debug) CreateDebug() {
 		"MyHP",
 		"MyMP",
 		"MyFP",
-		"TargetHP",
-		"TargetMP",
-		"TargetFP",
-		"Aggressive",
-		"Passive",
-		"Violet",
+		// "TargetHP",
+		// "TargetMP",
+		// "TargetFP",
+		// "Aggressive",
+		// "Passive",
+		// "Violet",
 	}
 
 	for _, name := range windowNames {

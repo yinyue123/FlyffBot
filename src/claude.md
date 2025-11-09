@@ -587,3 +587,48 @@ main
 请你参考browser.go和detect.go中的代码。帮我改下debug_hsv.go中的代码。功能改为打开浏览器，并跳转到flyff的网站。然后debug窗口中不断截图，可以调整hsv的滑块和截图范围的滑块，然后显示mask和result。另外显示hsv的用滑块来实现，不要用按键来调整。在屏幕对应的result位置一直显示对应位置检测颜色的结果，不要消失。
 
 
+你要在debug中创建这几个结构。不要多余的函数。
+
+debug {
+	enable: true,
+	stat: , //保存stat的指针。
+	chan: , //通知更新哪个窗口 
+	windows: {
+		"hp": {
+			original: ,
+			mask: ,
+			result ,
+
+		}
+	}
+}
+
+NewDebug(stat) {
+	通过stat的debug来判断是否要显示窗口
+}
+
+CreateDebug() {
+	创建windows
+	// my hp
+	// my mp
+	// my fp
+	// target hp
+	// target mp
+	// 如果我不想看哪个调试的窗口，就不创建窗口了
+}
+
+ProcessUpdates() {
+	如果管道有更新，就更新。
+}
+
+
+SendUpdate(name, origin, mask, result) {
+	如果debug开启，就把检测的图片更新到debug.windos的对象中。然后通过chan通知主线程更新
+	如果windows不在map中就忽略
+}
+
+updateState() {
+	SendUpdate()
+}
+
+updateMobsDetect() {

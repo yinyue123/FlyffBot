@@ -1,10 +1,11 @@
 {
   "enable": true,
-  "restorer": true,
+  "restorer": false,
   "detect": true,
   "navigate": true,
   "debug": true,
   "type": 1,
+  "interval": 200,
   "slots": [
     {
       "page": 1,

@@ -183,7 +183,6 @@ func (f *Farming) Restore() {
 	if page != -1 || slot != -1 {
 		f.UseSlot(page, slot)
 		cfg.AddAction(fmt.Sprintf("use_buff(%d:%d)", page, slot))
-		time.Sleep(time.Duration(cfg.Stat.Settings.BuffInterval) * time.Millisecond)
 	}
 }
 
@@ -196,7 +195,7 @@ func (f *Farming) AfterEnemyKill() {
 	cfg.Log("Killed mob! Total: %d", cfg.Status.Player.Killed)
 
 	// Wait for defeat interval
-	time.Sleep(time.Duration(cfg.Stat.Attack.DefeatInterval) * time.Millisecond)
+	// time.Sleep(time.Duration(cfg.Stat.Attack.DefeatInterval) * time.Millisecond) // TODO: Use cooldown instead
 
 	// Try to use pet for pickup
 	page, slot := cfg.GetAvailableSlot(SlotTypePet, 0)
@@ -207,10 +206,8 @@ func (f *Farming) AfterEnemyKill() {
 		// Use pickup action
 		page, slot = cfg.GetAvailableSlot(SlotTypePick, 0)
 		if page != -1 || slot != -1 {
-			// Press 10 times, 300ms interval
 			for i := 0; i < 10; i++ {
 				f.UseSlot(page, slot)
-				time.Sleep(300 * time.Millisecond)
 			}
 			cfg.AddAction("pickup_items")
 		}
@@ -281,7 +278,7 @@ func (f *Farming) Attacking() {
 			// Try to avoid obstacle
 			cfg.Log("Avoiding obstacle (attempt %d/%d)", f.Obstacle.Count, cfg.Stat.Attack.ObstacleAvoidCount)
 			f.Browser.SendKey("w", "press")
-			time.Sleep(100 * time.Millisecond)
+			// time.Sleep(100 * time.Millisecond) // TODO: Remove this sleep
 
 			// Random left/right movement
 			if rand.Intn(2) == 0 {
@@ -290,7 +287,7 @@ func (f *Farming) Attacking() {
 				f.Browser.SendKey("ArrowRight", "hold")
 			}
 			f.Browser.SendKey(" ", "press") // Jump
-			time.Sleep(10 * time.Millisecond)
+			// time.Sleep(10 * time.Millisecond) // TODO: Remove this sleep
 
 			if rand.Intn(2) == 0 {
 				f.Browser.SendKey("ArrowLeft", "release")
@@ -300,7 +297,7 @@ func (f *Farming) Attacking() {
 
 			f.Obstacle.Count++
 			f.Target.LastHPUpdate = time.Now() // Reset update time
-			time.Sleep(time.Duration(cfg.Stat.Attack.ObstacleCoolDown) * time.Millisecond)
+			// time.Sleep(time.Duration(cfg.Stat.Attack.ObstacleCoolDown) * time.Millisecond) // TODO: Use cooldown instead
 		} else {
 			// Give up after max attempts
 			cfg.Log("Obstacle avoidance failed, giving up")
@@ -466,8 +463,8 @@ func (f *Farming) SearchingForEnemy() {
 
 			// Random jump
 			if rand.Intn(3) == 1 {
-				jumpDuration := rand.Float64()*1.5 + 0.5 // 0.5-2.0
-				time.Sleep(time.Duration(jumpDuration*1000) * time.Millisecond)
+				// jumpDuration := rand.Float64()*1.5 + 0.5 // 0.5-2.0
+				// time.Sleep(time.Duration(jumpDuration*1000) * time.Millisecond) // TODO: Handle jump timing differently
 				f.Browser.SendKey(" ", "press")
 				cfg.AddAction("jump")
 			}
@@ -475,15 +472,15 @@ func (f *Farming) SearchingForEnemy() {
 			// Random left/right strafe
 			direct := rand.Intn(6)
 			if direct == 1 {
-				moveDuration := rand.Float64()*1.5 + 0.5 // 0.5-2.0
+				// moveDuration := rand.Float64()*1.5 + 0.5 // 0.5-2.0
 				f.Browser.SendKey("ArrowLeft", "hold")
-				time.Sleep(time.Duration(moveDuration*1000) * time.Millisecond)
+				// time.Sleep(time.Duration(moveDuration*1000) * time.Millisecond) // TODO: Handle strafe timing differently
 				f.Browser.SendKey("ArrowLeft", "release")
 				cfg.AddAction("strafe_left")
 			} else if direct == 2 {
-				moveDuration := rand.Float64()*1.5 + 0.5 // 0.5-2.0
+				// moveDuration := rand.Float64()*1.5 + 0.5 // 0.5-2.0
 				f.Browser.SendKey("ArrowRight", "hold")
-				time.Sleep(time.Duration(moveDuration*1000) * time.Millisecond)
+				// time.Sleep(time.Duration(moveDuration*1000) * time.Millisecond) // TODO: Handle strafe timing differently
 				f.Browser.SendKey("ArrowRight", "release")
 				cfg.AddAction("strafe_right")
 			}
@@ -515,7 +512,7 @@ func (f *Farming) Offline() {
 	}
 
 	// Wait for page to load
-	time.Sleep(5 * time.Second)
+	// time.Sleep(5 * time.Second) // TODO: Handle reconnect timing differently
 
 	// Press Enter every second until state bar appears
 	for i := 0; i < 30; i++ {
@@ -525,14 +522,14 @@ func (f *Farming) Offline() {
 		// }
 		f.Browser.SendKey("Enter", "press")
 		cfg.AddAction("reconnect_enter")
-		time.Sleep(1 * time.Second)
+		// time.Sleep(1 * time.Second) // TODO: Handle reconnect timing differently
 	}
 
 	// Press ESC 10 times
 	for i := 0; i < 10; i++ {
 		f.Browser.SendKey("Escape", "press")
 		cfg.AddAction("cleanup_esc")
-		time.Sleep(1 * time.Second)
+		// time.Sleep(1 * time.Second) // TODO: Handle cleanup timing differently
 	}
 
 	// Increment disconnect count
@@ -552,17 +549,17 @@ func (f *Farming) Initializing() bool {
 	stateBarOpen := f.Detector.MyStats.Open
 	if !stateBarOpen {
 		// Try to open state bar
-		for i := 0; i < 5; i++ {
-			f.Browser.SendKey("t", "press")
-			cfg.AddAction("open_state_bar")
-			time.Sleep(2 * time.Second)
+		// for i := 0; i < 5; i++ {
+		// 	f.Browser.SendKey("t", "press")
+		// 	cfg.AddAction("open_state_bar")
+		// 	// time.Sleep(2 * time.Second) // TODO: Handle initialization timing differently
 
-			// Check again after waiting
-			if f.Detector.MyStats.Open {
-				stateBarOpen = true
-				break
-			}
-		}
+		// 	// Check again after waiting
+		// 	if f.Detector.MyStats.Open {
+		// 		stateBarOpen = true
+		// 		break
+		// 	}
+		// }
 	}
 
 	// TODO: Check if map is open (need to implement map detection in Detector)
@@ -584,7 +581,6 @@ func (f *Farming) UseSlot(page, slot int) error {
 	if page != -1 {
 		f.Browser.SendKey(fmt.Sprintf("F%d", page), "press")
 		f.Config.UpdateCurrentPage(page)
-		time.Sleep(100 * time.Millisecond)
 	}
 
 	// Press slot key
@@ -597,11 +593,14 @@ func (f *Farming) Start() {
 	cfg.Log("Starting farming behavior")
 
 	for cfg.IsEnabled() {
+		// Record frame start time
+		frameStartTime := time.Now()
+
 		// Capture screenshot
 		img, err := f.Browser.Capture()
 		if err != nil {
 			cfg.Log("Failed to capture: %v", err)
-			time.Sleep(1 * time.Second)
+			cfg.WaitInterval(frameStartTime)
 			continue
 		}
 
@@ -609,7 +608,7 @@ func (f *Farming) Start() {
 		err = f.Detector.UpdateImage(img)
 		if err != nil {
 			cfg.Log("Failed to update image: %v", err)
-			time.Sleep(1 * time.Second)
+			cfg.WaitInterval(frameStartTime)
 			continue
 		}
 
@@ -650,8 +649,8 @@ func (f *Farming) Start() {
 		case StageDead:
 			// TODO: Implement death handling
 			cfg.Log("Dead, waiting for respawn...")
-			f.Browser.SendKey("Enter", "press")
-			time.Sleep(time.Duration(cfg.Stat.Settings.DeathConfirm) * time.Millisecond)
+			// f.Browser.SendKey("Enter", "press")
+			// time.Sleep(time.Duration(cfg.Stat.Settings.DeathConfirm) * time.Millisecond) // TODO: Use cooldown instead
 
 		case StageOffline:
 			f.Offline()
@@ -668,10 +667,8 @@ func (f *Farming) Start() {
 			cfg.Log("Failed to save status: %v", err)
 		}
 
-		// Sleep based on capture interval
-		if cfg.Stat.Type > 0 {
-			time.Sleep(time.Duration(1000) * time.Millisecond) // Default 1 second
-		}
+		// Wait for frame interval
+		cfg.WaitInterval(frameStartTime)
 	}
 
 	cfg.Log("Farming behavior stopped")
