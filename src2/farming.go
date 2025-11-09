@@ -509,7 +509,7 @@ func (f *Farming) Offline() {
 	cfg.Log("Handling offline state")
 
 	// Refresh browser
-	err := f.Browser.Refresh()
+	err := f.Browser.Refresh(cfg)
 	if err != nil {
 		cfg.Log("Failed to refresh browser: %v", err)
 	}

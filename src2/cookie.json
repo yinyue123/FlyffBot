@@ -1,20 +1,20 @@
 [
   {
     "name": "azuriom_session",
-    "value": "eyJpdiI6Iko4dldac3FkcHlKLzd4VlNGeVV2MWc9PSIsInZhbHVlIjoiQXpiTHVUNE1VeXRycGFNcmtGZlVKRVBOdDZFUlVUdVBQR2o0d3RWMlk3dXM4eFphVEQ5RHppMlZGeFByeUJDeUs2WDJJTkROYkUvTVVYMlBVdkt2dnlHaitBNmtwdERBcGpiaTJFU1NLWDB6RjZJcVQrbUZWUXQ2VjRHYXlXeUMiLCJtYWMiOiIwZWE5ZWNmMzNmYzQxMThhY2RkYWU0ODRjYTE0MTFiODU1MzQwNGIwZWU4NjJkMTEwODVlMDA2MzlmYzY2ODUzIiwidGFnIjoiIn0%3D",
+    "value": "eyJpdiI6IklJb0JQNUtubHRpaXYyRTBNQ3NITVE9PSIsInZhbHVlIjoidkZjdzJObit0RzFmVzlEUnJOQTNtSm9DN2NqQ0dLOTdFZ29CSS81d0hBVXRXRjBiMEVCVUtFVXR4a1JTYVVzWVNrVVF4bjlZNmdrSCtzbGFzRTQ0YXBWaHc1MUNSbVdzSVE1dEo4bU9XREVQSWRkUVE5d0phQ042NlFwN2tuVWkiLCJtYWMiOiJhOTdjMGY4OWJmOTJiZWQwYzI1ODQzMWY2MjBjNDJhOGM2YjlhNTlhOTIwNjZlYmM2ZGM1ZjdhMjc1NjE3MWNlIiwidGFnIjoiIn0%3D",
     "domain": "universe.flyff.com",
     "path": "/",
-    "expires": 1762537657.37107,
+    "expires": 1762688375.297499,
     "httpOnly": true,
     "secure": false,
     "sameSite": "Lax"
   },
   {
     "name": "XSRF-TOKEN",
-    "value": "eyJpdiI6IjMrUThUVGpMUDluN2cxemNRdC9RL2c9PSIsInZhbHVlIjoiaGJyT3U0ay85SjlrMUhzTlNFQWVxMm5kRnFhMnVSeWFYdHZ0NDhrakRBU0tRUmRmSjdzOG5HWHdmd3VqcFlMdXVOK2FrNXljY1lZN1E4biszVFdWNFd4d3BJNWwzMXgrWjJ1SzNROFI5Z25yYlNYaUZzVkhBb3BjZThwM0JTN1EiLCJtYWMiOiJlN2Y4NTFmNWI5ZTEwOGJmMzAxOTYwMTRjMDU5M2U3OGM0YjlmMGYwZDI2NTc4MmYyYzU5Yjk4NDE0OWNmMjE5IiwidGFnIjoiIn0%3D",
+    "value": "eyJpdiI6ImlVdGR3ZjFPMWhoaDV6SGpocnFIZlE9PSIsInZhbHVlIjoiVS8vWkFxTmhlZENRZkFLanJ0VWVncnpBdlNSMm5RZDY0dnRuUkdwYkc5MU5pK3RtaU5hVnVXRVdQU3djMzVnV1lHVjZabGIzQUhSQ1JSZHlqZ0lqZWNpSml1WW5ncWpYT1BnS24zZnEydkc0WjM5VnNnRDNVaVNsYU5xK1BBWTAiLCJtYWMiOiJmODIxNWFjOTY2NWY5NmZiMGRlOTQ0NDQ4Y2I2MDgzNjg2ZDJkMGNjNWI1MGIyYmRmYzE2MTQ3M2YzNmViZmE0IiwidGFnIjoiIn0%3D",
     "domain": "universe.flyff.com",
     "path": "/",
-    "expires": 1762537657.371003,
+    "expires": 1762688375.296913,
     "httpOnly": false,
     "secure": false,
     "sameSite": "Lax"
@@ -31,10 +31,10 @@
   },
   {
     "name": "cto_bundle",
-    "value": "wntuJ19MVXVmRCUyQjdjTjNmQmh6bnVwamVmZFBDVmloQ2FtNkRNOU9oQ3dKMVd0bEprOGx4QVMlMkZRVU9wcklOUFJ0SnM2WXlqMTdLMUs1ak5YVUNLa0RoVU5wVXEwdDF2dUQzTldPRjlzbDZUOHJXbjJMWGNLYjdTZ1pkYTlMcWZmTzB3VWVkVHdRbFVzaiUyQjhXZiUyRlE5OHNGTXg5REdoQUdDSDdUbHRuTHVXVHBaZE0wNmlsbEtnRVVIU0FPJTJGbnczWnFtVCUyQnUyRlhOQnZFRkQwenMxcnhmVkdybzdnJTNEJTNE",
+    "value": "RXEi4V9MVXVmRCUyQjdjTjNmQmh6bnVwamVmZEFhZjNabUxUYnZFZEVmaVNDWDJzRjBmMDZlTnlPNjVEJTJGZklXOTlPJTJGUzJ6TzdjMWJUc1ZXZkd0WFdCa2tVU0k3VFRGN0lkZkVrVlpTdUMlMkZlY2RTRE1mWTd2aGdqVmhUV1g5ODNxblclMkZGZ2NSJTJCQlJ3JTJGYzBRdEF0aDM5dUpnRkJJNnIyTFpLaiUyRjRVaWFsWSUyRkdYcmhpQ09HT2JzTVF3eFRpQ3NpOW9Ec3FoVlJkdzQ0MHFpVGRkRzUlMkZoc1hxaExZaFElM0QlM0Q",
     "domain": ".flyff.com",
     "path": "/",
-    "expires": 1796694460,
+    "expires": 1796845179,
     "httpOnly": false,
     "secure": false,
     "sameSite": ""

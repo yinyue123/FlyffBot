@@ -58,5 +58,6 @@
   },
   "status": "status.json",
   "cookies": "cookie.json",
-  "log": "bot.log"
+  "log": "bot.log",
+  "browserLog": "browser.log"
 }

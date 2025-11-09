@@ -73,18 +73,19 @@ type Settings struct {
 
 // Stat holds configuration data (read from stat.json)
 type Stat struct {
-	Enable      bool           `json:"enable"`    // Whether main program is running
-	Restorer    bool           `json:"restorer"`  // Whether to perform recovery
-	Detect      bool           `json:"detect"`    // Whether to auto-detect mobs
-	Navigate    bool           `json:"navigate"`  // Whether navigation is enabled
-	Debug       bool           `json:"debug"`     // Whether to save debug screenshots
-	Type        int            `json:"type"`      // 0=disable, 1=farming, 2=support, 3=auto shout
-	Slots       []Slot         `json:"slots"`     // Slot configurations
-	Attack      AttackSettings `json:"attack"`    // Attack settings
-	Settings    Settings       `json:"settings"`  // General settings
-	StatusPath  string         `json:"status"`    // Status file path
-	CookiesPath string         `json:"cookies"`   // Cookies file path
-	LogPath     string         `json:"log"`       // Log file path
+	Enable         bool           `json:"enable"`     // Whether main program is running
+	Restorer       bool           `json:"restorer"`   // Whether to perform recovery
+	Detect         bool           `json:"detect"`     // Whether to auto-detect mobs
+	Navigate       bool           `json:"navigate"`   // Whether navigation is enabled
+	Debug          bool           `json:"debug"`      // Whether to save debug screenshots
+	Type           int            `json:"type"`       // 0=disable, 1=farming, 2=support, 3=auto shout
+	Slots          []Slot         `json:"slots"`      // Slot configurations
+	Attack         AttackSettings `json:"attack"`     // Attack settings
+	Settings       Settings       `json:"settings"`   // General settings
+	StatusPath     string         `json:"status"`     // Status file path
+	CookiesPath    string         `json:"cookies"`    // Cookies file path
+	LogPath        string         `json:"log"`        // Log file path
+	BrowserLogPath string         `json:"browserLog"` // Browser log file path
 }
 
 // Cookie represents a browser cookie
@@ -168,12 +169,13 @@ type Status struct {
 
 // Config is the main configuration object
 type Config struct {
-	Stat     Stat      // Configuration data
-	Status   Status    // Current status
-	Cookies  []Cookie  // Browser cookies
-	LogFile  *os.File  // Log file handle
-	StatPath string    // Path to stat.json
-	mu       sync.RWMutex
+	Stat           Stat      // Configuration data
+	Status         Status    // Current status
+	Cookies        []Cookie  // Browser cookies
+	LogFile        *os.File  // Log file handle
+	BrowserLogFile *os.File  // Browser log file handle
+	StatPath       string    // Path to stat.json
+	mu             sync.RWMutex
 }
 
 // InitConfig initializes the config object
@@ -223,6 +225,15 @@ func InitConfig(path string) (*Config, error) {
 		log.SetOutput(logFile)
 	}
 
+	// Open browser log file if path is specified
+	if cfg.Stat.BrowserLogPath != "" {
+		browserLogFile, err := os.OpenFile(cfg.Stat.BrowserLogPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		if err != nil {
+			return nil, fmt.Errorf("failed to open browser log file: %w", err)
+		}
+		cfg.BrowserLogFile = browserLogFile
+	}
+
 	return cfg, nil
 }
 
@@ -265,9 +276,10 @@ func (c *Config) createDefaultStat() {
 			WatchDogTime:  600,
 			WatchDogRetry: 3,
 		},
-		StatusPath:  "status.json",
-		CookiesPath: "cookie.json",
-		LogPath:     "bot.log",
+		StatusPath:     "status.json",
+		CookiesPath:    "cookie.json",
+		LogPath:        "bot.log",
+		BrowserLogPath: "browser.log",
 	}
 }
 
@@ -626,6 +638,17 @@ func (c *Config) Log(format string, args ...interface{}) {
 	c.AddAction(fmt.Sprintf("log: %s", msg))
 }
 
+// BrowserLog writes a browser log message
+func (c *Config) BrowserLog(format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
+	timestamp := time.Now().Format("2006/01/02 15:04:05")
+
+	// Only write to browser log file if it's open
+	if c.BrowserLogFile != nil {
+		fmt.Fprintf(c.BrowserLogFile, "%s %s\n", timestamp, msg)
+	}
+}
+
 // Close closes the config (saves cookies and closes log file)
 func (c *Config) Close() error {
 	if err := c.SaveCookies(); err != nil {
@@ -633,6 +656,11 @@ func (c *Config) Close() error {
 		if c.LogFile != nil {
 			log.Printf("Failed to save cookies: %v", err)
 		}
+	}
+
+	// Close browser log file
+	if c.BrowserLogFile != nil {
+		c.BrowserLogFile.Close()
 	}
 
 	if c.LogFile != nil {

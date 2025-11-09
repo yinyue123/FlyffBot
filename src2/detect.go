@@ -101,6 +101,7 @@ type Mobs struct {
 // ClientDetect holds all client detection data
 type ClientDetect struct {
 	Debug   bool      // If true, save detection images and results to current directory
+	DebugUI *Debug    // Debug UI manager for displaying images on main thread
 	MyStats StatsBar  // Player stats
 	Target  StatsBar  // Target stats
 	Mobs    Mobs      // Mobs detection
@@ -117,29 +118,23 @@ func NewClientDetect(cfg *Config) *ClientDetect {
 
 	// Initialize MyStats
 	cd.MyStats.ROI = ROIArea{MinX: 0, MinY: 0, MaxX: 500, MaxY: 350}
-	// cd.MyStats.HP = BarInfo{
-	// 	BarKind: BarKindHP,
-	// 	MinH:    340, MaxH: 350,
-	// 	MinS: 120, MaxS: 240,
-	// 	MinV: 150, MaxV: 240,
-	// }
 	cd.MyStats.HP = BarInfo{
 		BarKind: BarKindHP,
-		MinH:    133, MaxH: 181,
-		MinS: 110, MaxS: 240,
-		MinV: 115, MaxV: 240,
+		MinH:    160, MaxH: 180,
+		MinS: 100, MaxS: 240,
+		MinV: 100, MaxV: 240,
 	}
 	cd.MyStats.MP = BarInfo{
 		BarKind: BarKindMP,
-		MinH:    190, MaxH: 234,
-		MinS: 114, MaxS: 230,
-		MinV: 190, MaxV: 250,
+		MinH:    90, MaxH: 120,
+		MinS: 100, MaxS: 240,
+		MinV: 100, MaxV: 240,
 	}
 	cd.MyStats.FP = BarInfo{
 		BarKind: BarKindFP,
-		MinH:    104, MaxH: 130,
-		MinS: 150, MaxS: 220,
-		MinV: 150, MaxV: 240,
+		MinH:    45, MaxH: 70,
+		MinS: 100, MaxS: 240,
+		MinV: 100, MaxV: 240,
 	}
 	cd.MyStats.Filter = Filter{
 		MinWidth:   1,
@@ -365,47 +360,37 @@ func (cd *ClientDetect) updateStateDetect(barInfo *BarInfo, roi ROIArea, filter 
 		barInfo.Value = 100
 	}
 
-	// Debug: save processed image
-	if debug && debugName != "" {
-		debugImg := gocv.NewMat()
-		defer debugImg.Close()
+	// Debug: send images to debug UI
+	if debug && debugName != "" && cd.DebugUI != nil {
+		// Convert mask to BGR for display
+		maskBGR := gocv.NewMat()
+		defer maskBGR.Close()
+		gocv.CvtColor(morphed, &maskBGR, gocv.ColorGrayToBGR)
 
-		// Draw ROI rectangle
-		gocv.Rectangle(cd.mat, image.Rect(actualROI.MinX, actualROI.MinY, actualROI.MaxX, actualROI.MaxY),
-			color.RGBA{0, 255, 0, 255}, 2)
+		// Create result mat with annotations
+		resultMat := roiMat.Clone()
+		defer resultMat.Close()
 
-		// Draw detected bar
+		// Draw detected bar on result
 		if maxWidth > 0 {
 			for i := 0; i < contours.Size(); i++ {
 				contour := contours.At(i)
 				rect := gocv.BoundingRect(contour)
 				if rect.Dx() == maxWidth {
-					// Adjust coordinates to absolute position
-					absRect := image.Rect(
-						rect.Min.X+actualROI.MinX,
-						rect.Min.Y+actualROI.MinY,
-						rect.Max.X+actualROI.MinX,
-						rect.Max.Y+actualROI.MinY,
-					)
-					gocv.Rectangle(cd.mat, absRect, color.RGBA{255, 0, 0, 255}, 2)
+					gocv.Rectangle(&resultMat, rect, color.RGBA{255, 0, 0, 255}, 2)
 
 					// Add text
 					text := fmt.Sprintf("%s: %d%% (w=%d, mw=%d)", debugName, barInfo.Value, barInfo.Width, barInfo.MaxWidth)
-					gocv.PutText(cd.mat, text,
-						image.Pt(absRect.Min.X, absRect.Min.Y-5),
+					gocv.PutText(&resultMat, text,
+						image.Pt(rect.Min.X, rect.Min.Y-5),
 						gocv.FontHersheyPlain, 1.0, color.RGBA{255, 255, 0, 255}, 1)
 					break
 				}
 			}
 		}
 
-		// Save the image
-		filename := fmt.Sprintf("%s.jpeg", debugName)
-		gocv.IMWrite(filename, *cd.mat)
-
-		// Save mask
-		maskFilename := fmt.Sprintf("%s_mask.jpeg", debugName)
-		gocv.IMWrite(maskFilename, morphed)
+		// Send images to debug UI (will be displayed on main thread)
+		cd.DebugUI.SendUpdate(debugName, roiMat, maskBGR, resultMat)
 	}
 }
 
@@ -541,34 +526,40 @@ func (cd *ClientDetect) updateMobsDetect(mobsList *[]MobsPosition, mobsInfo *Mob
 			}
 
 			*mobsList = append(*mobsList, mob)
-
-			// Debug: draw rectangles
-			if debug {
-				absRect := image.Rect(mob.MinX, mob.MinY, mob.MaxX, mob.MaxY)
-				gocv.Rectangle(cd.mat, absRect, color.RGBA{0, 255, 255, 255}, 2)
-			}
 		}
 	}
 
-	// Debug: save processed image
-	if debug && debugName != "" {
-		// Draw ROI rectangle
-		gocv.Rectangle(cd.mat, image.Rect(actualROI.MinX, actualROI.MinY, actualROI.MaxX, actualROI.MaxY),
-			color.RGBA{0, 255, 0, 255}, 2)
+	// Debug: send images to debug UI
+	if debug && debugName != "" && cd.DebugUI != nil {
+		// Convert mask to BGR for display
+		maskBGR := gocv.NewMat()
+		defer maskBGR.Close()
+		gocv.CvtColor(morphed, &maskBGR, gocv.ColorGrayToBGR)
+
+		// Create result mat with annotations
+		resultMat := roiMat.Clone()
+		defer resultMat.Close()
+
+		// Draw detected mobs on result
+		for _, mob := range *mobsList {
+			// Convert to ROI coordinates
+			roiRect := image.Rect(
+				mob.MinX-actualROI.MinX,
+				mob.MinY-actualROI.MinY,
+				mob.MaxX-actualROI.MinX,
+				mob.MaxY-actualROI.MinY,
+			)
+			gocv.Rectangle(&resultMat, roiRect, color.RGBA{0, 255, 255, 255}, 2)
+		}
 
 		// Add text
 		text := fmt.Sprintf("%s: %d mobs", debugName, len(*mobsList))
-		gocv.PutText(cd.mat, text,
-			image.Pt(actualROI.MinX, actualROI.MinY+20),
+		gocv.PutText(&resultMat, text,
+			image.Pt(10, 30),
 			gocv.FontHersheyPlain, 1.5, color.RGBA{255, 255, 0, 255}, 2)
 
-		// Save the image
-		filename := fmt.Sprintf("%s.jpeg", debugName)
-		gocv.IMWrite(filename, *cd.mat)
-
-		// Save mask
-		maskFilename := fmt.Sprintf("%s_mask.jpeg", debugName)
-		gocv.IMWrite(maskFilename, morphed)
+		// Send images to debug UI (will be displayed on main thread)
+		cd.DebugUI.SendUpdate(debugName, roiMat, maskBGR, resultMat)
 	}
 }
 

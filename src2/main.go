@@ -7,10 +7,15 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
+	"time"
 )
 
 func main() {
+	// Lock to main thread for UI operations (macOS requirement)
+	runtime.LockOSThread()
+
 	// Get config path from command line arguments
 	configPath := ""
 	if len(os.Args) > 1 {
@@ -26,6 +31,13 @@ func main() {
 
 	cfg.Log("Flyff Bot starting...")
 
+	// Create debug manager
+	debug := NewDebug(&cfg.Stat)
+	defer debug.Close()
+
+	// Create debug windows (must be on main thread)
+	debug.CreateDebug()
+
 	// Create browser
 	browser := NewBrowser()
 	defer browser.Stop()
@@ -36,9 +48,10 @@ func main() {
 		log.Fatalf("Failed to start browser: %v", err)
 	}
 
-	// Create client detector
+	// Create client detector with debug support
 	detector := NewClientDetect(cfg)
 	detector.Debug = cfg.GetDebug()
+	detector.DebugUI = debug
 	defer detector.Close()
 
 	// Create farming behavior
@@ -51,10 +64,22 @@ func main() {
 	// Start farming in a goroutine
 	go farming.Start()
 
-	// Wait for interrupt signal
-	<-sigChan
-	cfg.Log("Received shutdown signal, stopping...")
+	// Main loop: process debug updates while waiting for shutdown
+	ticker := time.NewTicker(16 * time.Millisecond) // ~60 FPS
+	defer ticker.Stop()
 
+	for {
+		select {
+		case <-sigChan:
+			cfg.Log("Received shutdown signal, stopping...")
+			goto shutdown
+		case <-ticker.C:
+			// Process debug window updates on main thread
+			debug.ProcessUpdates()
+		}
+	}
+
+shutdown:
 	// Save cookies before exit
 	if err := browser.SaveCookie(cfg); err != nil {
 		cfg.Log("Failed to save cookies: %v", err)
