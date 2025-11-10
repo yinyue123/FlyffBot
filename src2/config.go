@@ -157,15 +157,23 @@ type CooldownJSON struct {
 	Slots    map[string]int `json:"slots"`    // Slot cooldowns (format "page:slot" -> remaining ms)
 }
 
+// WaitContext represents a wait state for state machine
+type WaitContext struct {
+	Stage  int       // Current stage
+	Until  time.Time // Wait until this time
+	Cancel bool      // Whether cancelled
+}
+
 // Status holds current bot status (written to status.json)
 type Status struct {
-	Player       PlayerStatus   `json:"player"`
-	Target       *TargetStatus  `json:"target"`   // nil if no target selected
-	Attack       AttackStatus   `json:"attack"`
-	Actions      []string       `json:"actions"`  // Last 10 actions
-	Cooldown     Cooldown       `json:"-"`        // Internal cooldown (not serialized)
-	CooldownJSON CooldownJSON   `json:"cooldown"` // JSON representation of cooldown
-	Mobs         []string       `json:"mobs"`     // List of detected mobs (format: "(x,y,w,h,type)")
+	Player       PlayerStatus            `json:"player"`
+	Target       *TargetStatus           `json:"target"`   // nil if no target selected
+	Attack       AttackStatus            `json:"attack"`
+	Actions      []string                `json:"actions"`  // Last 10 actions
+	Cooldown     Cooldown                `json:"-"`        // Internal cooldown (not serialized)
+	CooldownJSON CooldownJSON            `json:"cooldown"` // JSON representation of cooldown
+	Mobs         []string                `json:"mobs"`     // List of detected mobs (format: "(x,y,w,h,type)")
+	WaitCtx      map[string]*WaitContext `json:"-"`        // Wait contexts for state machine (not serialized)
 }
 
 // Config is the main configuration object
@@ -198,7 +206,8 @@ func InitConfig(path string) (*Config, error) {
 			Cooldown: Cooldown{
 				Slots: make(map[string]time.Time),
 			},
-			Mobs: make([]string, 0),
+			Mobs:    make([]string, 0),
+			WaitCtx: make(map[string]*WaitContext),
 		},
 		Cookies: make([]Cookie, 0),
 	}
@@ -705,5 +714,73 @@ func (c *Config) WaitInterval(startTime time.Time) {
 
 	if sleepDuration > 0 {
 		time.Sleep(sleepDuration)
+	}
+}
+
+// SetupWaitCtx sets up a wait context with the given name and wait duration in milliseconds
+// If durationMS is negative, the wait context will be cleared/deleted
+func (c *Config) SetupWaitCtx(name string, durationMS int) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	// If negative duration, clear the context
+	if durationMS < 0 {
+		delete(c.Status.WaitCtx, name)
+		return
+	}
+
+	if c.Status.WaitCtx[name] == nil {
+		c.Status.WaitCtx[name] = &WaitContext{}
+	}
+	c.Status.WaitCtx[name].Until = time.Now().Add(time.Duration(durationMS) * time.Millisecond)
+	c.Status.WaitCtx[name].Cancel = false
+}
+
+// SwitchWaitCtx switches to the next stage of a wait context
+// Returns:
+// - stage number (1, 2, ...) if wait time has passed
+// - -1 if wait time has not passed yet
+// Creates a new context if it doesn't exist (stage starts at 1)
+func (c *Config) SwitchWaitCtx(name string) int {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	// Create new context if doesn't exist
+	if c.Status.WaitCtx[name] == nil {
+		c.Status.WaitCtx[name] = &WaitContext{
+			Stage:  1,
+			Until:  time.Now(),
+			Cancel: false,
+		}
+		return 1
+	}
+
+	ctx := c.Status.WaitCtx[name]
+
+	// Check if cancelled
+	if ctx.Cancel {
+		delete(c.Status.WaitCtx, name)
+		return 1 // Return to stage 1 if cancelled
+	}
+
+	// Check if wait time has passed
+	if time.Now().After(ctx.Until) {
+		ctx.Stage++
+		ctx.Until = time.Now() // Reset wait time
+		return ctx.Stage
+	}
+
+	// Wait time not passed yet
+	return -1
+}
+
+// ClearWaitCtx clears a wait context by marking it as cancelled
+func (c *Config) ClearWaitCtx(name string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.Status.WaitCtx[name] != nil {
+		c.Status.WaitCtx[name].Until = time.Now()
+		c.Status.WaitCtx[name].Cancel = true
 	}
 }

@@ -632,3 +632,62 @@ updateState() {
 }
 
 updateMobsDetect() {
+	SendUpdate()
+}
+
+
+// 
+在farming.go中只允许有一个睡眠的地方，那就是cfg.WaitInterval(frameStartTime)。其他地方都不能有睡眠，否则会阻塞其他的流程。GetAvailableSlot后，已经更新了冷却时间，下次不会在得到冷却中的slot，所以你不用睡眠。其他的地方需要记录cooldown的时间。你先把sleep注释掉。我需要一条一条确认。
+
+
+//
+
+在farming.go中，有多个地方有sleep。我希望能用一个等待的状态机解决睡眠的问题。
+请你在status中新增个等待时间机，让我实现等待功能，并把farming中的sleep用等待机来替代。
+Status {
+	waitCtx map[string] struct{
+		stage int
+		until time.Time
+		cancel bool
+	};
+}
+
+SetupWaitCtx(name, time) {
+	f.wctx[name].until = now() + time
+}
+
+SwitchWaitCtx(name) {
+	if (f.wctx[name] == nil) {
+		创建ctx，阶段设置为1，进入阶段1
+	}
+	if (f.wctx[name].until > now()) {
+		return ++f.wctx[name].stage;
+	} else {
+		return -1;
+	}
+}
+
+ClearWaitCtx(name) {
+	if f.wctx[name] != nil {
+		f.wctx[name].until = now()
+		f.wctx[name].cancel = true
+	}
+}
+
+// 通过这样来完成sleep
+Demo() {
+	stage = SwitchWaitCtx("Demo")
+	switch  {
+		case 1:
+		// 执行操作
+		// 要执行sleep
+		SetupWaitCtx("Demo", 1000)
+		// 设置好下次执行的时间，等待下次循环判断时间，然后进入stage2
+		case 2:
+		// 接着执行没执行完的操作
+		// 判断是否已经被取消了，被取消了，就不执行了
+		case -1:
+		// 时间没到，啥也不干，等待下次循环
+	} 
+
+}

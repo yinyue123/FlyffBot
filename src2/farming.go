@@ -56,9 +56,10 @@ func (s Stage) String() string {
 
 // RetryState tracks retry attempts for various checks
 type RetryState struct {
-	State  int // Number of times state bar not detected
-	Target int // Number of times target not detected consecutively
-	Map    int // Number of times map not detected
+	State           int // Number of times state bar not detected
+	Target          int // Number of times target not detected consecutively
+	Map             int // Number of times map not detected
+	OfflineKeyEvent int // Offline key event counter (1-30: Enter, 31-40: Escape)
 }
 
 // SearchingEnemyState tracks searching behavior
@@ -190,31 +191,41 @@ func (f *Farming) Restore() {
 func (f *Farming) AfterEnemyKill() {
 	cfg := f.Config
 
-	// Increment kill count
-	cfg.AddKilled()
-	cfg.Log("Killed mob! Total: %d", cfg.Status.Player.Killed)
+	stage := cfg.SwitchWaitCtx("AfterEnemyKill")
+	switch stage {
+	case 1:
+		// Increment kill count
+		cfg.AddKilled()
+		cfg.Log("Killed mob! Total: %d", cfg.Status.Player.Killed)
 
-	// Wait for defeat interval
-	// time.Sleep(time.Duration(cfg.Stat.Attack.DefeatInterval) * time.Millisecond) // TODO: Use cooldown instead
+		// Setup wait for defeat interval
+		cfg.SetupWaitCtx("AfterEnemyKill", cfg.Stat.Attack.DefeatInterval)
 
-	// Try to use pet for pickup
-	page, slot := cfg.GetAvailableSlot(SlotTypePet, 0)
-	if page != -1 || slot != -1 {
-		f.UseSlot(page, slot)
-		cfg.AddAction(fmt.Sprintf("summon_pet(%d:%d)", page, slot))
-	} else {
-		// Use pickup action
-		page, slot = cfg.GetAvailableSlot(SlotTypePick, 0)
+	case 2:
+		// Try to use pet for pickup
+		page, slot := cfg.GetAvailableSlot(SlotTypePet, 0)
 		if page != -1 || slot != -1 {
-			for i := 0; i < 10; i++ {
-				f.UseSlot(page, slot)
+			f.UseSlot(page, slot)
+			cfg.AddAction(fmt.Sprintf("summon_pet(%d:%d)", page, slot))
+		} else {
+			// Use pickup action
+			page, slot = cfg.GetAvailableSlot(SlotTypePick, 0)
+			if page != -1 || slot != -1 {
+				for i := 0; i < 10; i++ {
+					f.UseSlot(page, slot)
+				}
+				cfg.AddAction("pickup_items")
 			}
-			cfg.AddAction("pickup_items")
 		}
-	}
 
-	// Switch to searching state
-	f.Stage = StageSearchingForEnemy
+		// Clear wait context and switch to searching state
+		cfg.SetupWaitCtx("AfterEnemyKill", -1)
+		f.Stage = StageSearchingForEnemy
+
+	case -1:
+		// Still waiting
+		return
+	}
 }
 
 // Attacking handles the attack logic
@@ -275,29 +286,43 @@ func (f *Farming) Attacking() {
 			f.Obstacle.Count = 0
 			return
 		} else if f.Obstacle.Count < cfg.Stat.Attack.ObstacleAvoidCount {
-			// Try to avoid obstacle
-			cfg.Log("Avoiding obstacle (attempt %d/%d)", f.Obstacle.Count, cfg.Stat.Attack.ObstacleAvoidCount)
-			f.Browser.SendKey("w", "press")
-			// time.Sleep(100 * time.Millisecond) // TODO: Remove this sleep
+			// Try to avoid obstacle using state machine
+			obstacleStage := cfg.SwitchWaitCtx("ObstacleAvoid")
+			switch obstacleStage {
+			case 1:
+				cfg.Log("Avoiding obstacle (attempt %d/%d)", f.Obstacle.Count, cfg.Stat.Attack.ObstacleAvoidCount)
+				f.Browser.SendKey("w", "press")
+				cfg.SetupWaitCtx("ObstacleAvoid", 100)
 
-			// Random left/right movement
-			if rand.Intn(2) == 0 {
-				f.Browser.SendKey("ArrowLeft", "hold")
-			} else {
-				f.Browser.SendKey("ArrowRight", "hold")
+			case 2:
+				// Random left/right movement
+				if rand.Intn(2) == 0 {
+					f.Browser.SendKey("ArrowLeft", "hold")
+				} else {
+					f.Browser.SendKey("ArrowRight", "hold")
+				}
+				f.Browser.SendKey(" ", "press") // Jump
+				cfg.SetupWaitCtx("ObstacleAvoid", 10)
+
+			case 3:
+				if rand.Intn(2) == 0 {
+					f.Browser.SendKey("ArrowLeft", "release")
+				} else {
+					f.Browser.SendKey("ArrowRight", "release")
+				}
+				f.Obstacle.Count++
+				f.Target.LastHPUpdate = time.Now() // Reset update time
+				cfg.SetupWaitCtx("ObstacleAvoid", cfg.Stat.Attack.ObstacleCoolDown)
+
+			case 4:
+				// Obstacle avoidance complete
+				cfg.SetupWaitCtx("ObstacleAvoid", -1)
+
+			case -1:
+				// Still waiting
+				return
 			}
-			f.Browser.SendKey(" ", "press") // Jump
-			// time.Sleep(10 * time.Millisecond) // TODO: Remove this sleep
-
-			if rand.Intn(2) == 0 {
-				f.Browser.SendKey("ArrowLeft", "release")
-			} else {
-				f.Browser.SendKey("ArrowRight", "release")
-			}
-
-			f.Obstacle.Count++
-			f.Target.LastHPUpdate = time.Now() // Reset update time
-			// time.Sleep(time.Duration(cfg.Stat.Attack.ObstacleCoolDown) * time.Millisecond) // TODO: Use cooldown instead
+			return
 		} else {
 			// Give up after max attempts
 			cfg.Log("Obstacle avoidance failed, giving up")
@@ -500,78 +525,196 @@ func (f *Farming) SearchingForEnemy() {
 	}
 }
 
+// Escaping handles escape from danger
+func (f *Farming) Escaping() {
+	cfg := f.Config
+
+	stage := cfg.SwitchWaitCtx("Escaping")
+	switch stage {
+	case 1:
+		cfg.Log("Escaping from danger...")
+		// Press and hold forward
+		f.Browser.SendKey("w", "hold")
+		cfg.AddAction("escape_forward")
+		// Hold for 10 seconds
+		cfg.SetupWaitCtx("Escaping", 10000)
+
+	case 2:
+		// Release forward
+		f.Browser.SendKey("w", "release")
+		cfg.AddAction("escape_stop")
+
+		// Use board skill
+		page, slot := cfg.GetAvailableSlot(SlotTypeBoard, 0)
+		if page != -1 || slot != -1 {
+			f.UseSlot(page, slot)
+			cfg.AddAction(fmt.Sprintf("escape_board(%d:%d)", page, slot))
+		}
+
+		// Wait 20 seconds
+		cfg.SetupWaitCtx("Escaping", 20000)
+
+	case 3:
+		// Press board skill again to dismount
+		page, slot := cfg.GetAvailableSlot(SlotTypeBoard, 0)
+		if page != -1 || slot != -1 {
+			f.UseSlot(page, slot)
+			cfg.AddAction(fmt.Sprintf("escape_dismount(%d:%d)", page, slot))
+		}
+
+		// Clear wait context and switch to searching
+		cfg.SetupWaitCtx("Escaping", -1)
+		cfg.Log("Escape completed, searching for enemy")
+		f.Stage = StageSearchingForEnemy
+
+	case -1:
+		// Still waiting
+		return
+	}
+}
+
+// Dead handles death and respawn
+func (f *Farming) Dead() {
+	cfg := f.Config
+
+	stage := cfg.SwitchWaitCtx("Dead")
+	switch stage {
+	case 1:
+		cfg.Log("Dead, waiting for respawn...")
+		f.Browser.SendKey("Enter", "press")
+		cfg.AddAction("death_confirm")
+		// Setup wait for death confirm interval
+		cfg.SetupWaitCtx("Dead", cfg.Stat.Settings.DeathConfirm)
+
+	case 2:
+		// Death handling complete, check if alive
+		if f.Detector.MyStats.Alive {
+			cfg.Log("Respawned successfully")
+			cfg.SetupWaitCtx("Dead", -1) // Clear wait context
+			f.Stage = StageInitializing
+		} else {
+			// Still dead, press Enter again
+			cfg.Log("Still dead, retrying...")
+			f.Browser.SendKey("Enter", "press")
+			cfg.AddAction("death_confirm_retry")
+			cfg.SetupWaitCtx("Dead", cfg.Stat.Settings.DeathConfirm)
+		}
+
+	case -1:
+		// Still waiting
+		return
+	}
+}
+
 // Offline handles disconnection recovery
 func (f *Farming) Offline() {
 	cfg := f.Config
-	cfg.Log("Handling offline state")
 
-	// Refresh browser
-	err := f.Browser.Refresh(cfg)
-	if err != nil {
-		cfg.Log("Failed to refresh browser: %v", err)
+	stage := cfg.SwitchWaitCtx("Offline")
+	switch stage {
+	case 1:
+		cfg.Log("Handling offline state")
+		// Refresh browser
+		err := f.Browser.Refresh(cfg)
+		if err != nil {
+			cfg.Log("Failed to refresh browser: %v", err)
+		}
+		// Wait for page to load (5 seconds)
+		cfg.SetupWaitCtx("Offline", 5000)
+		f.Retry.OfflineKeyEvent = 1
+
+	case 2:
+		// Press Enter every second until state bar appears (1-30: Enter)
+		// Check if state bar is already open
+		if f.Detector.MyStats.Open {
+			cfg.Log("State bar detected, skipping Enter presses")
+			f.Retry.OfflineKeyEvent = 31 // Skip to Escape stage
+			cfg.SetupWaitCtx("Offline", 0) // No wait, immediately go to stage 3
+			return
+		}
+
+		if f.Retry.OfflineKeyEvent <= 30 {
+			f.Browser.SendKey("Enter", "press")
+			cfg.AddAction(fmt.Sprintf("reconnect_enter(%d)", f.Retry.OfflineKeyEvent))
+			f.Retry.OfflineKeyEvent++
+			cfg.SetupWaitCtx("Offline", 1000) // Wait 1 second
+		} else {
+			// Done with Enter presses, move to Escape
+			cfg.SetupWaitCtx("Offline", 0) // No wait, immediately go to stage 3
+		}
+
+	case 3:
+		// Press ESC every second (31-40: Escape)
+		if f.Retry.OfflineKeyEvent <= 40 {
+			f.Browser.SendKey("Escape", "press")
+			cfg.AddAction(fmt.Sprintf("cleanup_esc(%d)", f.Retry.OfflineKeyEvent-30))
+			f.Retry.OfflineKeyEvent++
+			cfg.SetupWaitCtx("Offline", 1000) // Wait 1 second
+		} else {
+			// Done with Escape presses
+			cfg.SetupWaitCtx("Offline", 0) // No wait, immediately go to stage 4
+		}
+
+	case 4:
+		// Reconnection attempt completed
+		cfg.Log("Reconnection attempt completed")
+		cfg.SetupWaitCtx("Offline", -1) // Clear wait context
+		f.Retry.OfflineKeyEvent = 0
+		f.Stage = StageInitializing
+
+	case -1:
+		// Still waiting
+		return
 	}
-
-	// Wait for page to load
-	// time.Sleep(5 * time.Second) // TODO: Handle reconnect timing differently
-
-	// Press Enter every second until state bar appears
-	for i := 0; i < 30; i++ {
-		// TODO: Check if state bar appears
-		// if stateBarAppears {
-		//     break
-		// }
-		f.Browser.SendKey("Enter", "press")
-		cfg.AddAction("reconnect_enter")
-		// time.Sleep(1 * time.Second) // TODO: Handle reconnect timing differently
-	}
-
-	// Press ESC 10 times
-	for i := 0; i < 10; i++ {
-		f.Browser.SendKey("Escape", "press")
-		cfg.AddAction("cleanup_esc")
-		// time.Sleep(1 * time.Second) // TODO: Handle cleanup timing differently
-	}
-
-	// Increment disconnect count
-	// TODO: Need to add disconnect counter to struct
-	cfg.Log("Reconnection attempt completed")
-
-	// Switch to initializing state
-	f.Stage = StageInitializing
 }
 
 // Initializing checks if the game is ready
 func (f *Farming) Initializing() bool {
 	cfg := f.Config
-	cfg.Log("Initializing...")
 
-	// Check if state bar is open
-	stateBarOpen := f.Detector.MyStats.Open
-	if !stateBarOpen {
-		// Try to open state bar
-		// for i := 0; i < 5; i++ {
-		// 	f.Browser.SendKey("t", "press")
-		// 	cfg.AddAction("open_state_bar")
-		// 	// time.Sleep(2 * time.Second) // TODO: Handle initialization timing differently
+	stage := cfg.SwitchWaitCtx("Initializing")
+	switch stage {
+	case 1:
+		cfg.Log("Initializing...")
+		// Check if state bar is open
+		if f.Detector.MyStats.Open {
+			// State bar is open, check map
+			// TODO: Check if map is open (need to implement map detection in Detector)
+			mapOpen := true // Temporary, assume map is always open for now
 
-		// 	// Check again after waiting
-		// 	if f.Detector.MyStats.Open {
-		// 		stateBarOpen = true
-		// 		break
-		// 	}
-		// }
+			if mapOpen {
+				cfg.Log("Initialization completed")
+				cfg.SetupWaitCtx("Initializing", -1) // Clear wait context
+				f.Retry.State = 0
+				f.Stage = StageSearchingForEnemy
+				return true
+			}
+		} else {
+			// State bar not open, increment retry counter
+			f.Retry.State++
+			cfg.Log("State bar not detected (retry %d)", f.Retry.State)
+
+			if f.Retry.State > 5 {
+				// Try to open state bar by pressing 't'
+				f.Browser.SendKey("t", "press")
+				cfg.AddAction(fmt.Sprintf("open_state_bar(retry_%d)", f.Retry.State))
+				f.Retry.State = 0 // Reset counter after pressing 't'
+			}
+
+			// Wait 5 seconds before checking again
+			cfg.SetupWaitCtx("Initializing", 5000)
+		}
+
+	case 2:
+		// After waiting 5 seconds, go back to stage 1 to check again
+		cfg.SetupWaitCtx("Initializing", -1) // Clear and restart
+		return f.Initializing()
+
+	case -1:
+		// Still waiting
+		return false
 	}
 
-	// TODO: Check if map is open (need to implement map detection in Detector)
-	mapOpen := true // Temporary, assume map is always open for now
-
-	if stateBarOpen && mapOpen {
-		cfg.Log("Initialization completed")
-		f.Stage = StageSearchingForEnemy
-		return true
-	}
-
-	cfg.Log("Initialization failed: stateBar=%v, map=%v", stateBarOpen, mapOpen)
 	return false
 }
 
@@ -642,15 +785,10 @@ func (f *Farming) Start() {
 			f.AfterEnemyKill()
 
 		case StageEscaping:
-			// TODO: Implement escape logic
-			cfg.Log("Escaping...")
-			f.Stage = StageSearchingForEnemy
+			f.Escaping()
 
 		case StageDead:
-			// TODO: Implement death handling
-			cfg.Log("Dead, waiting for respawn...")
-			// f.Browser.SendKey("Enter", "press")
-			// time.Sleep(time.Duration(cfg.Stat.Settings.DeathConfirm) * time.Millisecond) // TODO: Use cooldown instead
+			f.Dead()
 
 		case StageOffline:
 			f.Offline()
