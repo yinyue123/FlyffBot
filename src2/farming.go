@@ -628,7 +628,7 @@ func (f *Farming) Offline() {
 		// Check if state bar is already open
 		if f.Detector.MyStats.Open {
 			cfg.Log("State bar detected, skipping Enter presses")
-			f.Retry.OfflineKeyEvent = 31 // Skip to Escape stage
+			f.Retry.OfflineKeyEvent = 31   // Skip to Escape stage
 			cfg.SetupWaitCtx("Offline", 0) // No wait, immediately go to stage 3
 			return
 		}
@@ -669,7 +669,7 @@ func (f *Farming) Offline() {
 }
 
 // Initializing checks if the game is ready
-func (f *Farming) Initializing() bool {
+func (f *Farming) Initializing() {
 	cfg := f.Config
 
 	stage := cfg.SwitchWaitCtx("Initializing")
@@ -687,7 +687,7 @@ func (f *Farming) Initializing() bool {
 				cfg.SetupWaitCtx("Initializing", -1) // Clear wait context
 				f.Retry.State = 0
 				f.Stage = StageSearchingForEnemy
-				return true
+				return
 			}
 		} else {
 			// State bar not open, increment retry counter
@@ -699,23 +699,21 @@ func (f *Farming) Initializing() bool {
 				f.Browser.SendKey("t", "press")
 				cfg.AddAction(fmt.Sprintf("open_state_bar(retry_%d)", f.Retry.State))
 				f.Retry.State = 0 // Reset counter after pressing 't'
+				// Wait 5 seconds before checking again
+				cfg.SetupWaitCtx("Initializing", 5000)
 			}
 
-			// Wait 5 seconds before checking again
-			cfg.SetupWaitCtx("Initializing", 5000)
 		}
 
 	case 2:
 		// After waiting 5 seconds, go back to stage 1 to check again
 		cfg.SetupWaitCtx("Initializing", -1) // Clear and restart
-		return f.Initializing()
+		return
 
 	case -1:
 		// Still waiting
-		return false
+		return
 	}
-
-	return false
 }
 
 // UseSlot uses a skill/item slot

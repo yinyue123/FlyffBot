@@ -4,10 +4,10 @@
     "mp": 0,
     "fp": 0,
     "currentPage": 0,
-    "startTime": 88097,
+    "startTime": 122414,
     "killed": 0,
-    "lastKilledTime": 88097,
-    "stage": "Initializing"
+    "lastKilledTime": 122414,
+    "stage": "Dead"
   },
   "target": null,
   "attack": {
@@ -17,16 +17,16 @@
     "attackTime": 0
   },
   "actions": [
-    "log: [HSV] MyFP - Min(H:45, S:100, V:100) Max(H:70, S:240, V:240)",
-    "log: State bar not open, switching to Initializing",
-    "log: Initializing...",
-    "log: Initialization failed: stateBar=false, map=true",
+    "log: [HSV] MyFP - Min(H:0, S:100, V:100) Max(H:180, S:240, V:240)",
+    "log: Player is dead",
     "log: [HSV] MyHP - Min(H:160, S:100, V:100) Max(H:180, S:240, V:240)",
     "log: [HSV] MyMP - Min(H:90, S:100, V:100) Max(H:120, S:240, V:240)",
-    "log: [HSV] MyFP - Min(H:45, S:100, V:100) Max(H:70, S:240, V:240)",
-    "log: State bar not open, switching to Initializing",
-    "log: Initializing...",
-    "log: Initialization failed: stateBar=false, map=true"
+    "log: [HSV] MyFP - Min(H:0, S:100, V:100) Max(H:180, S:240, V:240)",
+    "log: Player is dead",
+    "log: [HSV] MyHP - Min(H:160, S:100, V:100) Max(H:180, S:240, V:240)",
+    "log: [HSV] MyMP - Min(H:90, S:100, V:100) Max(H:120, S:240, V:240)",
+    "log: [HSV] MyFP - Min(H:0, S:100, V:100) Max(H:180, S:240, V:240)",
+    "log: Player is dead"
   ],
   "cooldown": {
     "attack": 0,

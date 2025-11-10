@@ -132,7 +132,8 @@ func NewClientDetect(cfg *Config) *ClientDetect {
 	}
 	cd.MyStats.FP = BarInfo{
 		BarKind: BarKindFP,
-		MinH:    45, MaxH: 70,
+		// MinH:    45, MaxH: 70,
+		MinH: 0, MaxH: 180,
 		MinS: 100, MaxS: 240,
 		MinV: 100, MaxV: 240,
 	}
