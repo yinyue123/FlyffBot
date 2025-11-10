@@ -272,11 +272,11 @@ func (cd *ClientDetect) updateStateDetect(barInfo *BarInfo, roi ROIArea, filter 
 	upper := gocv.NewScalar(float64(barInfo.MaxH), float64(barInfo.MaxS), float64(barInfo.MaxV), 0)
 
 	// Log HSV range
-	if cd.Config != nil && debug {
-		cd.Config.Log("[HSV] %s - Min(H:%d, S:%d, V:%d) Max(H:%d, S:%d, V:%d)",
-			debugName, barInfo.MinH, barInfo.MinS, barInfo.MinV,
-			barInfo.MaxH, barInfo.MaxS, barInfo.MaxV)
-	}
+	// if cd.Config != nil && debug {
+	// 	cd.Config.Log("[HSV] %s - Min(H:%d, S:%d, V:%d) Max(H:%d, S:%d, V:%d)",
+	// 		debugName, barInfo.MinH, barInfo.MinS, barInfo.MinV,
+	// 		barInfo.MaxH, barInfo.MaxS, barInfo.MaxV)
+	// }
 
 	mask := gocv.NewMat()
 	defer mask.Close()

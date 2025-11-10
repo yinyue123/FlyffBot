@@ -4,9 +4,9 @@
     "mp": 0,
     "fp": 0,
     "currentPage": 0,
-    "startTime": 122414,
+    "startTime": 909258,
     "killed": 0,
-    "lastKilledTime": 122414,
+    "lastKilledTime": 909258,
     "stage": "Dead"
   },
   "target": null,
@@ -17,15 +17,15 @@
     "attackTime": 0
   },
   "actions": [
-    "log: [HSV] MyFP - Min(H:0, S:100, V:100) Max(H:180, S:240, V:240)",
     "log: Player is dead",
-    "log: [HSV] MyHP - Min(H:160, S:100, V:100) Max(H:180, S:240, V:240)",
-    "log: [HSV] MyMP - Min(H:90, S:100, V:100) Max(H:120, S:240, V:240)",
-    "log: [HSV] MyFP - Min(H:0, S:100, V:100) Max(H:180, S:240, V:240)",
+    "log: Received screencast frame #4501",
     "log: Player is dead",
-    "log: [HSV] MyHP - Min(H:160, S:100, V:100) Max(H:180, S:240, V:240)",
-    "log: [HSV] MyMP - Min(H:90, S:100, V:100) Max(H:120, S:240, V:240)",
-    "log: [HSV] MyFP - Min(H:0, S:100, V:100) Max(H:180, S:240, V:240)",
+    "log: Player is dead",
+    "log: Player is dead",
+    "log: Player is dead",
+    "log: Player is dead",
+    "log: Player is dead",
+    "log: Player is dead",
     "log: Player is dead"
   ],
   "cooldown": {
