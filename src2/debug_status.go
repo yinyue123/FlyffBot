@@ -399,8 +399,19 @@ type HSVRange struct {
 	VMax int
 }
 
+// MorphParams holds morphology parameters
+type MorphParams struct {
+	UseAdaptive     int // 0 = fixed threshold, 1 = adaptive threshold
+	VThreshold      int // Fixed threshold value
+	AdaptiveMethod  int // 0 = Mean, 1 = Gaussian
+	BlockSize       int // Adaptive block size (must be odd)
+	CValue          int // Adaptive C value
+	MorphWidth      int
+	MorphHeight     int
+}
+
 // detectStatusBars2 detects status bars with the new algorithm
-func detectStatusBars2(mat gocv.Mat, windowMorph *gocv.Window, windowFrame *gocv.Window, windowBars *gocv.Window, windowHP *gocv.Window, windowMP *gocv.Window, windowFP *gocv.Window, hsvRanges [3]*HSVRange, printProgress bool) []StatusBarInfo {
+func detectStatusBars2(mat gocv.Mat, windowMorph *gocv.Window, windowFrame *gocv.Window, windowBars *gocv.Window, windowHP *gocv.Window, windowMP *gocv.Window, windowFP *gocv.Window, morphParams *MorphParams, hsvRanges [3]*HSVRange, printProgress bool) []StatusBarInfo {
 	// Helper function to append image to display - auto-converts to BGR if needed
 	appendImage := func(display *gocv.Mat, img gocv.Mat, isHSV bool) {
 		var bgrImg gocv.Mat
@@ -452,7 +463,7 @@ func detectStatusBars2(mat gocv.Mat, windowMorph *gocv.Window, windowFrame *gocv
 	gocv.CvtColor(img_roi, &img_hsv, gocv.ColorBGRToHSV)
 	appendImage(&morphDisplay, img_hsv, true) // true = HSV
 
-	// === Step 3: Get V channel and threshold V < 80 ===
+	// === Step 3: Get V channel and threshold ===
 	channels := gocv.Split(img_hsv)
 	defer func() {
 		for i := range channels {
@@ -463,7 +474,32 @@ func detectStatusBars2(mat gocv.Mat, windowMorph *gocv.Window, windowFrame *gocv
 
 	img_v := gocv.NewMat()
 	defer img_v.Close()
-	gocv.Threshold(vChannel, &img_v, 80, 255, gocv.ThresholdBinaryInv)
+
+	if morphParams.UseAdaptive == 0 {
+		// Fixed threshold
+		gocv.Threshold(vChannel, &img_v, float32(morphParams.VThreshold), 255, gocv.ThresholdBinaryInv)
+	} else {
+		// Adaptive threshold
+		// Ensure block size is odd and at least 3
+		blockSize := morphParams.BlockSize
+		if blockSize < 3 {
+			blockSize = 3
+		}
+		if blockSize%2 == 0 {
+			blockSize++
+		}
+
+		// Choose adaptive method
+		var adaptiveMethod gocv.AdaptiveThresholdType
+		if morphParams.AdaptiveMethod == 0 {
+			adaptiveMethod = gocv.AdaptiveThresholdMean
+		} else {
+			adaptiveMethod = gocv.AdaptiveThresholdGaussian
+		}
+
+		// Apply adaptive threshold (note: outputs white for BELOW threshold with Inv)
+		gocv.AdaptiveThreshold(vChannel, &img_v, 255, adaptiveMethod, gocv.ThresholdBinaryInv, blockSize, float32(morphParams.CValue))
+	}
 	appendImage(&morphDisplay, img_v, false)
 
 	// === Step 4: Invert ===
@@ -472,8 +508,17 @@ func detectStatusBars2(mat gocv.Mat, windowMorph *gocv.Window, windowFrame *gocv
 	gocv.BitwiseNot(img_v, &img_vr)
 	appendImage(&morphDisplay, img_vr, false)
 
-	// === Step 5: Morphological operations (width=5, height=3) ===
-	kernel := gocv.GetStructuringElement(gocv.MorphRect, image.Pt(5, 3))
+	// === Step 5: Morphological operations ===
+	// Ensure kernel dimensions are at least 1
+	kernelWidth := morphParams.MorphWidth
+	if kernelWidth < 1 {
+		kernelWidth = 1
+	}
+	kernelHeight := morphParams.MorphHeight
+	if kernelHeight < 1 {
+		kernelHeight = 1
+	}
+	kernel := gocv.GetStructuringElement(gocv.MorphRect, image.Pt(kernelWidth, kernelHeight))
 	defer kernel.Close()
 
 	closed := gocv.NewMat()
@@ -622,20 +667,37 @@ func detectStatusBars2(mat gocv.Mat, windowMorph *gocv.Window, windowFrame *gocv
 		}
 
 		// === Window 2: Frame & Avatar Detection ===
-		// Start with outer frame marked
-		frameDisplay := img_roi.Clone()
+		frameDisplay := gocv.NewMat()
 		defer frameDisplay.Close()
-		gocv.Rectangle(&frameDisplay, img_outline, color.RGBA{0, 255, 0, 255}, 2)
-		gocv.PutText(&frameDisplay, "Outer Frame",
-			image.Pt(img_outline.Min.X, img_outline.Min.Y-5),
-			gocv.FontHersheyPlain, 1.2, color.RGBA{0, 255, 0, 255}, 2)
 
-		// Append img_vrmr
-		appendImage(&frameDisplay, img_vrmr, false)
+		// 1. Original ROI with label
+		originalROI := img_roi.Clone()
+		defer originalROI.Close()
+		gocv.PutText(&originalROI, "Original",
+			image.Pt(10, 25),
+			gocv.FontHersheyPlain, 1.5, color.RGBA{255, 255, 255, 255}, 2)
+		frameDisplay = originalROI.Clone()
 
-		// Mark avatar and append
-		avatarMarked := img_roi.Clone()
-		defer avatarMarked.Close()
+		// 2. Mask (img_vrmr) with label
+		maskForFrame := gocv.NewMat()
+		defer maskForFrame.Close()
+		gocv.CvtColor(img_vrmr, &maskForFrame, gocv.ColorGrayToBGR)
+		gocv.PutText(&maskForFrame, "Mask",
+			image.Pt(10, 25),
+			gocv.FontHersheyPlain, 1.5, color.RGBA{255, 255, 255, 255}, 2)
+		appendImage(&frameDisplay, maskForFrame, false)
+
+		// 3. Result with all annotations
+		resultFrame := img_roi.Clone()
+		defer resultFrame.Close()
+
+		// Draw outer frame
+		gocv.Rectangle(&resultFrame, img_outline, color.RGBA{0, 255, 0, 255}, 2)
+		gocv.PutText(&resultFrame, "Frame",
+			image.Pt(img_outline.Min.X+5, img_outline.Min.Y+20),
+			gocv.FontHersheyPlain, 1.0, color.RGBA{0, 255, 0, 255}, 2)
+
+		// Draw avatar
 		if img_avatar.Dx() > 0 {
 			absoluteAvatar := image.Rect(
 				img_avatar.Min.X+img_outline.Min.X,
@@ -643,34 +705,32 @@ func detectStatusBars2(mat gocv.Mat, windowMorph *gocv.Window, windowFrame *gocv
 				img_avatar.Max.X+img_outline.Min.X,
 				img_avatar.Max.Y+img_outline.Min.Y,
 			)
-			gocv.Rectangle(&avatarMarked, absoluteAvatar, color.RGBA{255, 0, 0, 255}, 2)
-			gocv.PutText(&avatarMarked, "Avatar",
-				image.Pt(absoluteAvatar.Min.X, absoluteAvatar.Min.Y-5),
-				gocv.FontHersheyPlain, 1.2, color.RGBA{255, 0, 0, 255}, 2)
+			gocv.Rectangle(&resultFrame, absoluteAvatar, color.RGBA{255, 0, 0, 255}, 2)
+			gocv.PutText(&resultFrame, "Avatar",
+				image.Pt(absoluteAvatar.Min.X+5, absoluteAvatar.Min.Y+20),
+				gocv.FontHersheyPlain, 1.0, color.RGBA{255, 0, 0, 255}, 2)
 		}
-		appendImage(&frameDisplay, avatarMarked, false)
 
-		// Mark img_bararea and append
-		barareaMarked := img_roi.Clone()
-		defer barareaMarked.Close()
+		// Draw bar area
 		if img_bararea_abs.Dx() > 0 {
-			gocv.Rectangle(&barareaMarked, img_bararea_abs, color.RGBA{255, 255, 0, 255}, 2)
-			gocv.PutText(&barareaMarked, "Bar Area",
-				image.Pt(img_bararea_abs.Min.X, img_bararea_abs.Min.Y-5),
-				gocv.FontHersheyPlain, 1.0, color.RGBA{255, 255, 0, 255}, 2)
+			gocv.Rectangle(&resultFrame, img_bararea_abs, color.RGBA{255, 255, 0, 255}, 2)
+			gocv.PutText(&resultFrame, "Bar Area",
+				image.Pt(img_bararea_abs.Min.X+5, img_bararea_abs.Min.Y+15),
+				gocv.FontHersheyPlain, 0.8, color.RGBA{255, 255, 0, 255}, 1)
 		}
-		appendImage(&frameDisplay, barareaMarked, false)
 
-		// Draw all img_bars rectangles
-		img_bars_marked := img_roi.Clone()
-		defer img_bars_marked.Close()
+		// Draw all bars
 		for i, barRect := range img_bars {
-			gocv.Rectangle(&img_bars_marked, barRect, color.RGBA{0, 255, 255, 255}, 2)
-			gocv.PutText(&img_bars_marked, fmt.Sprintf("Bar%d", i+1),
-				image.Pt(barRect.Min.X, barRect.Min.Y-5),
-				gocv.FontHersheyPlain, 1.0, color.RGBA{0, 255, 255, 255}, 2)
+			gocv.Rectangle(&resultFrame, barRect, color.RGBA{0, 255, 255, 255}, 2)
+			gocv.PutText(&resultFrame, fmt.Sprintf("Bar%d", i+1),
+				image.Pt(barRect.Min.X+5, barRect.Min.Y+12),
+				gocv.FontHersheyPlain, 0.8, color.RGBA{0, 255, 255, 255}, 1)
 		}
-		appendImage(&frameDisplay, img_bars_marked, false)
+
+		gocv.PutText(&resultFrame, "Result",
+			image.Pt(10, 25),
+			gocv.FontHersheyPlain, 1.5, color.RGBA{255, 255, 255, 255}, 2)
+		appendImage(&frameDisplay, resultFrame, false)
 
 		windowFrame.IMShow(frameDisplay)
 
@@ -984,6 +1044,26 @@ func runDetection2(useStaticImage bool, staticMat gocv.Mat, browser *DebugBrowse
 	defer windowMP.Close()
 	defer windowFP.Close()
 
+	// Create morphology parameters
+	morphParams := &MorphParams{
+		UseAdaptive:    0,   // 0 = fixed, 1 = adaptive
+		VThreshold:     80,  // Fixed threshold value
+		AdaptiveMethod: 1,   // 0 = Mean, 1 = Gaussian
+		BlockSize:      100, // Adaptive block size
+		CValue:         2,   // Adaptive C value
+		MorphWidth:     5,
+		MorphHeight:    3,
+	}
+
+	// Create trackbars for morphology parameters
+	windowMorph.CreateTrackbarWithValue("Use Adaptive (0/1)", &morphParams.UseAdaptive, 1)
+	windowMorph.CreateTrackbarWithValue("V Threshold", &morphParams.VThreshold, 255)
+	windowMorph.CreateTrackbarWithValue("Adaptive Method (0/1)", &morphParams.AdaptiveMethod, 1)
+	windowMorph.CreateTrackbarWithValue("Block Size", &morphParams.BlockSize, 199)
+	windowMorph.CreateTrackbarWithValue("C Value", &morphParams.CValue, 50)
+	windowMorph.CreateTrackbarWithValue("Morph Width", &morphParams.MorphWidth, 50)
+	windowMorph.CreateTrackbarWithValue("Morph Height", &morphParams.MorphHeight, 50)
+
 	// Create HSV range parameters for HP, MP, FP
 	hpRange := &HSVRange{HMin: 160, HMax: 180, SMin: 100, SMax: 240, VMin: 100, VMax: 240}
 	mpRange := &HSVRange{HMin: 90, HMax: 120, SMin: 100, SMax: 240, VMin: 100, VMax: 240}
@@ -1073,7 +1153,7 @@ func runDetection2(useStaticImage bool, staticMat gocv.Mat, browser *DebugBrowse
 		}
 
 		// Detect and display status bars
-		statusBars := detectStatusBars2(mat, windowMorph, windowFrame, windowBars, windowHP, windowMP, windowFP, hsvRanges, true)
+		statusBars := detectStatusBars2(mat, windowMorph, windowFrame, windowBars, windowHP, windowMP, windowFP, morphParams, hsvRanges, true)
 		if statusBars != nil {
 			for _, bar := range statusBars {
 				fmt.Printf("%s: %.1f%% (fill: %d/%d)\n", bar.Type, bar.Percentage, bar.FillWidth, bar.Rect.Dx())
@@ -1081,6 +1161,299 @@ func runDetection2(useStaticImage bool, staticMat gocv.Mat, browser *DebugBrowse
 		}
 
 		key := windowMorph.WaitKey(100)
+		if key == 'q' || key == 27 {
+			if matInitialized && !useStaticImage {
+				mat.Close()
+				originalMat.Close()
+			}
+			return
+		} else if key == 's' && !useStaticImage {
+			success := gocv.IMWrite(statusImagePath, originalMat)
+			if success {
+				fmt.Println("Saved frame to status.jpeg")
+			} else {
+				fmt.Println("Failed to save frame")
+			}
+		}
+	}
+}
+
+// detectStatusBars3 - Simplified version that returns annotated image only
+func detectStatusBars3(mat gocv.Mat) gocv.Mat {
+	// Fixed morphology parameters (tuned from detection2)
+	vThreshold := 80
+	morphWidth := 5
+	morphHeight := 3
+
+	// === Step 1: Extract ROI ===
+	img_roi := mat.Region(image.Rect(0, 0, 500, 350))
+	defer img_roi.Close()
+
+	// === Step 2: Convert to HSV ===
+	img_hsv := gocv.NewMat()
+	defer img_hsv.Close()
+	gocv.CvtColor(img_roi, &img_hsv, gocv.ColorBGRToHSV)
+
+	// === Step 3: Threshold V channel ===
+	channels := gocv.Split(img_hsv)
+	defer func() {
+		for i := range channels {
+			channels[i].Close()
+		}
+	}()
+	vChannel := channels[2]
+
+	img_v := gocv.NewMat()
+	defer img_v.Close()
+	gocv.Threshold(vChannel, &img_v, float32(vThreshold), 255, gocv.ThresholdBinaryInv)
+
+	// === Step 4: Invert ===
+	img_vr := gocv.NewMat()
+	defer img_vr.Close()
+	gocv.BitwiseNot(img_v, &img_vr)
+
+	// === Step 5: Morphological operations ===
+	kernel := gocv.GetStructuringElement(gocv.MorphRect, image.Pt(morphWidth, morphHeight))
+	defer kernel.Close()
+
+	closed := gocv.NewMat()
+	defer closed.Close()
+	gocv.MorphologyEx(img_vr, &closed, gocv.MorphClose, kernel)
+
+	img_vrm := gocv.NewMat()
+	defer img_vrm.Close()
+	gocv.MorphologyEx(closed, &img_vrm, gocv.MorphOpen, kernel)
+
+	// === Step 6: Invert for outer frame detection ===
+	img_vrmr := gocv.NewMat()
+	defer img_vrmr.Close()
+	gocv.BitwiseNot(img_vrm, &img_vrmr)
+
+	// === Step 7: Detect outer frame ===
+	outerContours := gocv.FindContours(img_vrmr, gocv.RetrievalExternal, gocv.ChainApproxSimple)
+	defer outerContours.Close()
+
+	var img_outline image.Rectangle
+	found := false
+	for i := 0; i < outerContours.Size(); i++ {
+		contour := outerContours.At(i)
+		rect := gocv.BoundingRect(contour)
+		if rect.Dx() >= 400 && rect.Dx() <= 600 && rect.Dy() >= 180 && rect.Dy() <= 300 {
+			img_outline = rect
+			found = true
+			break
+		}
+	}
+
+	// Create result image
+	result := mat.Clone()
+
+	if !found {
+		return result
+	}
+
+	// Draw outer frame (GREEN)
+	gocv.Rectangle(&result, img_outline, color.RGBA{0, 255, 0, 255}, 2)
+
+	// === Step 8: Find avatar ===
+	frameMask := img_vrm.Region(img_outline)
+	defer frameMask.Close()
+
+	innerContours := gocv.FindContours(frameMask, gocv.RetrievalList, gocv.ChainApproxSimple)
+	defer innerContours.Close()
+
+	var img_avatar image.Rectangle
+	for i := 0; i < innerContours.Size(); i++ {
+		contour := innerContours.At(i)
+		rect := gocv.BoundingRect(contour)
+		if rect.Dx() >= 80 && rect.Dx() <= 200 && rect.Dy() >= 100 && rect.Dy() <= 300 {
+			img_avatar = rect
+			break
+		}
+	}
+
+	// Draw avatar (BLUE)
+	if img_avatar.Dx() > 0 {
+		absoluteAvatar := image.Rect(
+			img_avatar.Min.X+img_outline.Min.X,
+			img_avatar.Min.Y+img_outline.Min.Y,
+			img_avatar.Max.X+img_outline.Min.X,
+			img_avatar.Max.Y+img_outline.Min.Y,
+		)
+		gocv.Rectangle(&result, absoluteAvatar, color.RGBA{0, 0, 255, 255}, 2)
+	}
+
+	// === Step 9: Define bar area and find bars ===
+	var img_bars []image.Rectangle
+	if img_avatar.Dx() > 0 {
+		img_bararea := image.Rect(
+			img_avatar.Max.X,
+			img_avatar.Min.Y,
+			img_outline.Dx(),
+			img_avatar.Max.Y,
+		)
+
+		img_bararea_abs := image.Rect(
+			img_bararea.Min.X+img_outline.Min.X,
+			img_bararea.Min.Y+img_outline.Min.Y,
+			img_bararea.Max.X+img_outline.Min.X,
+			img_bararea.Max.Y+img_outline.Min.Y,
+		)
+
+		// Draw bar area (GREEN)
+		gocv.Rectangle(&result, img_bararea_abs, color.RGBA{0, 255, 0, 255}, 2)
+
+		barAreaMask := img_vrm.Region(img_bararea_abs)
+		defer barAreaMask.Close()
+
+		barContours := gocv.FindContours(barAreaMask, gocv.RetrievalList, gocv.ChainApproxSimple)
+		defer barContours.Close()
+
+		for i := 0; i < barContours.Size(); i++ {
+			contour := barContours.At(i)
+			rect := gocv.BoundingRect(contour)
+			if rect.Dx() >= 100 && rect.Dx() <= 300 && rect.Dy() >= 5 && rect.Dy() <= 30 {
+				absoluteRect := image.Rect(
+					rect.Min.X+img_bararea_abs.Min.X,
+					rect.Min.Y+img_bararea_abs.Min.Y,
+					rect.Max.X+img_bararea_abs.Min.X,
+					rect.Max.Y+img_bararea_abs.Min.Y,
+				)
+				img_bars = append(img_bars, absoluteRect)
+			}
+		}
+
+		// Sort bars from top to bottom
+		for i := 0; i < len(img_bars); i++ {
+			for j := i + 1; j < len(img_bars); j++ {
+				if img_bars[i].Min.Y > img_bars[j].Min.Y {
+					img_bars[i], img_bars[j] = img_bars[j], img_bars[i]
+				}
+			}
+		}
+
+		// === Step 10: Process HP, MP, FP bars ===
+		if len(img_bars) >= 3 {
+			barTypes := []string{"HP", "MP", "FP"}
+			hRanges := [][2]int{{160, 180}, {90, 120}, {45, 70}}
+
+			for i := 0; i < 3; i++ {
+				barRect := img_bars[i]
+				barType := barTypes[i]
+				hRange := hRanges[i]
+
+				// Draw bar outline (BLUE)
+				gocv.Rectangle(&result, barRect, color.RGBA{0, 0, 255, 255}, 2)
+
+				// Extract bar region from HSV
+				barROI := img_hsv.Region(barRect)
+				defer barROI.Close()
+
+				// Create mask for the specific color range
+				lower := gocv.NewScalar(float64(hRange[0]), 100, 100, 0)
+				upper := gocv.NewScalar(float64(hRange[1]), 240, 240, 0)
+				mask := gocv.NewMat()
+				defer mask.Close()
+				gocv.InRangeWithScalar(barROI, lower, upper, &mask)
+
+				// Find the rightmost white pixel
+				fillWidth := 0
+				for x := barRect.Dx() - 1; x >= 0; x-- {
+					hasWhite := false
+					for y := 0; y < barRect.Dy(); y++ {
+						if mask.GetUCharAt(y, x) > 0 {
+							hasWhite = true
+							break
+						}
+					}
+					if hasWhite {
+						fillWidth = x + 1
+						break
+					}
+				}
+
+				percentage := float64(fillWidth) / float64(barRect.Dx()) * 100
+
+				// Draw text (YELLOW)
+				text := fmt.Sprintf("%s: %.1f%%", barType, percentage)
+				gocv.PutText(&result, text,
+					image.Pt(barRect.Min.X, barRect.Min.Y-5),
+					gocv.FontHersheyPlain, 1.2, color.RGBA{0, 255, 255, 255}, 2)
+			}
+		}
+	}
+
+	return result
+}
+
+// runDetection3 - Simplified detection with single window
+func runDetection3(useStaticImage bool, staticMat gocv.Mat, browser *DebugBrowser, statusImagePath string) {
+	window := gocv.NewWindow("Status Detection")
+	defer window.Close()
+
+	var mat gocv.Mat
+	matInitialized := false
+	var originalMat gocv.Mat
+	var err error
+
+	if !useStaticImage {
+		for i := 0; i < 100; i++ {
+			if frame, ok := browser.GetFrame(); ok {
+				mat, err = gocv.ImageToMatRGB(frame)
+				if err != nil {
+					fmt.Printf("Failed to convert image: %v\n", err)
+					return
+				}
+				matInitialized = true
+				originalMat = mat.Clone()
+				break
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
+
+		if !matInitialized {
+			fmt.Println("Failed to get frame")
+			return
+		}
+	}
+
+	fmt.Println("Controls:")
+	fmt.Println("  's': Save current frame to status.jpeg (browser mode only)")
+	fmt.Println("  'q' or ESC: Quit")
+
+	for {
+		if useStaticImage {
+			mat = staticMat
+		} else {
+			if frame, ok := browser.GetFrame(); ok {
+				if matInitialized {
+					mat.Close()
+					originalMat.Close()
+				}
+				mat, err = gocv.ImageToMatRGB(frame)
+				if err != nil {
+					time.Sleep(100 * time.Millisecond)
+					continue
+				}
+				matInitialized = true
+				originalMat = mat.Clone()
+			}
+
+			if !matInitialized {
+				key := window.WaitKey(100)
+				if key == 'q' || key == 27 {
+					return
+				}
+				continue
+			}
+		}
+
+		// Detect and display
+		result := detectStatusBars3(mat)
+		defer result.Close()
+		window.IMShow(result)
+
+		key := window.WaitKey(100)
 		if key == 'q' || key == 27 {
 			if matInitialized && !useStaticImage {
 				mat.Close()
@@ -1145,7 +1518,8 @@ func main() {
 		time.Sleep(5 * time.Second)
 	}
 
-	// Use detection algorithm 2 (comment/uncomment to switch)
+	// Use detection algorithm (comment/uncomment to switch)
 	// runDetection1(useStaticImage, staticMat, browser, statusImagePath)
-	runDetection2(useStaticImage, staticMat, browser, statusImagePath)
+	// runDetection2(useStaticImage, staticMat, browser, statusImagePath)
+	runDetection3(useStaticImage, staticMat, browser, statusImagePath)
 }
