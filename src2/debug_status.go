@@ -389,8 +389,18 @@ type StatusBarInfo struct {
 	Type       string // "HP", "MP", or "FP"
 }
 
+// HSVRange holds HSV color range parameters for a status bar
+type HSVRange struct {
+	HMin int
+	HMax int
+	SMin int
+	SMax int
+	VMin int
+	VMax int
+}
+
 // detectStatusBars2 detects status bars with the new algorithm
-func detectStatusBars2(mat gocv.Mat, windowMorph *gocv.Window, windowFrame *gocv.Window, windowBars *gocv.Window, printProgress bool) []StatusBarInfo {
+func detectStatusBars2(mat gocv.Mat, windowMorph *gocv.Window, windowFrame *gocv.Window, windowBars *gocv.Window, windowHP *gocv.Window, windowMP *gocv.Window, windowFP *gocv.Window, hsvRanges [3]*HSVRange, printProgress bool) []StatusBarInfo {
 	// Helper function to append image to display - auto-converts to BGR if needed
 	appendImage := func(display *gocv.Mat, img gocv.Mat, isHSV bool) {
 		var bgrImg gocv.Mat
@@ -419,8 +429,18 @@ func detectStatusBars2(mat gocv.Mat, windowMorph *gocv.Window, windowFrame *gocv
 	}
 
 	// === Step 1: Extract ROI (0,0) to (500,350) ===
+	if printProgress {
+		fmt.Printf("\n=== Starting detectStatusBars2 ===\n")
+		fmt.Printf("Input mat size: %dx%d, channels: %d\n", mat.Cols(), mat.Rows(), mat.Channels())
+	}
+
 	img_roi := mat.Region(image.Rect(0, 0, 500, 350))
 	defer img_roi.Close()
+
+	if printProgress {
+		fmt.Printf("img_roi size: %dx%d, channels: %d, empty: %v\n",
+			img_roi.Cols(), img_roi.Rows(), img_roi.Channels(), img_roi.Empty())
+	}
 
 	// Start building display
 	morphDisplay := img_roi.Clone()
@@ -668,22 +688,21 @@ func detectStatusBars2(mat gocv.Mat, windowMorph *gocv.Window, windowFrame *gocv
 	var img_hp_mask, img_mp_mask, img_fp_mask gocv.Mat
 	if found && len(img_bars) >= 3 {
 		barTypes := []string{"HP", "MP", "FP"}
-		hRanges := [][2]int{{160, 180}, {90, 120}, {45, 70}}
 		masks := []*gocv.Mat{&img_hp_mask, &img_mp_mask, &img_fp_mask}
 
 		for i := 0; i < 3; i++ {
 			barRect := img_bars[i]
 			barType := barTypes[i]
-			hRange := hRanges[i]
+			hsvRange := hsvRanges[i]
 
 			// Extract bar region from HSV
 			barROI := img_hsv.Region(barRect)
 			defer barROI.Close()
 
-			// Create mask for the specific color range
-			// H: hRange[0]-hRange[1], S: 100-240, V: 100-240
-			lower := gocv.NewScalar(float64(hRange[0]/2), 100, 100, 0) // H is in 0-180 range in OpenCV
-			upper := gocv.NewScalar(float64(hRange[1]/2), 240, 240, 0)
+			// Create mask for the specific color range using trackbar values
+			// Trackbar range is already 0-180 for H (OpenCV range), no need to divide
+			lower := gocv.NewScalar(float64(hsvRange.HMin), float64(hsvRange.SMin), float64(hsvRange.VMin), 0)
+			upper := gocv.NewScalar(float64(hsvRange.HMax), float64(hsvRange.SMax), float64(hsvRange.VMax), 0)
 			*masks[i] = gocv.NewMat()
 			defer masks[i].Close()
 			gocv.InRangeWithScalar(barROI, lower, upper, masks[i])
@@ -723,6 +742,13 @@ func detectStatusBars2(mat gocv.Mat, windowMorph *gocv.Window, windowFrame *gocv
 	barsDisplay := img_roi.Clone()
 	defer barsDisplay.Close()
 
+	if printProgress {
+		fmt.Printf("\n=== Step 3: Status Bars ===\n")
+		fmt.Printf("barsDisplay size: %dx%d, channels: %d, empty: %v\n",
+			barsDisplay.Cols(), barsDisplay.Rows(), barsDisplay.Channels(), barsDisplay.Empty())
+		fmt.Printf("statusBars count: %d\n", len(statusBars))
+	}
+
 	colors := []color.RGBA{
 		{255, 0, 0, 255}, // HP - Red
 		{0, 0, 255, 255}, // MP - Blue
@@ -737,38 +763,81 @@ func detectStatusBars2(mat gocv.Mat, windowMorph *gocv.Window, windowFrame *gocv
 			gocv.FontHersheyPlain, 1.0, colors[i], 2)
 	}
 
-	// Append HP mask if available
-	if !img_hp_mask.Empty() {
-		// Resize mask to a reasonable height for display
-		resizedHP := gocv.NewMat()
-		defer resizedHP.Close()
-		targetHeight := 60
-		targetWidth := img_hp_mask.Cols() * targetHeight / img_hp_mask.Rows()
-		gocv.Resize(img_hp_mask, &resizedHP, image.Pt(targetWidth, targetHeight), 0, 0, gocv.InterpolationLinear)
-		appendImage(&barsDisplay, resizedHP, false)
-	}
-
-	// Append MP mask if available
-	if !img_mp_mask.Empty() {
-		resizedMP := gocv.NewMat()
-		defer resizedMP.Close()
-		targetHeight := 60
-		targetWidth := img_mp_mask.Cols() * targetHeight / img_mp_mask.Rows()
-		gocv.Resize(img_mp_mask, &resizedMP, image.Pt(targetWidth, targetHeight), 0, 0, gocv.InterpolationLinear)
-		appendImage(&barsDisplay, resizedMP, false)
-	}
-
-	// Append FP mask if available
-	if !img_fp_mask.Empty() {
-		resizedFP := gocv.NewMat()
-		defer resizedFP.Close()
-		targetHeight := 60
-		targetWidth := img_fp_mask.Cols() * targetHeight / img_fp_mask.Rows()
-		gocv.Resize(img_fp_mask, &resizedFP, image.Pt(targetWidth, targetHeight), 0, 0, gocv.InterpolationLinear)
-		appendImage(&barsDisplay, resizedFP, false)
-	}
-
+	// Display main status bars window
 	windowBars.IMShow(barsDisplay)
+
+	// Display HP, MP, FP in horizontal layout: Original | Mask | Annotated
+	if len(statusBars) >= 3 {
+		barMasks := []gocv.Mat{img_hp_mask, img_mp_mask, img_fp_mask}
+		windows := []*gocv.Window{windowHP, windowMP, windowFP}
+
+		for i := 0; i < 3; i++ {
+			bar := statusBars[i]
+			display := gocv.NewMat()
+			defer display.Close()
+
+			// 1. Original image with label
+			barOriginal := img_roi.Region(bar.Rect)
+			defer barOriginal.Close()
+			original := barOriginal.Clone()
+			defer original.Close()
+			gocv.PutText(&original, "Original",
+				image.Pt(5, 15),
+				gocv.FontHersheyPlain, 1.0, color.RGBA{255, 255, 255, 255}, 1)
+			display = original.Clone()
+
+			// 2. HSV image with label
+			barHSV := img_hsv.Region(bar.Rect)
+			defer barHSV.Close()
+			hsvDisplay := gocv.NewMat()
+			defer hsvDisplay.Close()
+			gocv.CvtColor(barHSV, &hsvDisplay, gocv.ColorHSVToBGR)
+			gocv.PutText(&hsvDisplay, "HSV",
+				image.Pt(5, 15),
+				gocv.FontHersheyPlain, 1.0, color.RGBA{255, 255, 255, 255}, 1)
+			appendImage(&display, hsvDisplay, false)
+
+			// 3. Mask with label (convert to BGR)
+			mask := barMasks[i]
+			maskDisplay := gocv.NewMat()
+			defer maskDisplay.Close()
+			if !mask.Empty() {
+				gocv.CvtColor(mask, &maskDisplay, gocv.ColorGrayToBGR)
+			} else {
+				// Show empty/black image if mask is empty
+				maskDisplay = gocv.NewMatWithSize(bar.Rect.Dy(), bar.Rect.Dx(), gocv.MatTypeCV8UC3)
+			}
+			gocv.PutText(&maskDisplay, "Mask",
+				image.Pt(5, 15),
+				gocv.FontHersheyPlain, 1.0, color.RGBA{255, 255, 255, 255}, 1)
+			appendImage(&display, maskDisplay, false)
+
+			// 4. Annotated result with label
+			annotated := barOriginal.Clone()
+			defer annotated.Close()
+			// Draw fill width line
+			if bar.FillWidth > 0 {
+				gocv.Line(&annotated,
+					image.Pt(bar.FillWidth-1, 0),
+					image.Pt(bar.FillWidth-1, bar.Rect.Dy()),
+					color.RGBA{0, 255, 0, 255}, 2)
+			}
+			// Draw labels
+			gocv.PutText(&annotated, "Result",
+				image.Pt(5, 15),
+				gocv.FontHersheyPlain, 1.0, color.RGBA{255, 255, 255, 255}, 1)
+			text := fmt.Sprintf("%.1f%%", bar.Percentage)
+			gocv.PutText(&annotated, text,
+				image.Pt(5, bar.Rect.Dy()-5),
+				gocv.FontHersheyPlain, 1.0, color.RGBA{255, 255, 255, 255}, 1)
+			appendImage(&display, annotated, false)
+
+			if printProgress {
+				fmt.Printf("Displaying %s: %dx%d (mask empty: %v)\n", bar.Type, display.Cols(), display.Rows(), mask.Empty())
+			}
+			windows[i].IMShow(display)
+		}
+	}
 
 	return statusBars
 }
@@ -901,13 +970,49 @@ func runDetection1(useStaticImage bool, staticMat gocv.Mat, browser *DebugBrowse
 
 // runDetection2 - New detection algorithm
 func runDetection2(useStaticImage bool, staticMat gocv.Mat, browser *DebugBrowser, statusImagePath string) {
-	// Create three display windows
+	// Create six display windows
 	windowMorph := gocv.NewWindow("Step 1: Morphology")
 	windowFrame := gocv.NewWindow("Step 2: Frame & Avatar Detection")
 	windowBars := gocv.NewWindow("Step 3: Status Bars")
+	windowHP := gocv.NewWindow("HP Mask")
+	windowMP := gocv.NewWindow("MP Mask")
+	windowFP := gocv.NewWindow("FP Mask")
 	defer windowMorph.Close()
 	defer windowFrame.Close()
 	defer windowBars.Close()
+	defer windowHP.Close()
+	defer windowMP.Close()
+	defer windowFP.Close()
+
+	// Create HSV range parameters for HP, MP, FP
+	hpRange := &HSVRange{HMin: 160, HMax: 180, SMin: 100, SMax: 240, VMin: 100, VMax: 240}
+	mpRange := &HSVRange{HMin: 90, HMax: 120, SMin: 100, SMax: 240, VMin: 100, VMax: 240}
+	fpRange := &HSVRange{HMin: 45, HMax: 70, SMin: 100, SMax: 240, VMin: 100, VMax: 240}
+	hsvRanges := [3]*HSVRange{hpRange, mpRange, fpRange}
+
+	// Create trackbars for HP
+	windowHP.CreateTrackbarWithValue("H Min", &hpRange.HMin, 180)
+	windowHP.CreateTrackbarWithValue("H Max", &hpRange.HMax, 180)
+	windowHP.CreateTrackbarWithValue("S Min", &hpRange.SMin, 255)
+	windowHP.CreateTrackbarWithValue("S Max", &hpRange.SMax, 255)
+	windowHP.CreateTrackbarWithValue("V Min", &hpRange.VMin, 255)
+	windowHP.CreateTrackbarWithValue("V Max", &hpRange.VMax, 255)
+
+	// Create trackbars for MP
+	windowMP.CreateTrackbarWithValue("H Min", &mpRange.HMin, 180)
+	windowMP.CreateTrackbarWithValue("H Max", &mpRange.HMax, 180)
+	windowMP.CreateTrackbarWithValue("S Min", &mpRange.SMin, 255)
+	windowMP.CreateTrackbarWithValue("S Max", &mpRange.SMax, 255)
+	windowMP.CreateTrackbarWithValue("V Min", &mpRange.VMin, 255)
+	windowMP.CreateTrackbarWithValue("V Max", &mpRange.VMax, 255)
+
+	// Create trackbars for FP
+	windowFP.CreateTrackbarWithValue("H Min", &fpRange.HMin, 180)
+	windowFP.CreateTrackbarWithValue("H Max", &fpRange.HMax, 180)
+	windowFP.CreateTrackbarWithValue("S Min", &fpRange.SMin, 255)
+	windowFP.CreateTrackbarWithValue("S Max", &fpRange.SMax, 255)
+	windowFP.CreateTrackbarWithValue("V Min", &fpRange.VMin, 255)
+	windowFP.CreateTrackbarWithValue("V Max", &fpRange.VMax, 255)
 
 	// Wait for first frame if using browser
 	var mat gocv.Mat
@@ -968,7 +1073,7 @@ func runDetection2(useStaticImage bool, staticMat gocv.Mat, browser *DebugBrowse
 		}
 
 		// Detect and display status bars
-		statusBars := detectStatusBars2(mat, windowMorph, windowFrame, windowBars, true)
+		statusBars := detectStatusBars2(mat, windowMorph, windowFrame, windowBars, windowHP, windowMP, windowFP, hsvRanges, true)
 		if statusBars != nil {
 			for _, bar := range statusBars {
 				fmt.Printf("%s: %.1f%% (fill: %d/%d)\n", bar.Type, bar.Percentage, bar.FillWidth, bar.Rect.Dx())
