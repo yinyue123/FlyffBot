@@ -1253,8 +1253,169 @@ func runDetection2(useStaticImage bool, staticMat gocv.Mat, browser *DebugBrowse
 	}
 }
 
+// BarROI represents the region of interest for a status bar
+type BarROI struct {
+	MinX  int `json:"minX"`
+	MinY  int `json:"minY"`
+	MaxX  int `json:"maxX"`
+	MaxY  int `json:"maxY"`
+	Width int `json:"width"`
+}
+
+// BarStatus represents the status of a single bar (HP/MP/FP)
+type BarStatus struct {
+	Value int    `json:"value"` // Percentage (0-100)
+	Width int    `json:"width"` // Fill width in pixels
+	ROI   BarROI `json:"roi"`   // Detection region
+}
+
+// detectMyStatus stores the detection state across frames
+type detectMyStatus struct {
+	Open  bool      `json:"open"`
+	Count int       `json:"count"`
+	Retry int       `json:"retry"`
+	HP    BarStatus `json:"hp"`
+	MP    BarStatus `json:"mp"`
+	FP    BarStatus `json:"fp"`
+}
+
 // detectStatusBars3 - Simplified version that returns annotated image only
-func detectStatusBars3(mat gocv.Mat) gocv.Mat {
+func detectStatusBars3(mat gocv.Mat, status *detectMyStatus) gocv.Mat {
+	// detectBarsValue detects HP/MP/FP fill width using HSV color detection
+	// Returns the fill width for HP, MP, FP
+	detectBarsValue := func(img_hsv gocv.Mat, status *detectMyStatus) (hpWidth, mpWidth, fpWidth int) {
+		// Define H ranges for HP, MP, FP
+		hRanges := [][2]int{{160, 180}, {90, 120}, {45, 70}}
+		barStatuses := []*BarStatus{&status.HP, &status.MP, &status.FP}
+		widths := []int{0, 0, 0}
+
+		for i := 0; i < 3; i++ {
+			barStatus := barStatuses[i]
+			hRange := hRanges[i]
+
+			// Check if ROI is valid
+			if barStatus.ROI.Width <= 0 {
+				continue
+			}
+
+			// Create rectangle from ROI
+			barRect := image.Rect(
+				barStatus.ROI.MinX,
+				barStatus.ROI.MinY,
+				barStatus.ROI.MaxX,
+				barStatus.ROI.MaxY,
+			)
+
+			// Validate rectangle is within image bounds
+			if barRect.Min.X < 0 || barRect.Min.Y < 0 ||
+				barRect.Max.X > img_hsv.Cols() || barRect.Max.Y > img_hsv.Rows() {
+				continue
+			}
+
+			// Extract bar region from HSV
+			barROI := img_hsv.Region(barRect)
+			defer barROI.Close()
+
+			// Create mask for the specific color range
+			lower := gocv.NewScalar(float64(hRange[0]), 100, 100, 0)
+			upper := gocv.NewScalar(float64(hRange[1]), 240, 240, 0)
+			mask := gocv.NewMat()
+			defer mask.Close()
+			gocv.InRangeWithScalar(barROI, lower, upper, &mask)
+
+			// Find the rightmost white pixel
+			fillWidth := 0
+			for x := barRect.Dx() - 1; x >= 0; x-- {
+				hasWhite := false
+				for y := 0; y < barRect.Dy(); y++ {
+					if mask.GetUCharAt(y, x) > 0 {
+						hasWhite = true
+						break
+					}
+				}
+				if hasWhite {
+					fillWidth = x + 1
+					break
+				}
+			}
+
+			widths[i] = fillWidth
+		}
+
+		return widths[0], widths[1], widths[2]
+	}
+	sampleCount := 30
+	result := mat.Clone()
+
+	// Check if we should do incremental detection (use cached ROI)
+	if status.Open && status.Count%sampleCount != 0 {
+		// Incremental detection: only detect HP/MP/FP fill width using cached ROI
+		// Convert to HSV
+		img_hsv := gocv.NewMat()
+		defer img_hsv.Close()
+		gocv.CvtColor(mat, &img_hsv, gocv.ColorBGRToHSV)
+
+		// Detect fill widths
+		hpWidth, mpWidth, fpWidth := detectBarsValue(img_hsv, status)
+
+		// Check if all bars were detected
+		if hpWidth > 0 && mpWidth > 0 && fpWidth > 0 {
+			// Update status
+			status.HP.Width = hpWidth
+			status.HP.Value = int(float64(hpWidth) * 100 / float64(status.HP.ROI.Width))
+			if status.HP.Value > 100 {
+				status.HP.Value = 100
+			}
+
+			status.MP.Width = mpWidth
+			status.MP.Value = int(float64(mpWidth) * 100 / float64(status.MP.ROI.Width))
+			if status.MP.Value > 100 {
+				status.MP.Value = 100
+			}
+
+			status.FP.Width = fpWidth
+			status.FP.Value = int(float64(fpWidth) * 100 / float64(status.FP.ROI.Width))
+			if status.FP.Value > 100 {
+				status.FP.Value = 100
+			}
+
+			// Draw bars on result (all same color - blue)
+			barStatuses := []*BarStatus{&status.HP, &status.MP, &status.FP}
+			barTypes := []string{"HP", "MP", "FP"}
+			barColor := color.RGBA{0, 0, 255, 255} // Blue for all bars
+
+			for i := 0; i < 3; i++ {
+				barRect := image.Rect(
+					barStatuses[i].ROI.MinX,
+					barStatuses[i].ROI.MinY,
+					barStatuses[i].ROI.MaxX,
+					barStatuses[i].ROI.MaxY,
+				)
+				gocv.Rectangle(&result, barRect, barColor, 2)
+				text := fmt.Sprintf("%s: %d%%", barTypes[i], barStatuses[i].Value)
+				gocv.PutText(&result, text,
+					image.Pt(barRect.Min.X, barRect.Min.Y-5),
+					gocv.FontHersheyPlain, 1.2, color.RGBA{0, 255, 255, 255}, 2)
+			}
+
+			status.Count++
+			status.Retry = 0
+			return result
+		} else {
+			// Detection failed, increment retry counter
+			if status.Retry < 5 {
+				status.Retry++
+				return result
+			} else {
+				// Too many retries, need full detection
+				status.Open = false
+				status.Count = 0
+				status.Retry = 0
+			}
+		}
+	}
+
+	// Full detection
 	// Fixed morphology parameters (tuned from detection2)
 	blockSize := 100
 	cValue := 2
@@ -1329,9 +1490,6 @@ func detectStatusBars3(mat gocv.Mat) gocv.Mat {
 		}
 	}
 
-	// Create result image
-	result := mat.Clone()
-
 	if !found {
 		return result
 	}
@@ -1370,9 +1528,14 @@ func detectStatusBars3(mat gocv.Mat) gocv.Mat {
 	// === Step 9: Define bar area and find bars ===
 	var img_bars []image.Rectangle
 	if img_avatar.Dx() > 0 {
+		// Calculate bar area top boundary (avatar top - 15, but minimum 1)
+		barAreaTop := img_avatar.Min.Y - 15
+		if barAreaTop < 1 {
+			barAreaTop = 1
+		}
 		img_bararea := image.Rect(
 			img_avatar.Max.X,
-			img_avatar.Min.Y,
+			barAreaTop,
 			img_outline.Dx(),
 			img_avatar.Max.Y,
 		)
@@ -1458,10 +1621,8 @@ func detectStatusBars3(mat gocv.Mat) gocv.Mat {
 				}
 				fillWidths[i] = fillWidth
 
-				percentage := float64(fillWidth) / float64(barRect.Dx()) * 100
-
-				// Draw text (YELLOW)
-				text := fmt.Sprintf("%s: %.1f%%", barType, percentage)
+				// Draw text (YELLOW) - no percentage during full detection
+				text := fmt.Sprintf("%s", barType)
 				gocv.PutText(&result, text,
 					image.Pt(barRect.Min.X, barRect.Min.Y-5),
 					gocv.FontHersheyPlain, 1.2, color.RGBA{0, 255, 255, 255}, 2)
@@ -1470,23 +1631,49 @@ func detectStatusBars3(mat gocv.Mat) gocv.Mat {
 			// === Validation ===
 			valid := true
 
-			// 1. Check horizontal alignment: x coordinate difference <= 10
-			maxX := img_bars[0].Min.X
-			minX := img_bars[0].Min.X
+			// 1. Check horizontal alignment: both MinX and MaxX coordinate difference <= 5
+			maxMinX := img_bars[0].Min.X
+			minMinX := img_bars[0].Min.X
+			maxMaxX := img_bars[0].Max.X
+			minMaxX := img_bars[0].Max.X
 			for i := 1; i < 3; i++ {
-				if img_bars[i].Min.X > maxX {
-					maxX = img_bars[i].Min.X
+				if img_bars[i].Min.X > maxMinX {
+					maxMinX = img_bars[i].Min.X
 				}
-				if img_bars[i].Min.X < minX {
-					minX = img_bars[i].Min.X
+				if img_bars[i].Min.X < minMinX {
+					minMinX = img_bars[i].Min.X
+				}
+				if img_bars[i].Max.X > maxMaxX {
+					maxMaxX = img_bars[i].Max.X
+				}
+				if img_bars[i].Max.X < minMaxX {
+					minMaxX = img_bars[i].Max.X
 				}
 			}
-			xDiff := maxX - minX
-			if xDiff > 10 {
+			minXDiff := maxMinX - minMinX
+			maxXDiff := maxMaxX - minMaxX
+			if minXDiff > 5 || maxXDiff > 5 {
 				valid = false
 			}
 
-			// 2. Check vertical spacing consistency: difference <= 5
+			// 2. Check height consistency: difference <= 5
+			maxHeight := img_bars[0].Dy()
+			minHeight := img_bars[0].Dy()
+			for i := 1; i < 3; i++ {
+				height := img_bars[i].Dy()
+				if height > maxHeight {
+					maxHeight = height
+				}
+				if height < minHeight {
+					minHeight = height
+				}
+			}
+			heightDiff := maxHeight - minHeight
+			if heightDiff > 5 {
+				valid = false
+			}
+
+			// 3. Check vertical spacing consistency: difference <= 5
 			hpMpGap := img_bars[1].Min.Y - img_bars[0].Max.Y
 			mpFpGap := img_bars[2].Min.Y - img_bars[1].Max.Y
 			gapDiff := hpMpGap - mpFpGap
@@ -1497,7 +1684,7 @@ func detectStatusBars3(mat gocv.Mat) gocv.Mat {
 				valid = false
 			}
 
-			// 3. Check fill width consistency: difference <= 15
+			// 4. Check fill width consistency: difference <= 5
 			maxFillWidth := fillWidths[0]
 			minFillWidth := fillWidths[0]
 			for i := 1; i < 3; i++ {
@@ -1509,16 +1696,60 @@ func detectStatusBars3(mat gocv.Mat) gocv.Mat {
 				}
 			}
 			fillWidthDiff := maxFillWidth - minFillWidth
-			if fillWidthDiff > 15 {
+			if fillWidthDiff > 5 {
 				valid = false
 			}
 
 			// Display validation result at top-left of outer frame
-			validationText := "fail"
+			validationText := ""
 			validationColor := color.RGBA{0, 0, 255, 255} // Red
 			if valid {
 				validationText = "true"
 				validationColor = color.RGBA{0, 255, 0, 255} // Green
+			} else {
+				validationText = fmt.Sprintf("fail(%d,%d,%d,%d,%d)", minXDiff, maxXDiff, heightDiff, gapDiff, fillWidthDiff)
+			}
+
+			if valid {
+				// Update status with detected bars (using weighted average if previous data exists)
+				barStatuses := []*BarStatus{&status.HP, &status.MP, &status.FP}
+				for i := 0; i < 3; i++ {
+					barRect := img_bars[i]
+					fillWidth := fillWidths[i]
+
+					// Create new ROI
+					// When validation is true, bars are full, so Width = fillWidth
+					newROI := BarROI{
+						MinX:  barRect.Min.X,
+						MinY:  barRect.Min.Y,
+						MaxX:  barRect.Max.X,
+						MaxY:  barRect.Max.Y,
+						Width: fillWidth,
+					}
+
+					// Calculate weighted average if previous data exists
+					if status.Open && barStatuses[i].ROI.Width > 0 {
+						weight := 0.3    // New data weight
+						oldWeight := 0.7 // Old data weight
+
+						// Average the ROI coordinates
+						newROI.MinX = int(float64(barStatuses[i].ROI.MinX)*oldWeight + float64(newROI.MinX)*weight)
+						newROI.MinY = int(float64(barStatuses[i].ROI.MinY)*oldWeight + float64(newROI.MinY)*weight)
+						newROI.MaxX = int(float64(barStatuses[i].ROI.MaxX)*oldWeight + float64(newROI.MaxX)*weight)
+						newROI.MaxY = int(float64(barStatuses[i].ROI.MaxY)*oldWeight + float64(newROI.MaxY)*weight)
+						// Average the width as well
+						newROI.Width = int(float64(barStatuses[i].ROI.Width)*oldWeight + float64(fillWidth)*weight)
+					}
+
+					// Update bar status
+					barStatuses[i].ROI = newROI
+					barStatuses[i].Width = fillWidth
+					barStatuses[i].Value = 100 // Validation passed means bars are full (100%)
+				}
+
+				status.Open = true
+				status.Count++
+				status.Retry = 0
 			}
 			gocv.PutText(&result, validationText,
 				image.Pt(img_outline.Min.X+5, img_outline.Min.Y+20),
@@ -1533,6 +1764,13 @@ func detectStatusBars3(mat gocv.Mat) gocv.Mat {
 func runDetection3(useStaticImage bool, staticMat gocv.Mat, browser *DebugBrowser, statusImagePath string) {
 	window := gocv.NewWindow("Status Detection")
 	defer window.Close()
+
+	// Initialize detection status
+	status := &detectMyStatus{
+		Open:  false,
+		Count: 0,
+		Retry: 0,
+	}
 
 	var mat gocv.Mat
 	matInitialized := false
@@ -1592,9 +1830,15 @@ func runDetection3(useStaticImage bool, staticMat gocv.Mat, browser *DebugBrowse
 		}
 
 		// Detect and display
-		result := detectStatusBars3(mat)
+		result := detectStatusBars3(mat, status)
 		defer result.Close()
 		window.IMShow(result)
+
+		// Display status as JSON
+		statusJSON, err := json.MarshalIndent(status, "", "  ")
+		if err == nil {
+			fmt.Printf("\n=== Detection Status ===\n%s\n", string(statusJSON))
+		}
 
 		key := window.WaitKey(100)
 		if key == 'q' || key == 27 {

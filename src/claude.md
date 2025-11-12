@@ -691,3 +691,95 @@ Demo() {
 	} 
 
 }
+
+
+帮我写个函数。
+
+按照以下流程来，并重新命名函数，全部使用英文
+detectStatusBars2() {
+	// img_roi: 检测ROI: (0,0) to (500, 350)
+	// img_hsv: 拿到hsv通道，得到图片
+	// img_v: 拿到v通道获取v<80的。
+	// img_vr: 反转
+	// img_vrm: morph width为 5，hight为3
+	// img_vrmr: 再次反转
+	// img_outline: 使用图片img_vrmr用RetrievalExternal检测边框大小为宽400到600，高180到300的，找到外边框
+	// img_avatar: 使用图片img_vrm，在img_outline的范围内，角色头像的边框宽80到200，高从100到300，角色头像有一个
+	// img_bars: 使用图片img_vrm，在img_outline的范围内，用RetrievalList从外边框中找内边框的宽从100到300。高从5到30。能找到3到4个边框。从上往下拿到3个边框。分别是hp，mp，fp，如果有第四个为经验，暂时忽略。
+	// img_bars: 
+	// img_hp: 检测hp，第一个框的hp的h通道从160到180，s和v都是100到240，你要检测他的宽度
+	// img_mp: 检测mp，第二个框的mp的h通道从90到120，s和v都是100到240，你要检测他的宽度
+	// img_fp: 检测fp，第三个框的fp的h通道从45到70，s和v都是100到240，你要检测他的宽度
+}
+
+
+有时会有误检测的。请你在debug_status.go文件的detectStatusBars3函数中判断。hp，mp，fp应该垂直分布，他的前后距离不超过10。hp与mp的上下距离与mp和fp的垂直距离差距不超过5。检测到的hp，mp，fp里面的量的长度差距不超过15。这样的结果视作有效结果。在最外面的大框的左上角显示true。否则显示fail。
+
+detectStatusBars3中的二值查分还用的固定的v是80。你看下detectStatusBars2中AdaptiveThreshold。detectStatusBars3改为daptiveThreshold方法，blockSize为100，c为2。
+
+其实不用每次都不用检测所有外框。每隔30次检测一次外框即可。用个结构临时存储上次的结果。如果结果检测为真，并且上次结果不为空，则新的结果 = 上次结果 * 0.7 + 本次结果 * 0.3，更新到roi中。如果上次结果为空，则本次结果为上次结果。
+
+结构如下
+detectMyStatus{
+	open
+	count
+	retry
+	hp {
+		value
+		width
+		roi {
+			minX
+			maxX
+			maxY
+			maxY
+			width
+		}
+	}
+	mp {...}
+	fp {...}
+
+}
+
+但是hp，fp，mp每次都要检测。用roi中的范围去检测，存到width中，然后value的值为width * 100 / roi.width。
+
+结构如下
+detectStatusBars3(mat, status *detectMyStatus) { //加个参数，把之前的结果传进去
+	sampleCount = 30
+	if (status % sampleCount != 0) {
+		// 用status中的区域去检测
+		// 使用hsv检测，参考step10
+		// 更新value和width。value的最大值为100，value只保存为整数
+		// 更新debug的结果，只把roi和width框起来即可
+		if (hp mp fp 的 width不同时为0) {
+			status.count++
+			return // 检测到了，返回
+		} else { // 说明可能已经变化或者关闭，先重试5次，5次都不行就要重新完整检测
+			if (status.retry == 5) { // 
+				status.retry++
+				return
+			} else {
+				status.open = false
+				status.count = 0
+			}
+		}
+	}
+	// 完整检测
+	// ...
+	if (检测校验为真) { // 说明这个时候 hp，mp，fp 都是满的 
+		// 更新到status中
+		// 更新的为平均值，新的结果 = 上次结果 * 0.7 + 本次结果 * 0.3 说明本次权重占0.3
+		// 如果上次结果为空，则权重为1
+		// 更新debug框的结果，框的为新的值，不框平均值
+		status.open = true
+		status.count++
+	} // 如果检测校验为假，丢掉
+}
+
+runDetection3() {
+	//...
+	// 定义status
+	detectStatusBars3(mat, &status)
+	//要把检测的完整结果通过json展示出来
+}
+
+
