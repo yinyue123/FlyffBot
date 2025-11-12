@@ -129,7 +129,33 @@ func (b *DebugBrowser) Start(cookies []Cookie) error {
 		return err
 	}
 
+	// Start cookie auto-save goroutine
+	go b.autoSaveCookies("cookie.json", 2*time.Minute)
+
 	return nil
+}
+
+// autoSaveCookies saves cookies periodically in a goroutine
+func (b *DebugBrowser) autoSaveCookies(cookiePath string, interval time.Duration) {
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			if b.ctx == nil || b.ctx.Err() != nil {
+				// Browser context is closed, stop saving
+				return
+			}
+			err := b.SaveCookies(cookiePath)
+			if err != nil {
+				fmt.Printf("Auto-save cookies failed: %v\n", err)
+			}
+		case <-b.ctx.Done():
+			// Browser stopped, exit goroutine
+			return
+		}
+	}
 }
 
 // setupScreencastListener sets up the event listener for screencast frames
@@ -221,6 +247,55 @@ func (b *DebugBrowser) GetFrame() (*image.RGBA, bool) {
 	default:
 		return nil, false
 	}
+}
+
+// SaveCookies saves browser cookies to cookie.json file
+func (b *DebugBrowser) SaveCookies(cookiePath string) error {
+	if b.ctx == nil || b.ctx.Err() != nil {
+		return fmt.Errorf("browser context is invalid")
+	}
+
+	var cookies []*network.Cookie
+	err := chromedp.Run(b.ctx,
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			var err error
+			cookies, err = network.GetCookies().Do(ctx)
+			return err
+		}),
+	)
+
+	if err != nil {
+		return fmt.Errorf("failed to get cookies: %w", err)
+	}
+
+	// Convert to Cookie format
+	cookieList := make([]Cookie, len(cookies))
+	for i, c := range cookies {
+		cookieList[i] = Cookie{
+			Name:     c.Name,
+			Value:    c.Value,
+			Domain:   c.Domain,
+			Path:     c.Path,
+			Expires:  c.Expires,
+			HTTPOnly: c.HTTPOnly,
+			Secure:   c.Secure,
+			SameSite: string(c.SameSite),
+		}
+	}
+
+	// Save to file
+	data, err := json.Marshal(cookieList)
+	if err != nil {
+		return fmt.Errorf("failed to marshal cookies: %w", err)
+	}
+
+	err = os.WriteFile(cookiePath, data, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to write cookie file: %w", err)
+	}
+
+	fmt.Printf("Saved %d cookies to %s\n", len(cookies), cookiePath)
+	return nil
 }
 
 func (b *DebugBrowser) Stop() {
@@ -401,13 +476,13 @@ type HSVRange struct {
 
 // MorphParams holds morphology parameters
 type MorphParams struct {
-	UseAdaptive     int // 0 = fixed threshold, 1 = adaptive threshold
-	VThreshold      int // Fixed threshold value
-	AdaptiveMethod  int // 0 = Mean, 1 = Gaussian
-	BlockSize       int // Adaptive block size (must be odd)
-	CValue          int // Adaptive C value
-	MorphWidth      int
-	MorphHeight     int
+	UseAdaptive    int // 0 = fixed threshold, 1 = adaptive threshold
+	VThreshold     int // Fixed threshold value
+	AdaptiveMethod int // 0 = Mean, 1 = Gaussian
+	BlockSize      int // Adaptive block size (must be odd)
+	CValue         int // Adaptive C value
+	MorphWidth     int
+	MorphHeight    int
 }
 
 // detectStatusBars2 detects status bars with the new algorithm
@@ -609,10 +684,10 @@ func detectStatusBars2(mat gocv.Mat, windowMorph *gocv.Window, windowFrame *gocv
 		if img_avatar.Dx() > 0 {
 			// Bar area: to the right of avatar, same Y range as avatar (relative to img_outline)
 			img_bararea = image.Rect(
-				img_avatar.Max.X,          // Start from right edge of avatar
-				img_avatar.Min.Y,          // Same top as avatar
-				img_outline.Dx(),          // Extend to right edge of outline
-				img_avatar.Max.Y,          // Same bottom as avatar
+				img_avatar.Max.X, // Start from right edge of avatar
+				img_avatar.Min.Y, // Same top as avatar
+				img_outline.Dx(), // Extend to right edge of outline
+				img_avatar.Max.Y, // Same bottom as avatar
 			)
 
 			// Convert img_bararea to absolute coordinates (relative to img_roi)
@@ -1181,7 +1256,8 @@ func runDetection2(useStaticImage bool, staticMat gocv.Mat, browser *DebugBrowse
 // detectStatusBars3 - Simplified version that returns annotated image only
 func detectStatusBars3(mat gocv.Mat) gocv.Mat {
 	// Fixed morphology parameters (tuned from detection2)
-	vThreshold := 80
+	blockSize := 100
+	cValue := 2
 	morphWidth := 5
 	morphHeight := 3
 
@@ -1194,7 +1270,7 @@ func detectStatusBars3(mat gocv.Mat) gocv.Mat {
 	defer img_hsv.Close()
 	gocv.CvtColor(img_roi, &img_hsv, gocv.ColorBGRToHSV)
 
-	// === Step 3: Threshold V channel ===
+	// === Step 3: Adaptive Threshold V channel ===
 	channels := gocv.Split(img_hsv)
 	defer func() {
 		for i := range channels {
@@ -1203,9 +1279,17 @@ func detectStatusBars3(mat gocv.Mat) gocv.Mat {
 	}()
 	vChannel := channels[2]
 
+	// Ensure block size is odd and at least 3
+	if blockSize < 3 {
+		blockSize = 3
+	}
+	if blockSize%2 == 0 {
+		blockSize++
+	}
+
 	img_v := gocv.NewMat()
 	defer img_v.Close()
-	gocv.Threshold(vChannel, &img_v, float32(vThreshold), 255, gocv.ThresholdBinaryInv)
+	gocv.AdaptiveThreshold(vChannel, &img_v, 255, gocv.AdaptiveThresholdGaussian, gocv.ThresholdBinaryInv, blockSize, float32(cValue))
 
 	// === Step 4: Invert ===
 	img_vr := gocv.NewMat()
@@ -1336,6 +1420,7 @@ func detectStatusBars3(mat gocv.Mat) gocv.Mat {
 		if len(img_bars) >= 3 {
 			barTypes := []string{"HP", "MP", "FP"}
 			hRanges := [][2]int{{160, 180}, {90, 120}, {45, 70}}
+			fillWidths := make([]int, 3)
 
 			for i := 0; i < 3; i++ {
 				barRect := img_bars[i]
@@ -1371,6 +1456,7 @@ func detectStatusBars3(mat gocv.Mat) gocv.Mat {
 						break
 					}
 				}
+				fillWidths[i] = fillWidth
 
 				percentage := float64(fillWidth) / float64(barRect.Dx()) * 100
 
@@ -1380,6 +1466,63 @@ func detectStatusBars3(mat gocv.Mat) gocv.Mat {
 					image.Pt(barRect.Min.X, barRect.Min.Y-5),
 					gocv.FontHersheyPlain, 1.2, color.RGBA{0, 255, 255, 255}, 2)
 			}
+
+			// === Validation ===
+			valid := true
+
+			// 1. Check horizontal alignment: x coordinate difference <= 10
+			maxX := img_bars[0].Min.X
+			minX := img_bars[0].Min.X
+			for i := 1; i < 3; i++ {
+				if img_bars[i].Min.X > maxX {
+					maxX = img_bars[i].Min.X
+				}
+				if img_bars[i].Min.X < minX {
+					minX = img_bars[i].Min.X
+				}
+			}
+			xDiff := maxX - minX
+			if xDiff > 10 {
+				valid = false
+			}
+
+			// 2. Check vertical spacing consistency: difference <= 5
+			hpMpGap := img_bars[1].Min.Y - img_bars[0].Max.Y
+			mpFpGap := img_bars[2].Min.Y - img_bars[1].Max.Y
+			gapDiff := hpMpGap - mpFpGap
+			if gapDiff < 0 {
+				gapDiff = -gapDiff
+			}
+			if gapDiff > 5 {
+				valid = false
+			}
+
+			// 3. Check fill width consistency: difference <= 15
+			maxFillWidth := fillWidths[0]
+			minFillWidth := fillWidths[0]
+			for i := 1; i < 3; i++ {
+				if fillWidths[i] > maxFillWidth {
+					maxFillWidth = fillWidths[i]
+				}
+				if fillWidths[i] < minFillWidth {
+					minFillWidth = fillWidths[i]
+				}
+			}
+			fillWidthDiff := maxFillWidth - minFillWidth
+			if fillWidthDiff > 15 {
+				valid = false
+			}
+
+			// Display validation result at top-left of outer frame
+			validationText := "fail"
+			validationColor := color.RGBA{0, 0, 255, 255} // Red
+			if valid {
+				validationText = "true"
+				validationColor = color.RGBA{0, 255, 0, 255} // Green
+			}
+			gocv.PutText(&result, validationText,
+				image.Pt(img_outline.Min.X+5, img_outline.Min.Y+20),
+				gocv.FontHersheyPlain, 1.5, validationColor, 2)
 		}
 	}
 
