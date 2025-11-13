@@ -1337,17 +1337,16 @@ func detectStatusBars3(mat gocv.Mat, status *detectMyStatus) gocv.Mat {
 			defer mask.Close()
 			gocv.InRangeWithScalar(barROI, lower, upper, &mask)
 
-			// Find the rightmost white pixel
+			// Find the rightmost white pixel using Reduce (sum each column)
 			fillWidth := 0
-			for x := barRect.Dx() - 1; x >= 0; x-- {
-				hasWhite := false
-				for y := 0; y < barRect.Dy(); y++ {
-					if mask.GetUCharAt(y, x) > 0 {
-						hasWhite = true
-						break
-					}
-				}
-				if hasWhite {
+			// Reduce: sum each column to a single row
+			colSums := gocv.NewMat()
+			defer colSums.Close()
+			gocv.Reduce(mask, &colSums, 0, gocv.ReduceSum, gocv.MatTypeCV32F)
+
+			// Find rightmost non-zero column
+			for x := colSums.Cols() - 1; x >= 0; x-- {
+				if colSums.GetFloatAt(0, x) > 0 {
 					fillWidth = x + 1
 					break
 				}
@@ -1718,9 +1717,9 @@ func detectStatusBars3(mat gocv.Mat, status *detectMyStatus) gocv.Mat {
 	}
 
 	// DetectMyStatus performs status bar detection (incremental or full)
-	DetectMyStatus := func(mat gocv.Mat, status *detectMyStatus) gocv.Mat {
+	// Draws directly on the input mat (in place, no clone)
+	DetectMyStatus := func(mat *gocv.Mat, status *detectMyStatus) {
 		sampleCount := 30
-		result := mat.Clone()
 
 		// Always increment count
 		status.Count = (status.Count + 1) % sampleCount
@@ -1731,37 +1730,35 @@ func detectStatusBars3(mat gocv.Mat, status *detectMyStatus) gocv.Mat {
 			// Convert to HSV
 			img_hsv := gocv.NewMat()
 			defer img_hsv.Close()
-			gocv.CvtColor(mat, &img_hsv, gocv.ColorBGRToHSV)
+			gocv.CvtColor(*mat, &img_hsv, gocv.ColorBGRToHSV)
 
 			// Detect fill widths and values (updated inside detectBarsValue)
 			_, _, _, success := detectBarsValue(img_hsv, &status.HP, &status.MP, &status.FP)
 
 			// Check if detection was successful
 			if success {
-				// Draw bars on result
-				drawIncrementalBars(&result, status)
+				// Draw bars on mat (in place)
+				drawIncrementalBars(mat, status)
 
 				status.Open = true
-
 				status.Retry = 0
-				return result
+				return
 			} else {
 				status.Retry++
 				// Detection failed (all three bars are 0), increment retry counter
 				if status.Retry > 10 { // Status Closed
 					status.Open = false
 				}
-				return result
+				return
 			}
 		}
 
-		// Full detection
-		fullDetection(mat, status, &result, sampleCount)
-
-		return result
+		// Full detection (draws on mat in place)
+		fullDetection(*mat, status, mat, sampleCount)
 	}
 
-	return DetectMyStatus(mat, status)
+	DetectMyStatus(&mat, status)
+	return mat
 }
 
 // runDetection3 - Simplified detection with single window
