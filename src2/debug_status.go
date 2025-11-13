@@ -1281,12 +1281,26 @@ type detectMyStatus struct {
 
 // detectStatusBars3 - Simplified version that returns annotated image only
 func detectStatusBars3(mat gocv.Mat, status *detectMyStatus) gocv.Mat {
+	// DrawDebugInfo draws debug information on the image
+	// Draws rectangle and optional text at the given position
+	DrawDebugInfo := func(result *gocv.Mat, rect image.Rectangle, text string, textPos image.Point, clr color.RGBA, fontSize float64) {
+		// Draw rectangle if valid
+		if rect.Dx() > 0 && rect.Dy() > 0 {
+			gocv.Rectangle(result, rect, clr, 2)
+		}
+
+		// Draw text if provided
+		if text != "" {
+			gocv.PutText(result, text, textPos, gocv.FontHersheyPlain, fontSize, clr, 2)
+		}
+	}
+
 	// detectBarsValue detects HP/MP/FP fill width using HSV color detection
-	// Returns the fill width for HP, MP, FP
-	detectBarsValue := func(img_hsv gocv.Mat, status *detectMyStatus) (hpWidth, mpWidth, fpWidth int) {
+	// Takes three BarStatus pointers, updates Width and Value, returns detected widths and success
+	detectBarsValue := func(img_hsv gocv.Mat, hpBar, mpBar, fpBar *BarStatus) (hpWidth, mpWidth, fpWidth int, success bool) {
 		// Define H ranges for HP, MP, FP
 		hRanges := [][2]int{{160, 180}, {90, 120}, {45, 70}}
-		barStatuses := []*BarStatus{&status.HP, &status.MP, &status.FP}
+		barStatuses := []*BarStatus{hpBar, mpBar, fpBar}
 		widths := []int{0, 0, 0}
 
 		for i := 0; i < 3; i++ {
@@ -1340,424 +1354,431 @@ func detectStatusBars3(mat gocv.Mat, status *detectMyStatus) gocv.Mat {
 			}
 
 			widths[i] = fillWidth
+
+			// Update bar status value
+			barStatus.Width = fillWidth
+			if barStatus.ROI.Width > 0 {
+				barStatus.Value = int(float64(fillWidth) * 100 / float64(barStatus.ROI.Width))
+				if barStatus.Value > 100 {
+					barStatus.Value = 100
+				}
+			} else {
+				barStatus.Value = 0
+			}
 		}
 
-		return widths[0], widths[1], widths[2]
+		// Only fail if all three are 0 (impossible in normal gameplay)
+		allZero := widths[0] == 0 && widths[1] == 0 && widths[2] == 0
+		return widths[0], widths[1], widths[2], !allZero
 	}
-	sampleCount := 30
-	result := mat.Clone()
 
-	// Check if we should do incremental detection (use cached ROI)
-	if status.Open && status.Count%sampleCount != 0 {
-		// Incremental detection: only detect HP/MP/FP fill width using cached ROI
-		// Convert to HSV
+	// updateStatusROI updates status with detected bars using weighted average
+	updateStatusROI := func(status *detectMyStatus, img_bars []image.Rectangle, fillWidths []int) {
+		barStatuses := []*BarStatus{&status.HP, &status.MP, &status.FP}
+		for i := 0; i < 3; i++ {
+			barRect := img_bars[i]
+			fillWidth := fillWidths[i]
+
+			// Create new ROI (when validation is true, bars are full, so Width = fillWidth)
+			newROI := BarROI{
+				MinX:  barRect.Min.X,
+				MinY:  barRect.Min.Y,
+				MaxX:  barRect.Max.X,
+				MaxY:  barRect.Max.Y,
+				Width: fillWidth,
+			}
+
+			// Calculate weighted average if previous data exists
+			if barStatuses[i].ROI.Width > 0 {
+				weight := 0.3    // New data weight
+				oldWeight := 0.7 // Old data weight
+
+				// Average the ROI coordinates
+				newROI.MinX = int(float64(barStatuses[i].ROI.MinX)*oldWeight + float64(newROI.MinX)*weight)
+				newROI.MinY = int(float64(barStatuses[i].ROI.MinY)*oldWeight + float64(newROI.MinY)*weight)
+				newROI.MaxX = int(float64(barStatuses[i].ROI.MaxX)*oldWeight + float64(newROI.MaxX)*weight)
+				newROI.MaxY = int(float64(barStatuses[i].ROI.MaxY)*oldWeight + float64(newROI.MaxY)*weight)
+				// Average the width as well
+				newROI.Width = int(float64(barStatuses[i].ROI.Width)*oldWeight + float64(fillWidth)*weight)
+			}
+
+			// Update bar status
+			barStatuses[i].ROI = newROI
+			barStatuses[i].Width = fillWidth
+			barStatuses[i].Value = 100 // Validation passed means bars are full (100%)
+		}
+
+		status.Open = true
+		status.Retry = 0
+	}
+
+	// validateBars validates the detected bars for consistency
+	validateBars := func(img_hsv gocv.Mat, img_bars []image.Rectangle) (bool, string, []int) {
+		if len(img_bars) < 3 {
+			return false, "fail(img_bars < 3)", nil
+		}
+
+		// 1. Check horizontal alignment: both MinX and MaxX
+		maxMinX := img_bars[0].Min.X
+		minMinX := img_bars[0].Min.X
+		maxMaxX := img_bars[0].Max.X
+		minMaxX := img_bars[0].Max.X
+		for i := 1; i < 3; i++ {
+			if img_bars[i].Min.X > maxMinX {
+				maxMinX = img_bars[i].Min.X
+			}
+			if img_bars[i].Min.X < minMinX {
+				minMinX = img_bars[i].Min.X
+			}
+			if img_bars[i].Max.X > maxMaxX {
+				maxMaxX = img_bars[i].Max.X
+			}
+			if img_bars[i].Max.X < minMaxX {
+				minMaxX = img_bars[i].Max.X
+			}
+		}
+		minXDiff := maxMinX - minMinX
+		maxXDiff := maxMaxX - minMaxX
+
+		// 2. Check height consistency
+		maxHeight := img_bars[0].Dy()
+		minHeight := img_bars[0].Dy()
+		for i := 1; i < 3; i++ {
+			height := img_bars[i].Dy()
+			if height > maxHeight {
+				maxHeight = height
+			}
+			if height < minHeight {
+				minHeight = height
+			}
+		}
+		heightDiff := maxHeight - minHeight
+
+		// 3. Check vertical spacing consistency
+		hpMpGap := img_bars[1].Min.Y - img_bars[0].Max.Y
+		mpFpGap := img_bars[2].Min.Y - img_bars[1].Max.Y
+		gapDiff := hpMpGap - mpFpGap
+		if gapDiff < 0 {
+			gapDiff = -gapDiff
+		}
+
+		// 4. Use detectBarsValue to detect fill widths (bars should be full)
+		// Create temporary BarStatus with ROI set to detected bars
+		tempHP := &BarStatus{ROI: BarROI{
+			MinX:  img_bars[0].Min.X,
+			MinY:  img_bars[0].Min.Y,
+			MaxX:  img_bars[0].Max.X,
+			MaxY:  img_bars[0].Max.Y,
+			Width: 1, // Set to non-zero for detection
+		}}
+		tempMP := &BarStatus{ROI: BarROI{
+			MinX:  img_bars[1].Min.X,
+			MinY:  img_bars[1].Min.Y,
+			MaxX:  img_bars[1].Max.X,
+			MaxY:  img_bars[1].Max.Y,
+			Width: 1,
+		}}
+		tempFP := &BarStatus{ROI: BarROI{
+			MinX:  img_bars[2].Min.X,
+			MinY:  img_bars[2].Min.Y,
+			MaxX:  img_bars[2].Max.X,
+			MaxY:  img_bars[2].Max.Y,
+			Width: 1,
+		}}
+
+		hpWidth, mpWidth, fpWidth, detectionSuccess := detectBarsValue(img_hsv, tempHP, tempMP, tempFP)
+		if !detectionSuccess {
+			return false, "fail(detection)", nil
+		}
+
+		// Check fill width consistency
+		fillWidths := []int{hpWidth, mpWidth, fpWidth}
+		maxFillWidth := fillWidths[0]
+		minFillWidth := fillWidths[0]
+		for i := 1; i < 3; i++ {
+			if fillWidths[i] > maxFillWidth {
+				maxFillWidth = fillWidths[i]
+			}
+			if fillWidths[i] < minFillWidth {
+				minFillWidth = fillWidths[i]
+			}
+		}
+		fillWidthDiff := maxFillWidth - minFillWidth
+
+		// Validate all conditions
+		valid := minXDiff <= 5 && maxXDiff <= 5 && heightDiff <= 5 && gapDiff <= 5 && fillWidthDiff <= 5
+
+		validationText := "true"
+		if !valid {
+			validationText = fmt.Sprintf("fail(%d,%d,%d,%d,%d)", minXDiff, maxXDiff, heightDiff, gapDiff, fillWidthDiff)
+		}
+
+		return valid, validationText, fillWidths
+	}
+
+	// drawIncrementalBars draws HP/MP/FP bars for incremental detection
+	drawIncrementalBars := func(result *gocv.Mat, status *detectMyStatus) {
+		barStatuses := []*BarStatus{&status.HP, &status.MP, &status.FP}
+		barTypes := []string{"HP", "MP", "FP"}
+		barColor := color.RGBA{0, 0, 255, 255} // Blue for all bars
+
+		for i := 0; i < 3; i++ {
+			barRect := image.Rect(
+				barStatuses[i].ROI.MinX,
+				barStatuses[i].ROI.MinY,
+				barStatuses[i].ROI.MaxX,
+				barStatuses[i].ROI.MaxY,
+			)
+			text := fmt.Sprintf("%s: %d%%", barTypes[i], barStatuses[i].Value)
+			textPos := image.Pt(barRect.Min.X, barRect.Min.Y-5)
+
+			DrawDebugInfo(result, barRect, text, textPos, barColor, 1.2)
+		}
+	}
+
+	// fullDetection performs complete detection of status bars
+	fullDetection := func(mat gocv.Mat, status *detectMyStatus, result *gocv.Mat, sampleCount int) {
+		// Fixed morphology parameters (tuned from detection2)
+		blockSize := 100
+		cValue := 2
+		morphWidth := 5
+		morphHeight := 3
+
+		// === Step 1: Extract ROI ===
+		img_roi := mat.Region(image.Rect(0, 0, 500, 350))
+		defer img_roi.Close()
+
+		// === Step 2: Convert to HSV ===
 		img_hsv := gocv.NewMat()
 		defer img_hsv.Close()
-		gocv.CvtColor(mat, &img_hsv, gocv.ColorBGRToHSV)
+		gocv.CvtColor(img_roi, &img_hsv, gocv.ColorBGRToHSV)
 
-		// Detect fill widths
-		hpWidth, mpWidth, fpWidth := detectBarsValue(img_hsv, status)
+		// === Step 3: Adaptive Threshold V channel ===
+		channels := gocv.Split(img_hsv)
+		defer func() {
+			for i := range channels {
+				channels[i].Close()
+			}
+		}()
+		vChannel := channels[2]
 
-		// Check if all bars were detected
-		if hpWidth > 0 && mpWidth > 0 && fpWidth > 0 {
-			// Update status
-			status.HP.Width = hpWidth
-			status.HP.Value = int(float64(hpWidth) * 100 / float64(status.HP.ROI.Width))
-			if status.HP.Value > 100 {
-				status.HP.Value = 100
+		// Ensure block size is odd and at least 3
+		if blockSize < 3 {
+			blockSize = 3
+		}
+		if blockSize%2 == 0 {
+			blockSize++
+		}
+
+		img_v := gocv.NewMat()
+		defer img_v.Close()
+		gocv.AdaptiveThreshold(vChannel, &img_v, 255, gocv.AdaptiveThresholdGaussian, gocv.ThresholdBinaryInv, blockSize, float32(cValue))
+
+		// === Step 4: Invert ===
+		img_vr := gocv.NewMat()
+		defer img_vr.Close()
+		gocv.BitwiseNot(img_v, &img_vr)
+
+		// === Step 5: Morphological operations ===
+		kernel := gocv.GetStructuringElement(gocv.MorphRect, image.Pt(morphWidth, morphHeight))
+		defer kernel.Close()
+
+		closed := gocv.NewMat()
+		defer closed.Close()
+		gocv.MorphologyEx(img_vr, &closed, gocv.MorphClose, kernel)
+
+		img_vrm := gocv.NewMat()
+		defer img_vrm.Close()
+		gocv.MorphologyEx(closed, &img_vrm, gocv.MorphOpen, kernel)
+
+		// === Step 6: Invert for outer frame detection ===
+		img_vrmr := gocv.NewMat()
+		defer img_vrmr.Close()
+		gocv.BitwiseNot(img_vrm, &img_vrmr)
+
+		// === Step 7: Detect outer frame ===
+		outerContours := gocv.FindContours(img_vrmr, gocv.RetrievalExternal, gocv.ChainApproxSimple)
+		defer outerContours.Close()
+
+		var img_outline image.Rectangle
+		found := false
+		for i := 0; i < outerContours.Size(); i++ {
+			contour := outerContours.At(i)
+			rect := gocv.BoundingRect(contour)
+			if rect.Dx() >= 400 && rect.Dx() <= 600 && rect.Dy() >= 180 && rect.Dy() <= 300 {
+				img_outline = rect
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			return
+		}
+
+		// Draw outer frame (GREEN)
+		DrawDebugInfo(result, img_outline, "", image.Point{}, color.RGBA{0, 255, 0, 255}, 1.2)
+
+		// === Step 8: Find avatar ===
+		frameMask := img_vrm.Region(img_outline)
+		defer frameMask.Close()
+
+		innerContours := gocv.FindContours(frameMask, gocv.RetrievalList, gocv.ChainApproxSimple)
+		defer innerContours.Close()
+
+		var img_avatar image.Rectangle
+		for i := 0; i < innerContours.Size(); i++ {
+			contour := innerContours.At(i)
+			rect := gocv.BoundingRect(contour)
+			if rect.Dx() >= 80 && rect.Dx() <= 200 && rect.Dy() >= 100 && rect.Dy() <= 300 {
+				img_avatar = rect
+				break
+			}
+		}
+
+		// Draw avatar (BLUE)
+		if img_avatar.Dx() > 0 {
+			absoluteAvatar := image.Rect(
+				img_avatar.Min.X+img_outline.Min.X,
+				img_avatar.Min.Y+img_outline.Min.Y,
+				img_avatar.Max.X+img_outline.Min.X,
+				img_avatar.Max.Y+img_outline.Min.Y,
+			)
+			DrawDebugInfo(result, absoluteAvatar, "", image.Point{}, color.RGBA{0, 0, 255, 255}, 1.2)
+		}
+
+		// === Step 9: Define bar area and find bars ===
+		var img_bars []image.Rectangle
+		if img_avatar.Dx() > 0 {
+			// Calculate bar area top boundary (avatar top - 15, but minimum 1)
+			barAreaTop := img_avatar.Min.Y - 15
+			if barAreaTop < 1 {
+				barAreaTop = 1
+			}
+			img_bararea := image.Rect(
+				img_avatar.Max.X,
+				barAreaTop,
+				img_outline.Dx(),
+				img_avatar.Max.Y,
+			)
+
+			img_bararea_abs := image.Rect(
+				img_bararea.Min.X+img_outline.Min.X,
+				img_bararea.Min.Y+img_outline.Min.Y,
+				img_bararea.Max.X+img_outline.Min.X,
+				img_bararea.Max.Y+img_outline.Min.Y,
+			)
+
+			// Draw bar area (GREEN)
+			DrawDebugInfo(result, img_bararea_abs, "", image.Point{}, color.RGBA{0, 255, 0, 255}, 1.2)
+
+			barAreaMask := img_vrm.Region(img_bararea_abs)
+			defer barAreaMask.Close()
+
+			barContours := gocv.FindContours(barAreaMask, gocv.RetrievalList, gocv.ChainApproxSimple)
+			defer barContours.Close()
+
+			for i := 0; i < barContours.Size(); i++ {
+				contour := barContours.At(i)
+				rect := gocv.BoundingRect(contour)
+				if rect.Dx() >= 100 && rect.Dx() <= 300 && rect.Dy() >= 5 && rect.Dy() <= 30 {
+					absoluteRect := image.Rect(
+						rect.Min.X+img_bararea_abs.Min.X,
+						rect.Min.Y+img_bararea_abs.Min.Y,
+						rect.Max.X+img_bararea_abs.Min.X,
+						rect.Max.Y+img_bararea_abs.Min.Y,
+					)
+					img_bars = append(img_bars, absoluteRect)
+				}
 			}
 
-			status.MP.Width = mpWidth
-			status.MP.Value = int(float64(mpWidth) * 100 / float64(status.MP.ROI.Width))
-			if status.MP.Value > 100 {
-				status.MP.Value = 100
+			// Sort bars from top to bottom
+			for i := 0; i < len(img_bars); i++ {
+				for j := i + 1; j < len(img_bars); j++ {
+					if img_bars[i].Min.Y > img_bars[j].Min.Y {
+						img_bars[i], img_bars[j] = img_bars[j], img_bars[i]
+					}
+				}
 			}
 
-			status.FP.Width = fpWidth
-			status.FP.Value = int(float64(fpWidth) * 100 / float64(status.FP.ROI.Width))
-			if status.FP.Value > 100 {
-				status.FP.Value = 100
+			// === Step 10: Process HP, MP, FP bars ===
+			if len(img_bars) >= 3 {
+				barTypes := []string{"HP", "MP", "FP"}
+
+				for i := 0; i < 3; i++ {
+					barRect := img_bars[i]
+					barType := barTypes[i]
+					text := fmt.Sprintf("%s", barType)
+					textPos := image.Pt(barRect.Min.X, barRect.Min.Y-5)
+
+					// Draw bar outline and text with same color (BLUE)
+					DrawDebugInfo(result, barRect, text, textPos, color.RGBA{0, 0, 255, 255}, 1.2)
+				}
+
+				// === Validation ===
+				valid, validationText, fillWidths := validateBars(img_hsv, img_bars)
+				validationColor := color.RGBA{0, 0, 255, 255} // Red
+				if valid {
+					validationColor = color.RGBA{0, 255, 0, 255} // Green
+				}
+
+				if valid {
+					// Update status with detected bars
+					updateStatusROI(status, img_bars, fillWidths)
+				}
+
+				// Draw validation text
+				textPos := image.Pt(img_outline.Min.X+5, img_outline.Min.Y+20)
+				DrawDebugInfo(result, image.Rectangle{}, validationText, textPos, validationColor, 1.5)
 			}
+		}
+	}
 
-			// Draw bars on result (all same color - blue)
-			barStatuses := []*BarStatus{&status.HP, &status.MP, &status.FP}
-			barTypes := []string{"HP", "MP", "FP"}
-			barColor := color.RGBA{0, 0, 255, 255} // Blue for all bars
+	// DetectMyStatus performs status bar detection (incremental or full)
+	DetectMyStatus := func(mat gocv.Mat, status *detectMyStatus) gocv.Mat {
+		sampleCount := 30
+		result := mat.Clone()
 
-			for i := 0; i < 3; i++ {
-				barRect := image.Rect(
-					barStatuses[i].ROI.MinX,
-					barStatuses[i].ROI.MinY,
-					barStatuses[i].ROI.MaxX,
-					barStatuses[i].ROI.MaxY,
-				)
-				gocv.Rectangle(&result, barRect, barColor, 2)
-				text := fmt.Sprintf("%s: %d%%", barTypes[i], barStatuses[i].Value)
-				gocv.PutText(&result, text,
-					image.Pt(barRect.Min.X, barRect.Min.Y-5),
-					gocv.FontHersheyPlain, 1.2, color.RGBA{0, 255, 255, 255}, 2)
-			}
+		// Always increment count
+		status.Count = (status.Count + 1) % sampleCount
 
-			status.Count++
-			status.Retry = 0
-			return result
-		} else {
-			// Detection failed, increment retry counter
-			if status.Retry < 5 {
-				status.Retry++
+		// Check if we should do incremental detection (use cached ROI)
+		if status.Count%sampleCount != 0 {
+			// Incremental detection: only detect HP/MP/FP fill width using cached ROI
+			// Convert to HSV
+			img_hsv := gocv.NewMat()
+			defer img_hsv.Close()
+			gocv.CvtColor(mat, &img_hsv, gocv.ColorBGRToHSV)
+
+			// Detect fill widths and values (updated inside detectBarsValue)
+			_, _, _, success := detectBarsValue(img_hsv, &status.HP, &status.MP, &status.FP)
+
+			// Check if detection was successful
+			if success {
+				// Draw bars on result
+				drawIncrementalBars(&result, status)
+
+				status.Open = true
+
+				status.Retry = 0
 				return result
 			} else {
-				// Too many retries, need full detection
-				status.Open = false
-				status.Count = 0
-				status.Retry = 0
+				status.Retry++
+				// Detection failed (all three bars are 0), increment retry counter
+				if status.Retry > 10 { // Status Closed
+					status.Open = false
+				}
+				return result
 			}
 		}
-	}
 
-	// Full detection
-	// Fixed morphology parameters (tuned from detection2)
-	blockSize := 100
-	cValue := 2
-	morphWidth := 5
-	morphHeight := 3
+		// Full detection
+		fullDetection(mat, status, &result, sampleCount)
 
-	// === Step 1: Extract ROI ===
-	img_roi := mat.Region(image.Rect(0, 0, 500, 350))
-	defer img_roi.Close()
-
-	// === Step 2: Convert to HSV ===
-	img_hsv := gocv.NewMat()
-	defer img_hsv.Close()
-	gocv.CvtColor(img_roi, &img_hsv, gocv.ColorBGRToHSV)
-
-	// === Step 3: Adaptive Threshold V channel ===
-	channels := gocv.Split(img_hsv)
-	defer func() {
-		for i := range channels {
-			channels[i].Close()
-		}
-	}()
-	vChannel := channels[2]
-
-	// Ensure block size is odd and at least 3
-	if blockSize < 3 {
-		blockSize = 3
-	}
-	if blockSize%2 == 0 {
-		blockSize++
-	}
-
-	img_v := gocv.NewMat()
-	defer img_v.Close()
-	gocv.AdaptiveThreshold(vChannel, &img_v, 255, gocv.AdaptiveThresholdGaussian, gocv.ThresholdBinaryInv, blockSize, float32(cValue))
-
-	// === Step 4: Invert ===
-	img_vr := gocv.NewMat()
-	defer img_vr.Close()
-	gocv.BitwiseNot(img_v, &img_vr)
-
-	// === Step 5: Morphological operations ===
-	kernel := gocv.GetStructuringElement(gocv.MorphRect, image.Pt(morphWidth, morphHeight))
-	defer kernel.Close()
-
-	closed := gocv.NewMat()
-	defer closed.Close()
-	gocv.MorphologyEx(img_vr, &closed, gocv.MorphClose, kernel)
-
-	img_vrm := gocv.NewMat()
-	defer img_vrm.Close()
-	gocv.MorphologyEx(closed, &img_vrm, gocv.MorphOpen, kernel)
-
-	// === Step 6: Invert for outer frame detection ===
-	img_vrmr := gocv.NewMat()
-	defer img_vrmr.Close()
-	gocv.BitwiseNot(img_vrm, &img_vrmr)
-
-	// === Step 7: Detect outer frame ===
-	outerContours := gocv.FindContours(img_vrmr, gocv.RetrievalExternal, gocv.ChainApproxSimple)
-	defer outerContours.Close()
-
-	var img_outline image.Rectangle
-	found := false
-	for i := 0; i < outerContours.Size(); i++ {
-		contour := outerContours.At(i)
-		rect := gocv.BoundingRect(contour)
-		if rect.Dx() >= 400 && rect.Dx() <= 600 && rect.Dy() >= 180 && rect.Dy() <= 300 {
-			img_outline = rect
-			found = true
-			break
-		}
-	}
-
-	if !found {
 		return result
 	}
 
-	// Draw outer frame (GREEN)
-	gocv.Rectangle(&result, img_outline, color.RGBA{0, 255, 0, 255}, 2)
-
-	// === Step 8: Find avatar ===
-	frameMask := img_vrm.Region(img_outline)
-	defer frameMask.Close()
-
-	innerContours := gocv.FindContours(frameMask, gocv.RetrievalList, gocv.ChainApproxSimple)
-	defer innerContours.Close()
-
-	var img_avatar image.Rectangle
-	for i := 0; i < innerContours.Size(); i++ {
-		contour := innerContours.At(i)
-		rect := gocv.BoundingRect(contour)
-		if rect.Dx() >= 80 && rect.Dx() <= 200 && rect.Dy() >= 100 && rect.Dy() <= 300 {
-			img_avatar = rect
-			break
-		}
-	}
-
-	// Draw avatar (BLUE)
-	if img_avatar.Dx() > 0 {
-		absoluteAvatar := image.Rect(
-			img_avatar.Min.X+img_outline.Min.X,
-			img_avatar.Min.Y+img_outline.Min.Y,
-			img_avatar.Max.X+img_outline.Min.X,
-			img_avatar.Max.Y+img_outline.Min.Y,
-		)
-		gocv.Rectangle(&result, absoluteAvatar, color.RGBA{0, 0, 255, 255}, 2)
-	}
-
-	// === Step 9: Define bar area and find bars ===
-	var img_bars []image.Rectangle
-	if img_avatar.Dx() > 0 {
-		// Calculate bar area top boundary (avatar top - 15, but minimum 1)
-		barAreaTop := img_avatar.Min.Y - 15
-		if barAreaTop < 1 {
-			barAreaTop = 1
-		}
-		img_bararea := image.Rect(
-			img_avatar.Max.X,
-			barAreaTop,
-			img_outline.Dx(),
-			img_avatar.Max.Y,
-		)
-
-		img_bararea_abs := image.Rect(
-			img_bararea.Min.X+img_outline.Min.X,
-			img_bararea.Min.Y+img_outline.Min.Y,
-			img_bararea.Max.X+img_outline.Min.X,
-			img_bararea.Max.Y+img_outline.Min.Y,
-		)
-
-		// Draw bar area (GREEN)
-		gocv.Rectangle(&result, img_bararea_abs, color.RGBA{0, 255, 0, 255}, 2)
-
-		barAreaMask := img_vrm.Region(img_bararea_abs)
-		defer barAreaMask.Close()
-
-		barContours := gocv.FindContours(barAreaMask, gocv.RetrievalList, gocv.ChainApproxSimple)
-		defer barContours.Close()
-
-		for i := 0; i < barContours.Size(); i++ {
-			contour := barContours.At(i)
-			rect := gocv.BoundingRect(contour)
-			if rect.Dx() >= 100 && rect.Dx() <= 300 && rect.Dy() >= 5 && rect.Dy() <= 30 {
-				absoluteRect := image.Rect(
-					rect.Min.X+img_bararea_abs.Min.X,
-					rect.Min.Y+img_bararea_abs.Min.Y,
-					rect.Max.X+img_bararea_abs.Min.X,
-					rect.Max.Y+img_bararea_abs.Min.Y,
-				)
-				img_bars = append(img_bars, absoluteRect)
-			}
-		}
-
-		// Sort bars from top to bottom
-		for i := 0; i < len(img_bars); i++ {
-			for j := i + 1; j < len(img_bars); j++ {
-				if img_bars[i].Min.Y > img_bars[j].Min.Y {
-					img_bars[i], img_bars[j] = img_bars[j], img_bars[i]
-				}
-			}
-		}
-
-		// === Step 10: Process HP, MP, FP bars ===
-		if len(img_bars) >= 3 {
-			barTypes := []string{"HP", "MP", "FP"}
-			hRanges := [][2]int{{160, 180}, {90, 120}, {45, 70}}
-			fillWidths := make([]int, 3)
-
-			for i := 0; i < 3; i++ {
-				barRect := img_bars[i]
-				barType := barTypes[i]
-				hRange := hRanges[i]
-
-				// Draw bar outline (BLUE)
-				gocv.Rectangle(&result, barRect, color.RGBA{0, 0, 255, 255}, 2)
-
-				// Extract bar region from HSV
-				barROI := img_hsv.Region(barRect)
-				defer barROI.Close()
-
-				// Create mask for the specific color range
-				lower := gocv.NewScalar(float64(hRange[0]), 100, 100, 0)
-				upper := gocv.NewScalar(float64(hRange[1]), 240, 240, 0)
-				mask := gocv.NewMat()
-				defer mask.Close()
-				gocv.InRangeWithScalar(barROI, lower, upper, &mask)
-
-				// Find the rightmost white pixel
-				fillWidth := 0
-				for x := barRect.Dx() - 1; x >= 0; x-- {
-					hasWhite := false
-					for y := 0; y < barRect.Dy(); y++ {
-						if mask.GetUCharAt(y, x) > 0 {
-							hasWhite = true
-							break
-						}
-					}
-					if hasWhite {
-						fillWidth = x + 1
-						break
-					}
-				}
-				fillWidths[i] = fillWidth
-
-				// Draw text (YELLOW) - no percentage during full detection
-				text := fmt.Sprintf("%s", barType)
-				gocv.PutText(&result, text,
-					image.Pt(barRect.Min.X, barRect.Min.Y-5),
-					gocv.FontHersheyPlain, 1.2, color.RGBA{0, 255, 255, 255}, 2)
-			}
-
-			// === Validation ===
-			valid := true
-
-			// 1. Check horizontal alignment: both MinX and MaxX coordinate difference <= 5
-			maxMinX := img_bars[0].Min.X
-			minMinX := img_bars[0].Min.X
-			maxMaxX := img_bars[0].Max.X
-			minMaxX := img_bars[0].Max.X
-			for i := 1; i < 3; i++ {
-				if img_bars[i].Min.X > maxMinX {
-					maxMinX = img_bars[i].Min.X
-				}
-				if img_bars[i].Min.X < minMinX {
-					minMinX = img_bars[i].Min.X
-				}
-				if img_bars[i].Max.X > maxMaxX {
-					maxMaxX = img_bars[i].Max.X
-				}
-				if img_bars[i].Max.X < minMaxX {
-					minMaxX = img_bars[i].Max.X
-				}
-			}
-			minXDiff := maxMinX - minMinX
-			maxXDiff := maxMaxX - minMaxX
-			if minXDiff > 5 || maxXDiff > 5 {
-				valid = false
-			}
-
-			// 2. Check height consistency: difference <= 5
-			maxHeight := img_bars[0].Dy()
-			minHeight := img_bars[0].Dy()
-			for i := 1; i < 3; i++ {
-				height := img_bars[i].Dy()
-				if height > maxHeight {
-					maxHeight = height
-				}
-				if height < minHeight {
-					minHeight = height
-				}
-			}
-			heightDiff := maxHeight - minHeight
-			if heightDiff > 5 {
-				valid = false
-			}
-
-			// 3. Check vertical spacing consistency: difference <= 5
-			hpMpGap := img_bars[1].Min.Y - img_bars[0].Max.Y
-			mpFpGap := img_bars[2].Min.Y - img_bars[1].Max.Y
-			gapDiff := hpMpGap - mpFpGap
-			if gapDiff < 0 {
-				gapDiff = -gapDiff
-			}
-			if gapDiff > 5 {
-				valid = false
-			}
-
-			// 4. Check fill width consistency: difference <= 5
-			maxFillWidth := fillWidths[0]
-			minFillWidth := fillWidths[0]
-			for i := 1; i < 3; i++ {
-				if fillWidths[i] > maxFillWidth {
-					maxFillWidth = fillWidths[i]
-				}
-				if fillWidths[i] < minFillWidth {
-					minFillWidth = fillWidths[i]
-				}
-			}
-			fillWidthDiff := maxFillWidth - minFillWidth
-			if fillWidthDiff > 5 {
-				valid = false
-			}
-
-			// Display validation result at top-left of outer frame
-			validationText := ""
-			validationColor := color.RGBA{0, 0, 255, 255} // Red
-			if valid {
-				validationText = "true"
-				validationColor = color.RGBA{0, 255, 0, 255} // Green
-			} else {
-				validationText = fmt.Sprintf("fail(%d,%d,%d,%d,%d)", minXDiff, maxXDiff, heightDiff, gapDiff, fillWidthDiff)
-			}
-
-			if valid {
-				// Update status with detected bars (using weighted average if previous data exists)
-				barStatuses := []*BarStatus{&status.HP, &status.MP, &status.FP}
-				for i := 0; i < 3; i++ {
-					barRect := img_bars[i]
-					fillWidth := fillWidths[i]
-
-					// Create new ROI
-					// When validation is true, bars are full, so Width = fillWidth
-					newROI := BarROI{
-						MinX:  barRect.Min.X,
-						MinY:  barRect.Min.Y,
-						MaxX:  barRect.Max.X,
-						MaxY:  barRect.Max.Y,
-						Width: fillWidth,
-					}
-
-					// Calculate weighted average if previous data exists
-					if status.Open && barStatuses[i].ROI.Width > 0 {
-						weight := 0.3    // New data weight
-						oldWeight := 0.7 // Old data weight
-
-						// Average the ROI coordinates
-						newROI.MinX = int(float64(barStatuses[i].ROI.MinX)*oldWeight + float64(newROI.MinX)*weight)
-						newROI.MinY = int(float64(barStatuses[i].ROI.MinY)*oldWeight + float64(newROI.MinY)*weight)
-						newROI.MaxX = int(float64(barStatuses[i].ROI.MaxX)*oldWeight + float64(newROI.MaxX)*weight)
-						newROI.MaxY = int(float64(barStatuses[i].ROI.MaxY)*oldWeight + float64(newROI.MaxY)*weight)
-						// Average the width as well
-						newROI.Width = int(float64(barStatuses[i].ROI.Width)*oldWeight + float64(fillWidth)*weight)
-					}
-
-					// Update bar status
-					barStatuses[i].ROI = newROI
-					barStatuses[i].Width = fillWidth
-					barStatuses[i].Value = 100 // Validation passed means bars are full (100%)
-				}
-
-				status.Open = true
-				status.Count++
-				status.Retry = 0
-			}
-			gocv.PutText(&result, validationText,
-				image.Pt(img_outline.Min.X+5, img_outline.Min.Y+20),
-				gocv.FontHersheyPlain, 1.5, validationColor, 2)
-		}
-	}
-
-	return result
+	return DetectMyStatus(mat, status)
 }
 
 // runDetection3 - Simplified detection with single window
@@ -1835,10 +1856,10 @@ func runDetection3(useStaticImage bool, staticMat gocv.Mat, browser *DebugBrowse
 		window.IMShow(result)
 
 		// Display status as JSON
-		statusJSON, err := json.MarshalIndent(status, "", "  ")
-		if err == nil {
-			fmt.Printf("\n=== Detection Status ===\n%s\n", string(statusJSON))
-		}
+		// statusJSON, err := json.MarshalIndent(status, "", "  ")
+		// if err == nil {
+		// 	fmt.Printf("\n=== Detection Status ===\n%s\n", string(statusJSON))
+		// }
 
 		key := window.WaitKey(100)
 		if key == 'q' || key == 27 {
