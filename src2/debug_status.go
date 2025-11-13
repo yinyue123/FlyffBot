@@ -1372,38 +1372,21 @@ func detectStatusBars3(mat gocv.Mat, status *detectMyStatus) gocv.Mat {
 		return widths[0], widths[1], widths[2], !allZero
 	}
 
-	// updateStatusROI updates status with detected bars using weighted average
+	// updateStatusROI updates status with detected bars
 	updateStatusROI := func(status *detectMyStatus, img_bars []image.Rectangle, fillWidths []int) {
 		barStatuses := []*BarStatus{&status.HP, &status.MP, &status.FP}
 		for i := 0; i < 3; i++ {
 			barRect := img_bars[i]
 			fillWidth := fillWidths[i]
 
-			// Create new ROI (when validation is true, bars are full, so Width = fillWidth)
-			newROI := BarROI{
+			// Directly use new ROI (when validation is true, bars are full, so Width = fillWidth)
+			barStatuses[i].ROI = BarROI{
 				MinX:  barRect.Min.X,
 				MinY:  barRect.Min.Y,
 				MaxX:  barRect.Max.X,
 				MaxY:  barRect.Max.Y,
 				Width: fillWidth,
 			}
-
-			// Calculate weighted average if previous data exists
-			if barStatuses[i].ROI.Width > 0 {
-				weight := 0.3    // New data weight
-				oldWeight := 0.7 // Old data weight
-
-				// Average the ROI coordinates
-				newROI.MinX = int(float64(barStatuses[i].ROI.MinX)*oldWeight + float64(newROI.MinX)*weight)
-				newROI.MinY = int(float64(barStatuses[i].ROI.MinY)*oldWeight + float64(newROI.MinY)*weight)
-				newROI.MaxX = int(float64(barStatuses[i].ROI.MaxX)*oldWeight + float64(newROI.MaxX)*weight)
-				newROI.MaxY = int(float64(barStatuses[i].ROI.MaxY)*oldWeight + float64(newROI.MaxY)*weight)
-				// Average the width as well
-				newROI.Width = int(float64(barStatuses[i].ROI.Width)*oldWeight + float64(fillWidth)*weight)
-			}
-
-			// Update bar status
-			barStatuses[i].ROI = newROI
 			barStatuses[i].Width = fillWidth
 			barStatuses[i].Value = 100 // Validation passed means bars are full (100%)
 		}
