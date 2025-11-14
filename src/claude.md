@@ -782,4 +782,35 @@ runDetection3() {
 	//要把检测的完整结果通过json展示出来
 }
 
+//
+detectBarsIncremental和detectStatusBars3中的hsv的hp，mp，fp检测的代码是公用的。请不要新建detectBarsIncremental。在detectStatusBars3内部建个detectBarsValue函数。
+另外校验为真的时候，hp，mp，fp都是满的。newRoi.width就是detectBarsValue。而不是检测roi的宽度，因为roi包含了边框。
+
+请按照以下的修改
+1. count = (count + 1) % sampleCount
+2. valid 失败的时候也需要 count增加，否则会一直卡在那里
+3. 计算hp mp fp的value的值也要放在detectBarsValue函数里，可以继承在函数中
+4. 校验valid的也包装成一个函数放在detectStatusBars3里，不然函数看起来很乱
+count = (count + 1) % 
+
+
+原来的target_status.go文件太长了，我已经挪至debug_target.go里进行修改。
+
+这个外形的外框不明显，请不要再找外框了，改为找圆，找到圆后再他的右边有两个横条，分别是hp和mp。
+整个流程如下。
+
+1. 选择roi范围，自适应二值化
+2. 使用霍夫曼检测圆。可以调整参数
+3. 调整检测的范围，缩小到圆的右边m到n的范围
+4. 使用形态学先膨胀再腐蚀
+5. 检测连个横条的位置，限制长条的长度，长度在某个范围内，宽度在某个范围内
+
+那么整个流程一共有5个窗口
+第一个窗口调整roi范围，调整二值化的参数，用的自适应检测算法，然后可以看到roi的内容，二值化的结果
+第二个窗口调整检测圆的算法，可以看到到底检测到圆了没，在哪里。
+第三个窗口显示横线的检测范围
+第四个窗口显示形态学的检测结果
+第五个窗口显示滑动显示的位置，显示横条的检测结果
+
+
 
